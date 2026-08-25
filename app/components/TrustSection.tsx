@@ -33,7 +33,7 @@ const cards = [
       "border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50",
     iconClass: "text-orange-600",
   },
-];
+] as const;
 
 export default function TrustSection() {
   const { t } = useLanguage();
