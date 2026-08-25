@@ -119,6 +119,38 @@ seeTheResultDescription:
   footerTagline: "A new way to bid in Ethiopia.",
 
   copyright: "© 2026 Mella. All rights reserved.",
+
+  liveAuctions: "LIVE AUCTIONS",
+
+findYourNextWin: "Find your next win.",
+
+auctionsPageDescription:
+  "Explore live Mella auctions and discover cars, electronics, appliances and other exceptional products.",
+
+all: "All",
+
+electronics: "Electronics",
+
+automotive: "Automotive",
+
+home: "Home",
+
+searchAuctions: "Search auctions...",
+
+filters: "Filters",
+
+auctionsAvailable: "auctions available",
+
+endingSoon: "ENDING SOON",
+
+noAuctionsFound: "No auctions found",
+
+tryAnotherSearch:
+  "Try a different search or category to find an auction.",
+
+clearFilters: "Clear filters",
+
+mysteryBox: "Mystery Box",
   },
 
   am: {
@@ -223,6 +255,38 @@ seeTheResultDescription:
   footerTagline: "በኢትዮጵያ ጨረታ የሚሳተፉበት አዲስ መንገድ።",
 
   copyright: "© 2026 Mella. መብቱ በሙሉ የተጠበቀ ነው።",
+
+  liveAuctions: "የቀጥታ ጨረታዎች",
+
+findYourNextWin: "ቀጣዩን ዕድልዎን ያግኙ።",
+
+auctionsPageDescription:
+  "የሜላን የቀጥታ ጨረታዎች ይመልከቱ፤ መኪናዎችን፣ ኤሌክትሮኒክስን፣ የቤት እቃዎችን እና ሌሎች ልዩ ምርቶችን ያግኙ።",
+
+all: "ሁሉም",
+
+electronics: "ኤሌክትሮኒክስ",
+
+automotive: "መኪናዎች",
+
+home: "የቤት እቃዎች",
+
+searchAuctions: "ጨረታዎችን ይፈልጉ...",
+
+filters: "ማጣሪያዎች",
+
+auctionsAvailable: "ጨረታዎች ይገኛሉ",
+
+endingSoon: "በቅርቡ የሚያበቃ",
+
+noAuctionsFound: "ምንም ጨረታ አልተገኘም",
+
+tryAnotherSearch:
+  "ሌላ ፍለጋ ወይም የተለየ ምድብ ይሞክሩ።",
+
+clearFilters: "ማጣሪያዎችን አጽዳ",
+
+mysteryBox: "የሚስጥር ሳጥን",
   },
 };
 

@@ -17,7 +17,7 @@ export default function Header() {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
         {/* LOGO */}
         <a
-          href="#"
+          href="/"
           className="flex items-center gap-3"
           onClick={() => setMenuOpen(false)}
         >
@@ -29,7 +29,7 @@ export default function Header() {
         {/* DESKTOP NAVIGATION */}
         <nav className="hidden items-center gap-9 text-sm text-white/60 md:flex">
           <a
-            href="#auctions"
+            href="/auctions"
             className="font-medium transition hover:text-white"
           >
             {t("auctions")}
@@ -130,7 +130,7 @@ export default function Header() {
 
           {/* AUCTIONS */}
           <a
-            href="#auctions"
+            href="/auctions"
             onClick={() => setMenuOpen(false)}
             className="block border-b border-white/10 py-4 text-sm text-white/70 transition hover:text-white"
           >
