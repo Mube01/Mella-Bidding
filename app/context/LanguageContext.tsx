@@ -115,6 +115,10 @@ placeYourStrategyDescription:
 
 seeTheResultDescription:
   "When the auction closes, the winning logic and result are published.",
+
+  footerTagline: "A new way to bid in Ethiopia.",
+
+  copyright: "© 2026 Mella. All rights reserved.",
   },
 
   am: {
@@ -215,6 +219,10 @@ placeYourStrategyDescription:
 
 seeTheResultDescription:
   "ጨረታው ሲዘጋ የአሸናፊው አመራረጥ ሂደት እና ውጤቱ ይፋ ይደረጋል።",
+
+  footerTagline: "በኢትዮጵያ ጨረታ የሚሳተፉበት አዲስ መንገድ።",
+
+  copyright: "© 2026 Mella. መብቱ በሙሉ የተጠበቀ ነው።",
   },
 };
 
