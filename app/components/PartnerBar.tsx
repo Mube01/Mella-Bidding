@@ -6,7 +6,7 @@ export default function PartnerBar() {
         {/* Ethio telecom - LEFT */}
         <div className="rounded-lg bg-white px-2 py-1">
           <img
-            src="/images/ethio-telecom.PNG"
+            src="/images/ethio-telecom.png"
             alt="Ethio telecom"
             className="h-8 w-auto object-contain"
           />
