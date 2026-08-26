@@ -36,21 +36,21 @@ export default function Header() {
           </a>
 
           <a
-            href="#how"
+            href="/how"
             className="transition hover:text-white"
           >
             {t("howItWorks")}
           </a>
 
           <a
-            href="#results"
+            href="/results"
             className="transition hover:text-white"
           >
             {t("results")}
           </a>
 
           <a
-            href="#about"
+            href="/about"
             className="transition hover:text-white"
           >
             {t("about")}
@@ -139,7 +139,7 @@ export default function Header() {
 
           {/* HOW IT WORKS */}
           <a
-            href="#how"
+            href="/how"
             onClick={() => setMenuOpen(false)}
             className="block border-b border-white/10 py-4 text-sm text-white/70 transition hover:text-white"
           >
@@ -148,7 +148,7 @@ export default function Header() {
 
           {/* RESULTS */}
           <a
-            href="#results"
+            href="/results"
             onClick={() => setMenuOpen(false)}
             className="block border-b border-white/10 py-4 text-sm text-white/70 transition hover:text-white"
           >
@@ -157,7 +157,7 @@ export default function Header() {
 
           {/* ABOUT */}
           <a
-            href="#about"
+            href="/about"
             onClick={() => setMenuOpen(false)}
             className="block py-4 text-sm text-white/70 transition hover:text-white"
           >

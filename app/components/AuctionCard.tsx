@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import type { Auction } from "./data";
 import { useLanguage } from "../context/LanguageContext";
+import Link from "next/link";
 
 export default function AuctionCard({
   auction,
@@ -51,6 +52,9 @@ export default function AuctionCard({
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-[#999] bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+
+      
+     <Link     href={`/auctions/${auction.id}`}>
 
       {/* IMAGE */}
       <div className="relative aspect-[1.05/1] overflow-hidden border-b border-black/10">
@@ -168,8 +172,7 @@ export default function AuctionCard({
         </div>
 
         {/* SUBMIT */}
-        <a
-          href={`/auctions/${auction.id}`}
+        <span
           className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#F78000] px-4 text-sm font-bold text-white shadow-md shadow-[#F78000]/20 transition hover:bg-[#D96E00] hover:shadow-lg"
         >
           {t("submitBid")}
@@ -178,7 +181,7 @@ export default function AuctionCard({
             size={16}
             className="transition-transform group-hover:translate-x-1"
           />
-        </a>
+        </span>
 
         {/* ENTRY */}
         <p className="mt-3 text-center text-[12px] text-black/40">
@@ -189,6 +192,7 @@ export default function AuctionCard({
         </p>
 
       </div>
+      </Link>
     </article>
   );
 }
