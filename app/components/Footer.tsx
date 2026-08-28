@@ -17,7 +17,7 @@ export default function Footer() {
           {/* BRAND */}
           <div>
             <div className="flex items-center gap-3">
-              <p className="font-display text-3xl">
+              <p className="font-brand text-4xl">
                 MELLA
               </p>
             </div>

@@ -49,7 +49,7 @@ export default function AuthShell({
 
             <Link
               href="/"
-              className="font-display text-3xl tracking-[-0.04em] text-white transition hover:text-[#F78000]"
+              className="font-brand text-4xl text-white transition hover:text-[#F78000]"
             >
               MELLA
             </Link>
@@ -154,7 +154,7 @@ export default function AuthShell({
 
               <Link
                 href="/"
-                className="font-display text-3xl tracking-[-0.04em] text-black transition hover:text-[#1681C5]"
+                className="font-brand text-4xl text-black transition hover:text-[#1681C5]"
               >
                 MELLA
               </Link>

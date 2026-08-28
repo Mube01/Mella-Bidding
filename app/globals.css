@@ -1,8 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:#ffffff;color:#11110f;font-family:"DM Sans",Arial,sans-serif}
+.font-brand{font-family:"Cormorant Garamond",serif;font-weight:600;letter-spacing:.1em}
 ::selection{background:#15803d;color:#ffffff}.noise{background-image:radial-gradient(rgba(21,128,61,.045) 1px,transparent 1px);background-size:5px 5px}
 .hero-grid{background-image:linear-gradient(rgba(21,128,61,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(21,128,61,.06) 1px,transparent 1px);background-size:56px 56px;mask-image:linear-gradient(to bottom,black,transparent 90%)}
 .auction-image{transition:transform .7s cubic-bezier(.2,.8,.2,1)} .auction-card:hover .auction-image{transform:scale(1.055)}

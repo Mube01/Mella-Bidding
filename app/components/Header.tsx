@@ -213,7 +213,7 @@ export default function Header() {
             setAccountOpen(false);
           }}
         >
-          <span className="text-3xl font-display tracking-[0.1em] text-white">
+          <span className="font-brand text-4xl text-white">
             MELLA
           </span>
         </Link>

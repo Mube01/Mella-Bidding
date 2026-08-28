@@ -33,7 +33,7 @@ export default function FeaturedAuction({
       <div className="absolute -inset-10 rounded-[3rem] bg-gradient-to-r from-[#1681C5]/20 via-[#F78000]/10 to-emerald-400/20 blur-3xl" />
 
       <div className="relative overflow-hidden rounded-[1.8rem] border border-black/10 bg-white shadow-2xl">
-        <div className="relative aspect-[4/4.3] overflow-hidden">
+        <div className="relative aspect-[4/5.5] overflow-hidden sm:aspect-[4/4.3]">
 
           {/* BYD IMAGE */}
           <img
@@ -61,13 +61,13 @@ export default function FeaturedAuction({
           </div>
 
           {/* CONTENT */}
-          <div className="absolute inset-x-5 bottom-5 text-white">
+          <div className="absolute inset-x-5 bottom-5 text-white ">
 
-            <div className="mb-4 flex items-end justify-between gap-4">
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
               {/* TITLE */}
               <div>
-                <p className="text-[9px] font-bold tracking-[0.22em] text-white/60">
+                <p className="text-[9px] font-bold tracking-[0.22em] text-white/60 ">
                   {t("featuredAutomotiveAuction")}
                 </p>
 
@@ -75,13 +75,13 @@ export default function FeaturedAuction({
                   {auction.title}
                 </h2>
 
-                <p className="mt-1 text-sm text-white/65">
+                <p className="mt-1 text-sm text-white/65 ">
                   {auction.subtitle}
                 </p>
               </div>
 
               {/* COUNTDOWN */}
-              <div className="shrink-0 rounded-xl border border-white/20 bg-black/50 px-4 py-3 text-right backdrop-blur-md">
+              <div className="w-full shrink-0 rounded-xl border border-white/20 bg-black/50 px-5 py-4 text-right backdrop-blur-md sm:w-[220px]">
 
                 <div className="flex items-center gap-2">
                   <Clock3
@@ -94,7 +94,7 @@ export default function FeaturedAuction({
                   </p>
                 </div>
 
-                <p className="mt-1 font-mono text-lg font-bold text-red-500">
+                <p className="mt-1 font-mono text-md font-bold text-red-500">
                   {endsAt ? <AuctionCountdown endsAt={endsAt} /> : auction.time}
                 </p>
 

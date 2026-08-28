@@ -5,15 +5,17 @@ import {
 } from "lucide-react";
 
 import FeaturedAuction from "./FeaturedAuction";
-import { auctions } from "./data";
+import LoadingSpinner from "./ui/LoadingSpinner";
+import type { Auction } from "./data";
 import { useLanguage } from "../context/LanguageContext";
 import { useEffect, useState } from "react";
 
 export default function Hero() {
   const { language, t } = useLanguage();
-  const [featuredAuction, setFeaturedAuction] = useState(auctions[0]);
+  const [featuredAuction, setFeaturedAuction] = useState<Auction | null>(null);
 
   useEffect(() => {
+    setFeaturedAuction(null);
     fetch(`/api/auctions?featured=true&lang=${language}`, { cache: "no-store" })
       .then((response) => response.json())
       .then((data) => {
@@ -145,7 +147,13 @@ export default function Hero() {
           </div>
         </div>
 
-        <FeaturedAuction auction={featuredAuction} />
+        {featuredAuction ? (
+          <FeaturedAuction auction={featuredAuction} />
+        ) : (
+          <div className="relative flex aspect-[4/5.5] items-center justify-center overflow-hidden rounded-[1.8rem] border border-black/10 bg-black/[0.02] sm:aspect-[4/4.3]">
+            <LoadingSpinner size="lg" />
+          </div>
+        )}
       </div>
     </section>
   );

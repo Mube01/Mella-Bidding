@@ -111,7 +111,7 @@ export default function AdminSidebar({
             onClick={onClose}
             className="flex items-center"
           >
-            <span className="font-display text-3xl tracking-[0.08em] text-[#1681C5]">
+            <span className="font-brand text-4xl text-[#1681C5]">
               MELLA
             </span>
           </Link>
