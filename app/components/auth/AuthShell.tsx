@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ReactNode } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AuthShellProps {
   children: ReactNode;
@@ -12,6 +13,10 @@ export default function AuthShell({
   children,
   admin = false,
 }: AuthShellProps) {
+  const { language } = useLanguage();
+
+  const isAmharic = language === "am";
+
   return (
     <main className="min-h-screen bg-[#F7F8FA]">
       <div className="mx-auto flex min-h-screen w-full max-w-[1500px]">
@@ -19,6 +24,7 @@ export default function AuthShell({
         {/* =====================================================
             LEFT BRAND PANEL
         ===================================================== */}
+
         <div className="relative hidden w-1/2 overflow-hidden bg-[#1681C5] lg:flex">
 
           {/* Orange glow */}
@@ -32,11 +38,15 @@ export default function AuthShell({
 
           {/* Decorative lines */}
           <div className="absolute right-0 top-1/2 h-px w-40 bg-[#F78000]/40" />
+
           <div className="absolute right-0 top-[calc(50%+18px)] h-px w-24 bg-white/10" />
 
           <div className="relative flex w-full flex-col justify-between p-12 xl:p-16">
 
-            {/* LOGO */}
+            {/* =================================================
+                LOGO
+            ================================================= */}
+
             <Link
               href="/"
               className="font-display text-3xl tracking-[-0.04em] text-white transition hover:text-[#F78000]"
@@ -44,26 +54,64 @@ export default function AuthShell({
               MELLA
             </Link>
 
-            {/* HERO */}
+            {/* =================================================
+                HERO
+            ================================================= */}
+
             <div>
 
-              <p className="text-[10px] font-bold tracking-[0.3em] text-[#F78000]">
-                {admin ? "ADMINISTRATION" : "MELLA"}
+              {/* LABEL */}
+
+              <p
+                className={`text-[10px] font-bold text-[#F78000] ${
+                  isAmharic
+                    ? "font-sans tracking-[0.12em]"
+                    : "tracking-[0.3em]"
+                }`}
+              >
+                {admin
+                  ? isAmharic
+                    ? "አስተዳደር"
+                    : "ADMINISTRATION"
+                  : "MELLA"}
               </p>
 
-              <h1 className="mt-4 max-w-xl font-display text-6xl leading-[0.95] tracking-[-0.05em] text-white xl:text-7xl">
+              {/* HEADING */}
+
+              <h1
+                className={`mt-4 max-w-xl text-6xl leading-[0.95] text-white xl:text-7xl ${
+                  isAmharic
+                    ? "font-sans tracking-normal"
+                    : "font-display tracking-[-0.05em]"
+                }`}
+              >
                 {admin
-                  ? "Everything under control."
-                  : "Your chance. Your win."}
+                  ? isAmharic
+                    ? "ሁሉንም ነገር በቁጥጥር ስር ያድርጉ።"
+                    : "Everything under control."
+                  : isAmharic
+                    ? "ዕድልዎ። ድልዎ።"
+                    : "Your chance. Your win."}
               </h1>
 
-              <p className="mt-6 max-w-md text-sm leading-6 text-white/65">
+              {/* DESCRIPTION */}
+
+              <p
+                className={`mt-6 max-w-md text-sm leading-6 text-white/65 ${
+                  isAmharic ? "font-sans" : ""
+                }`}
+              >
                 {admin
-                  ? "Manage auctions, participants, bids and transactions from one secure place."
-                  : "Participate in exciting Mella auctions and discover what you could win."}
+                  ? isAmharic
+                    ? "ጨረታዎችን፣ ተሳታፊዎችን፣ መጫረቻዎችን እና ግብይቶችን ከአንድ ደህንነታማ ቦታ ያስተዳድሩ።"
+                    : "Manage auctions, participants, bids and transactions from one secure place."
+                  : isAmharic
+                    ? "በአስደሳች የሜላ ጨረታዎች ይሳተፉ እና ሊያሸንፉት የሚችሉትን ይወቁ።"
+                    : "Participate in exciting Mella auctions and discover what you could win."}
               </p>
 
-              {/* Accent */}
+              {/* ACCENT */}
+
               <div className="mt-8 flex items-center gap-3">
                 <div className="h-1 w-10 rounded-full bg-[#F78000]" />
                 <div className="h-1 w-2 rounded-full bg-white/40" />
@@ -72,9 +120,19 @@ export default function AuthShell({
 
             </div>
 
-            {/* FOOTER */}
-            <p className="text-xs text-white/40">
-              © {new Date().getFullYear()} Mella. All rights reserved.
+            {/* =================================================
+                FOOTER
+            ================================================= */}
+
+            <p
+              className={`text-xs text-white/40 ${
+                isAmharic ? "font-sans" : ""
+              }`}
+            >
+              © {new Date().getFullYear()} Mella.{" "}
+              {isAmharic
+                ? "መብቱ በሙሉ የተጠበቀ ነው።"
+                : "All rights reserved."}
             </p>
 
           </div>
@@ -83,11 +141,15 @@ export default function AuthShell({
         {/* =====================================================
             FORM PANEL
         ===================================================== */}
+
         <div className="flex w-full items-center justify-center px-5 py-10 sm:px-8 lg:w-1/2 lg:px-12">
 
           <div className="w-full max-w-md">
 
-            {/* MOBILE LOGO */}
+            {/* =================================================
+                MOBILE LOGO
+            ================================================= */}
+
             <div className="mb-10 lg:hidden">
 
               <Link
@@ -100,6 +162,10 @@ export default function AuthShell({
               <div className="mt-3 h-1 w-10 rounded-full bg-[#F78000]" />
 
             </div>
+
+            {/* =================================================
+                PAGE CONTENT
+            ================================================= */}
 
             {children}
 

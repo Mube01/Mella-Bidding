@@ -1,11 +1,20 @@
-import { BatteryCharging, Clock3, Zap } from "lucide-react";
+"use client";
+
+import {
+  BatteryCharging,
+  Clock3,
+  Zap,
+} from "lucide-react";
 import type { Auction } from "./data";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function FeaturedAuction({
   auction,
 }: {
   auction: Auction;
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="relative">
       {/* Background glow */}
@@ -27,7 +36,7 @@ export default function FeaturedAuction({
           {/* LIVE BADGE */}
           <div className="absolute left-5 top-5 flex items-center gap-2 rounded-full bg-[#F78000] px-3 py-1.5 text-[9px] font-bold tracking-[0.18em] text-white shadow-lg">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-            LIVE AUCTION
+            {t("liveAuction")}
           </div>
 
           {/* ELECTRIC BADGE */}
@@ -36,7 +45,7 @@ export default function FeaturedAuction({
               size={12}
               className="text-[#F78000]"
             />
-            ELECTRIC
+            {t("electric")}
           </div>
 
           {/* CONTENT */}
@@ -47,7 +56,7 @@ export default function FeaturedAuction({
               {/* TITLE */}
               <div>
                 <p className="text-[9px] font-bold tracking-[0.22em] text-white/60">
-                  FEATURED AUTOMOTIVE AUCTION
+                  {t("featuredAutomotiveAuction")}
                 </p>
 
                 <h2 className="mt-1 font-display text-3xl tracking-[-0.03em] sm:text-4xl">
@@ -55,7 +64,7 @@ export default function FeaturedAuction({
                 </h2>
 
                 <p className="mt-1 text-sm text-white/65">
-                  Electric • Brand New
+                  {t("electricBrandNew")}
                 </p>
               </div>
 
@@ -69,7 +78,7 @@ export default function FeaturedAuction({
                   />
 
                   <p className="text-[8px] tracking-[0.18em] text-white/50">
-                    ENDS IN
+                    {t("endsIn")}
                   </p>
                 </div>
 
@@ -83,6 +92,7 @@ export default function FeaturedAuction({
             {/* SPECS */}
             <div className="grid grid-cols-2 gap-2 border-t border-white/20 pt-4">
 
+              {/* POWER */}
               <div className="flex items-center gap-2">
                 <BatteryCharging
                   size={14}
@@ -91,15 +101,16 @@ export default function FeaturedAuction({
 
                 <div>
                   <p className="text-[8px] uppercase tracking-[0.12em] text-white/40">
-                    Power
+                    {t("power")}
                   </p>
 
                   <p className="text-xs font-semibold text-white">
-                    100% Electric
+                    {t("fullyElectric")}
                   </p>
                 </div>
               </div>
 
+              {/* CONDITION */}
               <div className="flex items-center gap-2">
                 <Zap
                   size={14}
@@ -108,11 +119,11 @@ export default function FeaturedAuction({
 
                 <div>
                   <p className="text-[8px] uppercase tracking-[0.12em] text-white/40">
-                    Condition
+                    {t("condition")}
                   </p>
 
                   <p className="text-xs font-semibold text-white">
-                    Brand New
+                    {t("brandNew")}
                   </p>
                 </div>
               </div>
@@ -123,11 +134,12 @@ export default function FeaturedAuction({
             <div className="mt-4 flex items-center justify-between border-t border-white/20 pt-4 text-xs text-white/65">
 
               <span>
-                {auction.participants.toLocaleString()} participants
+                {auction.participants.toLocaleString()}{" "}
+                {t("participants")}
               </span>
 
               <span>
-                Entry from{" "}
+                {t("entryFrom")}{" "}
                 <b className="text-white">
                   {auction.entry}
                 </b>

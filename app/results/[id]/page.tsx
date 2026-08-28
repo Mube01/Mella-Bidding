@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import type { ReactNode } from "react";
 
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -99,7 +100,7 @@ const results = [
 
 export default function IndividualResultPage() {
   const params = useParams();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
 
   const id = Array.isArray(params.id)
     ? params.id[0]
@@ -107,7 +108,8 @@ export default function IndividualResultPage() {
 
   const result = results.find(
     (item) =>
-      item.id.toLowerCase() === String(id).toLowerCase()
+      item.id.toLowerCase() ===
+      String(id).toLowerCase()
   );
 
   /*
@@ -129,15 +131,11 @@ export default function IndividualResultPage() {
               </div>
 
               <h1 className="mt-6 font-display text-4xl tracking-[-0.04em]">
-                {language === "am"
-                  ? "ውጤቱ አልተገኘም"
-                  : "Result not found"}
+                {t("resultNotFound")}
               </h1>
 
               <p className="mt-3 text-sm leading-6 text-black/40">
-                {language === "am"
-                  ? "የፈለጉት የጨረታ ውጤት አልተገኘም።"
-                  : "The auction result you're looking for does not exist."}
+                {t("resultNotFoundDescription")}
               </p>
 
               <Link
@@ -146,9 +144,7 @@ export default function IndividualResultPage() {
               >
                 <ArrowLeft size={16} />
 
-                {language === "am"
-                  ? "ወደ ውጤቶች ተመለስ"
-                  : "Back to results"}
+                {t("backToResults")}
               </Link>
             </div>
           </div>
@@ -176,9 +172,7 @@ export default function IndividualResultPage() {
           >
             <ArrowLeft size={14} />
 
-            {language === "am"
-              ? "ሁሉም ውጤቶች"
-              : "All results"}
+            {t("allResults")}
           </Link>
         </div>
 
@@ -201,9 +195,7 @@ export default function IndividualResultPage() {
                 <div className="absolute left-5 top-5 z-10 flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-[10px] font-bold tracking-[0.12em] text-[#1681C5] shadow-sm backdrop-blur">
                   <CheckCircle2 size={13} />
 
-                  {language === "am"
-                    ? "ተጠናቋል"
-                    : "COMPLETED"}
+                  {t("completed")}
                 </div>
 
                 {/* TROPHY */}
@@ -226,35 +218,25 @@ export default function IndividualResultPage() {
               ================================================= */}
 
               <div className="mt-4 grid grid-cols-3 gap-3">
+
                 <SmallStat
                   icon={<Users size={16} />}
-                  label={
-                    language === "am"
-                      ? "ተሳታፊዎች"
-                      : "Participants"
-                  }
+                  label={t("participantsLabel")}
                   value={result.participants.toLocaleString()}
                 />
 
                 <SmallStat
                   icon={<CalendarDays size={16} />}
-                  label={
-                    language === "am"
-                      ? "የተጠናቀቀ"
-                      : "Completed"
-                  }
+                  label={t("completedLabel")}
                   value={result.date}
                 />
 
                 <SmallStat
                   icon={<Trophy size={16} />}
-                  label={
-                    language === "am"
-                      ? "ውጤት"
-                      : "Result"
-                  }
+                  label={t("resultLabel")}
                   value={`#${result.id}`}
                 />
+
               </div>
             </div>
 
@@ -307,15 +289,11 @@ export default function IndividualResultPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.15em] text-[#F78000]">
-                      {language === "am"
-                        ? "የአሸናፊ ውጤት"
-                        : "WINNING RESULT"}
+                      {t("winningResult")}
                     </p>
 
                     <h2 className="mt-1 text-lg font-semibold">
-                      {language === "am"
-                        ? "የጨረታው አሸናፊ"
-                        : "Auction winner"}
+                      {t("auctionWinner")}
                     </h2>
                   </div>
 
@@ -336,9 +314,7 @@ export default function IndividualResultPage() {
 
                     <div>
                       <p className="text-[9px] font-bold tracking-[0.15em] text-black/30">
-                        {language === "am"
-                          ? "አሸናፊ"
-                          : "WINNER"}
+                        {t("winner")}
                       </p>
 
                       <p className="mt-1 text-base font-bold">
@@ -351,15 +327,14 @@ export default function IndividualResultPage() {
 
                   <div className="text-right">
                     <p className="text-[9px] font-bold tracking-[0.15em] text-black/30">
-                      {language === "am"
-                        ? "የአሸናፊ መጫረቻ"
-                        : "WINNING BID"}
+                      {t("winningBid")}
                     </p>
 
                     <p className="mt-1 font-mono text-xl font-bold text-[#1681C5]">
                       {result.winningBid}
                     </p>
                   </div>
+
                 </div>
               </div>
 
@@ -371,21 +346,13 @@ export default function IndividualResultPage() {
 
                 <SmallInfo
                   icon={<CalendarDays size={16} />}
-                  label={
-                    language === "am"
-                      ? "የተጠናቀቀበት ቀን"
-                      : "Completed"
-                  }
+                  label={t("completedOn")}
                   value={result.date}
                 />
 
                 <SmallInfo
                   icon={<Users size={16} />}
-                  label={
-                    language === "am"
-                      ? "ተሳታፊዎች"
-                      : "Participants"
-                  }
+                  label={t("participantsLabel")}
                   value={result.participants.toLocaleString()}
                 />
 
@@ -397,15 +364,14 @@ export default function IndividualResultPage() {
                 href="/results"
                 className="group mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-black/10 bg-white text-sm font-bold transition hover:border-[#1681C5] hover:text-[#1681C5]"
               >
-                {language === "am"
-                  ? "ሁሉንም ውጤቶች ይመልከቱ"
-                  : "View all results"}
+                {t("viewAllResults")}
 
                 <ArrowRight
                   size={15}
                   className="transition-transform group-hover:translate-x-1"
                 />
               </Link>
+
             </div>
           </div>
         </section>
@@ -418,6 +384,7 @@ export default function IndividualResultPage() {
           <div className="mx-auto max-w-7xl px-6 py-14 lg:px-10 lg:py-16">
 
             <div className="max-w-2xl">
+
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.25em] text-[#1681C5]">
                 <span className="h-px w-8 bg-[#1681C5]" />
 
@@ -425,60 +392,39 @@ export default function IndividualResultPage() {
               </div>
 
               <h2 className="mt-4 font-display text-4xl tracking-[-0.03em] sm:text-5xl">
-                {language === "am"
-                  ? "ውጤቱ ግልጽ ነው።"
-                  : "The result is public."}
+                {t("resultIsPublic")}
               </h2>
 
               <p className="mt-4 text-sm leading-6 text-black/45">
-                {language === "am"
-                  ? "ጨረታው ከተጠናቀቀ በኋላ የአሸናፊው መረጃ እና የጨረታው ውጤት ለግልጽነት ይታያሉ።"
-                  : "Once an auction closes, its result is published so participants can clearly see the outcome."}
+                {t("resultPublicDescription")}
               </p>
+
             </div>
 
             <div className="mt-10 grid gap-4 md:grid-cols-3">
 
               <RuleCard
                 icon={<Trophy size={19} />}
-                title={
-                  language === "am"
-                    ? "አሸናፊ ታትሟል"
-                    : "Published winner"
-                }
-                description={
-                  language === "am"
-                    ? "የጨረታው አሸናፊ ከጨረታው መጠናቀቅ በኋላ በግልጽ ይታያል።"
-                    : "The winning participant is displayed after the auction closes."
-                }
+                title={t("publishedWinner")}
+                description={t(
+                  "publishedWinnerDescription"
+                )}
               />
 
               <RuleCard
                 icon={<CheckCircle2 size={19} />}
-                title={
-                  language === "am"
-                    ? "የመጨረሻ ውጤት"
-                    : "Final result"
-                }
-                description={
-                  language === "am"
-                    ? "የአሸናፊው መጫረቻ እና የጨረታው መረጃ ታትሟል።"
-                    : "The winning bid and completion information are published."
-                }
+                title={t("finalResult")}
+                description={t(
+                  "finalResultDescription"
+                )}
               />
 
               <RuleCard
                 icon={<Users size={19} />}
-                title={
-                  language === "am"
-                    ? "የተሳታፊዎች መረጃ"
-                    : "Participation record"
-                }
-                description={
-                  language === "am"
-                    ? "የጨረታው ተሳታፊዎች ቁጥር በውጤቱ ውስጥ ይታያል።"
-                    : "The number of participants is included in the published result."
-                }
+                title={t("participationRecord")}
+                description={t(
+                  "participationRecordDescription"
+                )}
               />
 
             </div>
@@ -503,15 +449,11 @@ export default function IndividualResultPage() {
 
                 <div>
                   <p className="text-[9px] font-bold tracking-[0.18em] text-black/30">
-                    {language === "am"
-                      ? "የጨረታ ሁኔታ"
-                      : "AUCTION STATUS"}
+                    {t("auctionStatus")}
                   </p>
 
                   <p className="mt-1 text-base font-bold">
-                    {language === "am"
-                      ? "ጨረታው ተጠናቋል"
-                      : "Auction completed"}
+                    {t("auctionCompleted")}
                   </p>
                 </div>
 
@@ -521,9 +463,7 @@ export default function IndividualResultPage() {
                 href="/results"
                 className="group inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 px-5 py-3 text-xs font-bold transition hover:border-[#1681C5] hover:text-[#1681C5]"
               >
-                {language === "am"
-                  ? "ሁሉንም ውጤቶች"
-                  : "View all results"}
+                {t("viewAllResults")}
 
                 <ArrowRight
                   size={14}
@@ -550,7 +490,7 @@ function SmallStat({
   label,
   value,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
 }) {
@@ -582,7 +522,7 @@ function SmallInfo({
   label,
   value,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
 }) {
@@ -614,7 +554,7 @@ function RuleCard({
   title,
   description,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
 }) {

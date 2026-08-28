@@ -18,33 +18,33 @@ export default function AdminHeader({
   onMenuClick,
 }: AdminHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-black/10 bg-white/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
-
-      {/* LEFT */}
-      <div className="flex items-center gap-4">
-
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-black/10 bg-white/95 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+      {/* =====================================================
+          LEFT
+      ===================================================== */}
+      <div className="flex min-w-0 items-center gap-4">
         {/* MOBILE MENU */}
         <button
           type="button"
           onClick={onMenuClick}
           aria-label="Open sidebar"
-          className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 text-black/60 transition hover:border-[#1681C5] hover:text-[#1681C5] lg:hidden"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-black/10 text-black/60 transition hover:border-[#1681C5] hover:text-[#1681C5] lg:hidden"
         >
           <Menu size={20} />
         </button>
 
         {/* PAGE TITLE */}
-        <div>
+        <div className="min-w-0">
           <p className="text-[9px] font-bold tracking-[0.2em] text-[#1681C5]">
             MELLA ADMIN
           </p>
 
-          <h1 className="text-lg font-semibold leading-tight">
+          <h1 className="truncate text-lg font-semibold leading-tight text-black">
             {title}
           </h1>
 
           {description && (
-            <p className="hidden text-[11px] text-black/40 sm:block">
+            <p className="hidden truncate text-[11px] text-black/40 sm:block">
               {description}
             </p>
           )}
@@ -63,12 +63,12 @@ export default function AdminHeader({
             className="h-10 w-56 rounded-full border border-black/10 bg-black/[0.02] pl-11 pr-4 text-sm text-black outline-none transition placeholder:text-black/30 focus:border-[#1681C5] focus:bg-white focus:ring-2 focus:ring-[#1681C5]/10"
           />
         </div>
-
       </div>
 
-      {/* RIGHT */}
-      <div className="flex items-center gap-3">
-
+      {/* =====================================================
+          RIGHT
+      ===================================================== */}
+      <div className="flex shrink-0 items-center gap-3">
         {/* MOBILE SEARCH */}
         <button
           type="button"
@@ -94,7 +94,6 @@ export default function AdminHeader({
 
         {/* ADMIN */}
         <div className="flex items-center gap-3">
-
           <div className="hidden text-right sm:block">
             <p className="text-sm font-semibold text-black">
               Administrator
@@ -108,9 +107,7 @@ export default function AdminHeader({
           <div className="grid h-10 w-10 place-items-center rounded-full bg-[#1681C5] text-sm font-bold text-white">
             A
           </div>
-
         </div>
-
       </div>
     </header>
   );

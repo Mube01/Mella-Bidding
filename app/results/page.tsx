@@ -15,95 +15,128 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useLanguage } from "../context/LanguageContext";
 
-const results = [
+type Result = {
+  id: string;
+  title: string;
+  subtitleKey:
+    | "brandNewSubtitle"
+    | "smartTvSubtitle"
+    | "premiumTechnologyBoxSubtitle"
+    | "playstationSubtitle"
+    | "refrigeratorSubtitle"
+    | "macbookSubtitle";
+  image: string;
+  categoryKey:
+    | "electronicsCategory"
+    | "mysteryBoxCategory"
+    | "homeCategory";
+  winner: string;
+  winningBid: string;
+  date: string;
+  amDate: string;
+  participants: number;
+};
+
+const results: Result[] = [
   {
     id: "M0009",
     title: "iPhone 16 Pro Max",
-    subtitle: "256GB • Brand New",
+    subtitleKey: "brandNewSubtitle",
     image: "/images/iphone.avif",
-    category: "Electronics",
+    categoryKey: "electronicsCategory",
     winner: "Samuel T.",
     winningBid: "ETB 1,250",
     date: "Aug 23, 2026",
+    amDate: "ኦገስት 23፣ 2026",
     participants: 764,
   },
   {
     id: "M0008",
     title: "Samsung 55″ OLED TV",
-    subtitle: "4K Smart TV",
+    subtitleKey: "smartTvSubtitle",
     image: "/images/tv.jpg",
-    category: "Electronics",
+    categoryKey: "electronicsCategory",
     winner: "Mimi A.",
     winningBid: "ETB 875",
     date: "Aug 21, 2026",
+    amDate: "ኦገስት 21፣ 2026",
     participants: 528,
   },
   {
     id: "M0007",
     title: "Mystery Tech Box",
-    subtitle: "Premium Technology Box",
+    subtitleKey: "premiumTechnologyBoxSubtitle",
     image: "/images/box.jpg",
-    category: "Mystery Box",
+    categoryKey: "mysteryBoxCategory",
     winner: "Daniel K.",
     winningBid: "ETB 420",
     date: "Aug 19, 2026",
+    amDate: "ኦገስት 19፣ 2026",
     participants: 936,
   },
   {
     id: "M0006",
     title: "PlayStation 5",
-    subtitle: "Slim Edition • 1TB",
+    subtitleKey: "playstationSubtitle",
     image: "/images/ps5.jpg",
-    category: "Electronics",
+    categoryKey: "electronicsCategory",
     winner: "Abel M.",
     winningBid: "ETB 680",
     date: "Aug 17, 2026",
+    amDate: "ኦገስት 17፣ 2026",
     participants: 692,
   },
   {
     id: "M0005",
     title: "LG Smart Refrigerator",
-    subtitle: "450L • Inverter",
+    subtitleKey: "refrigeratorSubtitle",
     image: "/images/refrigerator.avif",
-    category: "Home",
+    categoryKey: "homeCategory",
     winner: "Hana B.",
     winningBid: "ETB 510",
     date: "Aug 15, 2026",
+    amDate: "ኦገስት 15፣ 2026",
     participants: 401,
   },
   {
     id: "M0004",
     title: "MacBook Air",
-    subtitle: "M4 • 16GB RAM • 256GB",
+    subtitleKey: "macbookSubtitle",
     image: "/images/macbook.jpg",
-    category: "Electronics",
+    categoryKey: "electronicsCategory",
     winner: "Yonas G.",
     winningBid: "ETB 1,100",
     date: "Aug 12, 2026",
+    amDate: "ኦገስት 12፣ 2026",
     participants: 613,
   },
 ];
 
 export default function ResultsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [search, setSearch] = useState("");
 
   const filteredResults = useMemo(() => {
     const query = search.toLowerCase().trim();
 
-    if (!query) return results;
+    if (!query) {
+      return results;
+    }
 
     return results.filter(
       (result) =>
         result.title.toLowerCase().includes(query) ||
-        result.subtitle.toLowerCase().includes(query) ||
         result.winner.toLowerCase().includes(query) ||
         result.id.toLowerCase().includes(query)
     );
   }, [search]);
 
   return (
-    <main className="min-h-screen bg-white">
+    <main
+      className={`min-h-screen bg-white ${
+        language === "am" ? "font-sans" : ""
+      }`}
+    >
       <Header />
 
       <div className="pt-[120px]">
@@ -124,13 +157,18 @@ export default function ResultsPage() {
                 {t("results")}
               </div>
 
-              <h1 className="mt-6 font-display text-5xl leading-[0.95] tracking-[-0.05em] sm:text-7xl lg:text-8xl">
-                See the wins.
+              <h1
+                className={`mt-6 text-5xl leading-[0.95] sm:text-7xl lg:text-8xl ${
+                  language === "am"
+                    ? "font-sans tracking-normal"
+                    : "font-display tracking-[-0.05em]"
+                }`}
+              >
+                {t("seeTheWins")}
               </h1>
 
               <p className="mt-7 max-w-2xl text-base leading-7 text-black/50 sm:text-lg">
-                See completed Mella auctions, their winners and published
-                results. Transparency doesn't stop when the auction ends.
+                {t("resultsPageDescription")}
               </p>
             </div>
           </div>
@@ -144,11 +182,11 @@ export default function ResultsPage() {
           <div className="flex flex-col justify-between gap-5 border-b border-black/10 pb-6 sm:flex-row sm:items-center">
             <div>
               <p className="text-[10px] font-bold tracking-[0.2em] text-black/30">
-                COMPLETED AUCTIONS
+                {t("completedAuctions")}
               </p>
 
               <p className="mt-2 text-sm text-black/45">
-                {filteredResults.length} published results
+                {filteredResults.length} {t("publishedResults")}
               </p>
             </div>
 
@@ -162,7 +200,7 @@ export default function ResultsPage() {
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search results..."
+                placeholder={t("searchResults")}
                 className="h-11 w-full rounded-full border border-black/10 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-black/30 focus:border-[#1681C5] focus:ring-2 focus:ring-[#1681C5]/10"
               />
             </div>
@@ -192,7 +230,7 @@ export default function ResultsPage() {
                       {/* CATEGORY */}
 
                       <span className="absolute left-4 top-4 rounded-full bg-[#F78000] px-3 py-1.5 text-[9px] font-bold tracking-[0.16em] text-white shadow-md">
-                        {result.category}
+                        {t(result.categoryKey)}
                       </span>
 
                       {/* TROPHY */}
@@ -209,12 +247,18 @@ export default function ResultsPage() {
 
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h3 className="font-display text-2xl text-black">
+                          <h3
+                            className={`text-2xl text-black ${
+                              language === "am"
+                                ? "font-sans"
+                                : "font-display"
+                            }`}
+                          >
                             {result.title}
                           </h3>
 
                           <p className="mt-1 text-sm text-black/50">
-                            {result.subtitle}
+                            {t(result.subtitleKey)}
                           </p>
                         </div>
 
@@ -234,7 +278,7 @@ export default function ResultsPage() {
                           <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
                             <Crown size={10} />
 
-                            WINNER
+                            {t("winnerLabel")}
                           </p>
 
                           <p className="mt-1 truncate text-sm font-semibold text-[#1681C5]">
@@ -248,7 +292,7 @@ export default function ResultsPage() {
                           <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
                             <Trophy size={10} />
 
-                            WINNING BID
+                            {t("winningBidLabel")}
                           </p>
 
                           <p className="mt-1 text-sm font-semibold text-[#F78000]">
@@ -266,11 +310,13 @@ export default function ResultsPage() {
                           <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
                             <CalendarDays size={10} />
 
-                            COMPLETED
+                            {t("completedStatus")}
                           </p>
 
                           <p className="mt-1 text-xs font-semibold text-black/70">
-                            {result.date}
+                            {language === "am"
+                              ? result.amDate
+                              : result.date}
                           </p>
                         </div>
 
@@ -280,11 +326,13 @@ export default function ResultsPage() {
                           <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
                             <Users size={10} />
 
-                            PARTICIPANTS
+                            {t("participantsLabel")}
                           </p>
 
                           <p className="mt-1 text-xs font-semibold text-black/70">
-                            {result.participants.toLocaleString()}
+                            {result.participants.toLocaleString(
+                              language === "am" ? "am-ET" : "en-US"
+                            )}
                           </p>
                         </div>
                       </div>
@@ -292,7 +340,7 @@ export default function ResultsPage() {
                       {/* VIEW RESULT */}
 
                       <span className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#F78000] px-4 text-sm font-bold text-white shadow-md shadow-[#F78000]/20 transition hover:bg-[#D96E00] hover:shadow-lg">
-                        View Result
+                        {t("viewResult")}
 
                         <ArrowRight
                           size={16}
@@ -303,7 +351,7 @@ export default function ResultsPage() {
                       {/* STATUS */}
 
                       <p className="mt-3 text-center text-[12px] text-black/40">
-                        Auction completed
+                        {t("auctionCompletedStatus")}
                       </p>
                     </div>
                   </Link>
@@ -320,12 +368,18 @@ export default function ResultsPage() {
                 <Search size={24} />
               </div>
 
-              <h2 className="mt-6 font-display text-3xl">
-                No results found
+              <h2
+                className={`mt-6 text-3xl ${
+                  language === "am"
+                    ? "font-sans"
+                    : "font-display"
+                }`}
+              >
+                {t("noResultsFound")}
               </h2>
 
               <p className="mt-2 max-w-md text-sm leading-6 text-black/40">
-                Try searching for another auction, product or winner.
+                {t("noResultsDescription")}
               </p>
 
               <button
@@ -333,7 +387,7 @@ export default function ResultsPage() {
                 onClick={() => setSearch("")}
                 className="mt-6 rounded-full bg-[#1681C5] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#116d9f]"
               >
-                Clear search
+                {t("clearSearch")}
               </button>
             </div>
           )}
@@ -351,32 +405,36 @@ export default function ResultsPage() {
                   {t("transparent")}
                 </p>
 
-                <h2 className="mt-5 font-display text-4xl tracking-[-0.04em] sm:text-5xl">
-                  Results should be visible.
+                <h2
+                  className={`mt-5 text-4xl sm:text-5xl ${
+                    language === "am"
+                      ? "font-sans tracking-normal"
+                      : "font-display tracking-[-0.04em]"
+                  }`}
+                >
+                  {t("resultsVisibleTitle")}
                 </h2>
 
                 <p className="mt-5 max-w-xl text-sm leading-7 text-black/45">
-                  Every completed auction should have a clear record of its
-                  result. Mella is designed so participants can understand
-                  what happened after the countdown reaches zero.
+                  {t("resultsVisibleDescription")}
                 </p>
               </div>
 
               <div className="rounded-3xl border border-black/10 bg-white p-7">
                 <div className="space-y-5">
                   <ResultPoint
-                    title="Published winner"
-                    description="The winning participant is shown after the auction closes."
+                    title={t("publishedWinnerPoint")}
+                    description={t("publishedWinnerPointDescription")}
                   />
 
                   <ResultPoint
-                    title="Auction record"
-                    description="Each auction has a unique identifier and completion date."
+                    title={t("auctionRecordPoint")}
+                    description={t("auctionRecordPointDescription")}
                   />
 
                   <ResultPoint
-                    title="Participant visibility"
-                    description="The completed auction records participation information."
+                    title={t("participantVisibilityPoint")}
+                    description={t("participantVisibilityPointDescription")}
                   />
                 </div>
               </div>
@@ -390,12 +448,18 @@ export default function ResultsPage() {
 
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-28">
           <div className="rounded-[2rem] bg-[#1681C5] p-8 text-white sm:p-12 lg:p-16">
-            <h2 className="font-display text-4xl tracking-[-0.04em] sm:text-5xl">
-              Ready for your next win?
+            <h2
+              className={`text-4xl sm:text-5xl ${
+                language === "am"
+                  ? "font-sans tracking-normal"
+                  : "font-display tracking-[-0.04em]"
+              }`}
+            >
+              {t("readyForNextWin")}
             </h2>
 
             <p className="mt-4 max-w-xl text-sm leading-6 text-white/65">
-              Explore the auctions currently available on Mella.
+              {t("exploreAvailableAuctions")}
             </p>
 
             <Link
