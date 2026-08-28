@@ -6,18 +6,35 @@ import {
   CheckCircle2,
   Clock3,
   Gavel,
+  Minus,
+  Plus,
   ShieldCheck,
   Sparkles,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { auctions } from "../../components/data";
+import AuctionCountdown from "../../components/AuctionCountdown";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import { useLanguage } from "../../context/LanguageContext";
+
+type AuctionDetails = {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  category: string;
+  image: string;
+  participantCount: number;
+  entryCost: number;
+  startsAt: string;
+  endsAt: string;
+  status: "upcoming" | "live" | "completed" | "cancelled";
+};
 
 export default function AuctionDetailsPage() {
   const params = useParams();
@@ -27,23 +44,68 @@ export default function AuctionDetailsPage() {
     ? params.id[0]
     : params.id;
 
-  const auction = useMemo(
-    () =>
-      auctions.find(
-        (item) =>
-          String(item.id).toLowerCase() ===
-          String(auctionId).toLowerCase()
-      ),
-    [auctionId]
-  );
+  const [auction, setAuction] = useState<AuctionDetails | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [bid, setBid] = useState("");
+  const [bid, setBid] = useState("1.00");
+  const [selectedPackage, setSelectedPackage] = useState<5 | 10>(5);
+  const [packageMessage, setPackageMessage] = useState("");
+  const [bidLoading, setBidLoading] = useState(false);
+  const [bidMessage, setBidMessage] = useState("");
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
   });
+
+  const decreaseBid = () => {
+    setBid((value) => Math.max(1, Number((Number(value || 1) - 0.01).toFixed(2))).toFixed(2));
+  };
+
+  const increaseBid = () => {
+    setBid((value) => (Number(Number(value || 1) + 0.01).toFixed(2)));
+  };
+
+  const handleBidChange = (value: string) => {
+    if (value === "") {
+      setBid("1.00");
+      return;
+    }
+
+    const number = Number(value);
+    if (Number.isFinite(number) && number >= 1) {
+      setBid(number.toFixed(2));
+    }
+  };
+
+  const packageOptions = [
+    { bids: 5 as const, discount: 5, price: 75 * 5 * 0.95 },
+    { bids: 10 as const, discount: 12, price: 75 * 10 * 0.88 },
+  ];
+
+  const selectedPackageDetails = packageOptions.find(
+    (option) => option.bids === selectedPackage
+  ) || packageOptions[0];
+
+  function handlePackagePurchase() {
+    setPackageMessage(
+      language === "am"
+        ? "የክፍያ አገልግሎቱ ሲዘጋጅ ይህ ጥቅል ይገኛል።"
+        : "Payment is not connected yet. This package is ready for checkout."
+    );
+  }
+
+  useEffect(() => {
+    if (!auctionId) return;
+    fetch(`/api/auctions/${encodeURIComponent(String(auctionId))}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) setAuction(data.auction);
+      })
+      .catch(() => setAuction(null))
+      .finally(() => setLoading(false));
+  }, [auctionId]);
 
   /*
    * ============================================================
@@ -64,22 +126,7 @@ export default function AuctionDetailsPage() {
   useEffect(() => {
     if (!auction) return;
 
-    const auctionWithEndTime = auction as typeof auction & {
-      endTime?: string;
-    };
-
-    const endTime = auctionWithEndTime.endTime;
-
-    if (!endTime) {
-      setTimeLeft({
-        days: 1,
-        hours: 8,
-        minutes: 42,
-        seconds: 18,
-      });
-
-      return;
-    }
+    const endTime = auction.endsAt;
 
     const updateCountdown = () => {
       const difference =
@@ -133,6 +180,14 @@ export default function AuctionDetailsPage() {
    * ============================================================
    */
 
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-white">
+        <LoadingSpinner size="lg" />
+      </main>
+    );
+  }
+
   if (!auction) {
     return (
       <main className="min-h-screen bg-white">
@@ -181,33 +236,30 @@ export default function AuctionDetailsPage() {
    * ============================================================
    */
 
-  const handleBid = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleBid = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!bid.trim()) {
+    if (!bid.trim() || bidLoading) {
       return;
     }
 
-    /*
-     * TODO:
-     *
-     * Connect this to your backend bidding API.
-     *
-     * Example:
-     *
-     * await fetch("/api/bids", {
-     *   method: "POST",
-     *   body: JSON.stringify({
-     *     auctionId: auction.id,
-     *     amount: Number(bid),
-     *   }),
-     * });
-     */
-
-    console.log({
-      auctionId: auction.id,
-      bid,
-    });
+    setBidLoading(true);
+    setBidMessage("");
+    try {
+      const response = await fetch("/api/bids", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ auctionId: auction.id, amount: Number(bid) }),
+      });
+      const data = await response.json();
+      setBidMessage(response.ok ? "Bid submitted successfully." : data.error || "Unable to submit bid.");
+      if (response.ok) setBid("");
+    } catch {
+      setBidMessage("Unable to submit bid. Please try again.");
+    } finally {
+      setBidLoading(false);
+    }
   };
 
   return (
@@ -278,7 +330,7 @@ export default function AuctionDetailsPage() {
                       ? "ተሳታፊዎች"
                       : "Participants"
                   }
-                  value={String(auction.participants ?? 0)}
+                  value={String(auction.participantCount ?? 0)}
                 />
 
                 <SmallStat
@@ -360,57 +412,9 @@ export default function AuctionDetailsPage() {
                         : "ENDS IN"}
                     </p>
 
-                    <div className="mt-3 flex items-end gap-2">
-
-                      <CountdownUnit
-                        value={timeLeft.days}
-                        label={
-                          language === "am"
-                            ? "ቀን"
-                            : "DAYS"
-                        }
-                      />
-
-                      <span className="pb-2 text-xl text-black/20">
-                        :
-                      </span>
-
-                      <CountdownUnit
-                        value={timeLeft.hours}
-                        label={
-                          language === "am"
-                            ? "ሰዓት"
-                            : "HRS"
-                        }
-                      />
-
-                      <span className="pb-2 text-xl text-black/20">
-                        :
-                      </span>
-
-                      <CountdownUnit
-                        value={timeLeft.minutes}
-                        label={
-                          language === "am"
-                            ? "ደቂቃ"
-                            : "MIN"
-                        }
-                      />
-
-                      <span className="pb-2 text-xl text-black/20">
-                        :
-                      </span>
-
-                      <CountdownUnit
-                        value={timeLeft.seconds}
-                        label={
-                          language === "am"
-                            ? "ሰከንድ"
-                            : "SEC"
-                        }
-                      />
-
-                    </div>
+                    <p className="mt-3 font-mono text-xl font-bold text-red-600">
+                      <AuctionCountdown endsAt={auction.endsAt} />
+                    </p>
                   </div>
 
                   <div className="hidden h-12 w-12 place-items-center rounded-xl bg-[#F78000]/10 text-[#F78000] sm:grid">
@@ -433,7 +437,7 @@ export default function AuctionDetailsPage() {
                 </div>
 
                 <span className="text-sm font-bold">
-                  {auction.participants?.toLocaleString() ?? "0"}
+                  {auction.participantCount?.toLocaleString() ?? "0"}
                 </span>
 
               </div>
@@ -474,25 +478,41 @@ export default function AuctionDetailsPage() {
 
                   <div className="relative">
 
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={bid}
-                      onChange={(event) =>
-                        setBid(event.target.value)
-                      }
-                      placeholder={
-                        language === "am"
-                          ? "የመጫረቻ መጠን"
-                          : "Enter amount"
-                      }
-                      className="h-14 w-full rounded-xl border border-black/10 bg-white px-4 pr-16 text-lg font-semibold outline-none transition placeholder:text-black/25 focus:border-[#1681C5] focus:ring-4 focus:ring-[#1681C5]/10"
-                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={decreaseBid}
+                        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-black/10 bg-black/5 text-black transition hover:border-[#F78000] hover:bg-[#F78000] hover:text-white"
+                        aria-label="Decrease bid"
+                      >
+                        <Minus size={16} />
+                      </button>
 
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-black/30">
-                      ETB
-                    </span>
+                      <div className="relative flex flex-1 items-center rounded-xl border border-black/10 bg-white focus-within:border-[#1681C5] focus-within:ring-2 focus-within:ring-[#1681C5]/10">
+                        <input
+                          type="number"
+                          min="1"
+                          step="0.01"
+                          value={bid}
+                          onChange={(event) => handleBidChange(event.target.value)}
+                          placeholder={language === "am" ? "የመጫረቻ መጠን" : "Enter amount"}
+                          className="h-11 w-full bg-transparent px-4 pr-14 text-center font-mono text-md font-bold outline-none"
+                        />
+
+                        <span className="absolute right-4 text-[10px] font-bold text-black/35">
+                          ETB
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={increaseBid}
+                        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-black/10 bg-black/5 text-black transition hover:border-[#F78000] hover:bg-[#F78000] hover:text-white"
+                        aria-label="Increase bid"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
 
                   </div>
 
@@ -519,6 +539,54 @@ export default function AuctionDetailsPage() {
                 </p>
 
               </form>
+
+              <div className="mt-6 rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-bold tracking-[0.15em] text-[#1681C5]">
+                      {language === "am" ? "የመጫረቻ ጥቅሎች" : "BID PACKAGES"}
+                    </p>
+                    <h2 className="mt-1 text-lg font-semibold">
+                      {language === "am" ? "የመጫረቻ ጥቅል ይምረጡ" : "Choose a bid package"}
+                    </h2>
+                  </div>
+                  <span className="text-xs font-semibold text-black/40">ETB 75 / bid</span>
+                </div>
+
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {packageOptions.map((option) => {
+                    const active = selectedPackage === option.bids;
+                    return (
+                      <button
+                        key={option.bids}
+                        type="button"
+                        onClick={() => {
+                          setSelectedPackage(option.bids);
+                          setPackageMessage("");
+                        }}
+                        className={`rounded-xl border p-4 text-left transition ${active ? "border-[#1681C5] bg-[#1681C5]/[0.04] ring-2 ring-[#1681C5]/10" : "border-black/10 hover:border-[#1681C5]/40"}`}
+                        aria-pressed={active}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-base font-bold">{option.bids} {language === "am" ? "መጫረቻዎች" : "bids"}</span>
+                          <span className="rounded-full bg-[#F78000]/10 px-2 py-1 text-[10px] font-bold text-[#F78000]">-{option.discount}%</span>
+                        </div>
+                        <p className="mt-2 text-lg font-bold text-[#1681C5]">ETB {option.price.toFixed(2)}</p>
+                        <p className="mt-1 text-xs text-black/40">{language === "am" ? "ቅናሽ ያለው ዋጋ" : "Discounted package price"}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handlePackagePurchase}
+                  className="mt-4 flex h-11 w-full items-center justify-center rounded-xl bg-[#1681C5] px-4 text-sm font-bold text-white transition hover:bg-[#116d9f]"
+                >
+                  {language === "am" ? `${selectedPackageDetails.bids} መጫረቻዎችን ይግዙ` : `Continue with ${selectedPackageDetails.bids} bids`}
+                </button>
+                {packageMessage && <p role="status" className="mt-3 text-center text-xs text-[#1681C5]">{packageMessage}</p>}
+              </div>
 
             </div>
 

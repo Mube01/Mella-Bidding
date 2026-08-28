@@ -20,7 +20,7 @@ async function getSession(request: NextRequest): Promise<SessionPayload | null> 
   const secret = process.env.AUTH_SECRET;
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
 
-  if (!secret || !token) {
+  if (!secret || secret.length < 32 || !token) {
     return null;
   }
 

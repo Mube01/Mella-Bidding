@@ -11,14 +11,17 @@ import Link from "next/link";
 import { useState } from "react";
 
 import type { Auction } from "./data";
+import AuctionCountdown from "./AuctionCountdown";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function AuctionCard({
   auction,
+  onPriceFocus,
 }: {
   auction: Auction;
+  onPriceFocus?: () => void;
 }) {
-  const [bid, setBid] = useState(0);
+  const [bid, setBid] = useState(1);
 
   const { t } = useLanguage();
 
@@ -28,7 +31,7 @@ export default function AuctionCard({
 
   const decreaseBid = () => {
     setBid((value) =>
-      Math.max(0, Number((value - 0.01).toFixed(2)))
+      Math.max(1, Number((value - 0.01).toFixed(2)))
     );
   };
 
@@ -44,13 +47,13 @@ export default function AuctionCard({
     const value = event.target.value;
 
     if (value === "") {
-      setBid(0);
+      setBid(1);
       return;
     }
 
     const number = Number(value);
 
-    if (!Number.isNaN(number) && number >= 0) {
+    if (!Number.isNaN(number) && number >= 1) {
       setBid(Number(number.toFixed(2)));
     }
   };
@@ -130,7 +133,7 @@ export default function AuctionCard({
               INFO
           =================================================== */}
 
-          <div className="mt-5 grid grid-cols-2 gap-2 border-y border-black/10 py-4">
+          <div className="mt-5 grid grid-cols-[1.35fr_0.65fr] gap-2 border-y border-black/10 py-4">
             {/* ENDS IN */}
 
             <div>
@@ -141,7 +144,7 @@ export default function AuctionCard({
               </p>
 
               <p className="mt-1 font-mono text-md font-semibold text-red-600">
-                {auction.time}
+                {auction.endsAt ? <AuctionCountdown endsAt={auction.endsAt} /> : auction.time}
               </p>
             </div>
 
@@ -192,10 +195,11 @@ export default function AuctionCard({
               <div className="relative flex flex-1 items-center rounded-xl border border-black/10 bg-white focus-within:border-[#F78000] focus-within:ring-2 focus-within:ring-[#F78000]/10">
                 <input
                   type="number"
-                  min="0"
+                  min="1"
                   step="0.01"
                   value={bid.toFixed(2)}
                   onChange={handleBidChange}
+                  onFocus={onPriceFocus}
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();

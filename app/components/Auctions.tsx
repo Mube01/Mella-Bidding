@@ -4,7 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import AuctionCard from "./AuctionCard";
-import { auctions } from "./data";
+import type { Auction } from "./data";
+import LoadingSpinner from "./ui/LoadingSpinner";
 import { useLanguage } from "../context/LanguageContext";
 
 function SectionLabel({
@@ -21,16 +22,42 @@ function SectionLabel({
 }
 
 export default function Auctions() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const cardsPerSlide = 3;
+  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingBid, setEditingBid] = useState(false);
   const totalSlides = Math.ceil(auctions.length / cardsPerSlide);
 
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  useEffect(() => {
+    fetch(`/api/auctions?lang=${language}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setAuctions(data.auctions.map((auction: any) => ({
+            id: auction.id,
+            title: auction.title,
+            subtitle: auction.subtitle,
+            description: auction.description,
+            category: auction.category,
+            image: auction.image,
+            time: "",
+            endsAt: auction.endsAt,
+            participants: auction.participantCount,
+            entry: `${auction.entryCost} ETB`,
+          })));
+        }
+      })
+      .catch(() => setAuctions([]))
+      .finally(() => setLoading(false));
+  }, [language]);
+
   // Automatic slide
   useEffect(() => {
-    if (totalSlides <= 1) return;
+    if (totalSlides <= 1 || editingBid) return;
 
     const interval = setInterval(() => {
       setCurrentSlide((current) =>
@@ -39,7 +66,7 @@ export default function Auctions() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [totalSlides]);
+  }, [totalSlides, editingBid]);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
@@ -63,6 +90,11 @@ export default function Auctions() {
 
       {/* SLIDER */}
       <div className="mt-12 overflow-hidden">
+        {loading ? (
+          <div className="flex min-h-[420px] items-center justify-center">
+            <LoadingSpinner size="lg" />
+          </div>
+        ) : (
         <div
           className="flex transition-transform duration-700 ease-in-out"
           style={{
@@ -85,6 +117,7 @@ export default function Auctions() {
                     <AuctionCard
                       key={auction.id}
                       auction={auction}
+                      onPriceFocus={() => setEditingBid(true)}
                     />
                   ))}
                 </div>
@@ -92,6 +125,7 @@ export default function Auctions() {
             );
           })}
         </div>
+        )}
       </div>
 
       {/* SLIDE INDICATORS */}

@@ -8,12 +8,13 @@ import {
   User,
   XCircle,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 import AdminHeader from "../../../components/admin/AdminHeader";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 
-const bids = [
+const sampleBids = [
   {
     id: "B-10482",
     user: "Abebe K.",
@@ -80,6 +81,28 @@ const statuses = [
 export default function BidsAdminPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
+  const [bids, setBids] = useState(sampleBids);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/bids", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setBids(data.bids.map((item: any) => ({
+            id: item._id,
+            user: item.userId?.name || "Unknown user",
+            auction: item.auctionId?.title || "Unknown auction",
+            bid: `ETB ${Number(item.amount).toLocaleString()}`,
+            package: "Direct bid",
+            status: item.status === "accepted" ? "Accepted" : "Rejected",
+            time: new Date(item.createdAt).toLocaleString(),
+          })));
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredBids = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -96,7 +119,7 @@ export default function BidsAdminPage() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, status]);
+  }, [bids, search, status]);
 
   const acceptedCount = bids.filter(
     (bid) => bid.status === "Accepted"
@@ -109,6 +132,10 @@ export default function BidsAdminPage() {
   const rejectedCount = bids.filter(
     (bid) => bid.status === "Rejected"
   ).length;
+
+  if (loading) {
+    return <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]"><LoadingSpinner size="lg" /></main>;
+  }
 
   return (
     <main className="min-h-screen bg-[#F7F8FA]">

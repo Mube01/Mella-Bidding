@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useLanguage } from "../context/LanguageContext";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 type User = {
   id: string;
@@ -108,13 +109,10 @@ export default function AccountPage() {
    */
   if (loading) {
     return (
-      <main className="min-h-screen bg-neutral-50 px-6 pb-20 pt-40 sm:pt-44">
-        <div className="mx-auto max-w-5xl animate-pulse">
-          <div className="h-10 w-48 rounded-lg bg-neutral-200" />
-
-          <div className="mt-4 h-5 w-72 rounded bg-neutral-200" />
-
-          <div className="mt-10 h-64 rounded-3xl bg-neutral-200" />
+      <main className="flex min-h-screen items-center justify-center bg-neutral-50">
+        <div className="flex items-center gap-3 text-sm text-neutral-500">
+          <LoadingSpinner size="lg" />
+          Loading...
         </div>
       </main>
     );

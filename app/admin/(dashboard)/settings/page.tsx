@@ -109,10 +109,12 @@ export default function SettingsAdminPage() {
                 defaultValue="Telebirr"
               />
 
-              <Input
-                label="Single Bid Price"
-                defaultValue="ETB 75"
-              />
+              <Input label="Single Bid Price" defaultValue="ETB 75" />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input label="5 Bid Package" defaultValue="ETB 356.25 (5% off)" />
+                <Input label="10 Bid Package" defaultValue="ETB 660 (12% off)" />
+              </div>
 
               <Input
                 label="Maximum Bids Per Auction"

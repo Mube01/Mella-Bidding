@@ -9,13 +9,16 @@ import {
   MoreHorizontal,
   Plus,
   Search,
+  Star,
   Trash2,
   Users,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 import AdminHeader from "../../../components/admin/AdminHeader";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 
 const auctions = [
   {
@@ -105,13 +108,44 @@ const statuses = [
   "Completed",
 ];
 
+function isFeatured(auction: Record<string, unknown>) {
+  return Boolean(auction.featured);
+}
+
 export default function AuctionsAdminPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [status, setStatus] = useState("All");
+  const [databaseAuctions, setDatabaseAuctions] = useState<typeof auctions>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/admin/auctions", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setDatabaseAuctions(data.auctions.map((auction: any) => ({
+            id: auction.publicId,
+            title: auction.title,
+            category: auction.category,
+            participants: auction.participantCount,
+            bids: auction.bidCount,
+            time: new Date(auction.endsAt).toLocaleString(),
+            status: auction.status === "live" ? "Live" : auction.status === "upcoming" ? "Upcoming" : "Completed",
+            entry: `ETB ${auction.entryCost}`,
+            featured: Boolean(auction.featured),
+          })));
+        }
+      })
+      .catch(() => setDatabaseAuctions([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const sourceAuctions = databaseAuctions.length ? databaseAuctions : auctions;
 
   const filteredAuctions = useMemo(() => {
-    return auctions.filter((auction) => {
+    return sourceAuctions.filter((auction) => {
       const matchesSearch =
         auction.title
           .toLowerCase()
@@ -134,19 +168,56 @@ export default function AuctionsAdminPage() {
         matchesStatus
       );
     });
-  }, [search, category, status]);
+  }, [search, category, status, sourceAuctions]);
 
-  const liveCount = auctions.filter(
+  const liveCount = sourceAuctions.filter(
     (auction) => auction.status === "Live"
   ).length;
 
-  const upcomingCount = auctions.filter(
+  const upcomingCount = sourceAuctions.filter(
     (auction) => auction.status === "Upcoming"
   ).length;
 
-  const completedCount = auctions.filter(
+  const completedCount = sourceAuctions.filter(
     (auction) => auction.status === "Completed"
   ).length;
+
+  async function updateAuction(id: string, method: "DELETE" | "PATCH", body?: object) {
+    const response = await fetch(`/api/admin/auctions/${encodeURIComponent(id)}`, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!response.ok) throw new Error("Auction update failed");
+    setDatabaseAuctions((current) => current.filter((auction) => auction.id !== id));
+  }
+
+  async function handleDelete(id: string) {
+    if (!window.confirm("Delete this auction? This cannot be undone.")) return;
+    try { await updateAuction(id, "DELETE"); } catch { window.alert("Unable to delete auction."); }
+  }
+
+  async function handleComplete(id: string) {
+    try { await updateAuction(id, "PATCH", { status: "completed" }); } catch { window.alert("Unable to complete auction."); }
+  }
+
+  async function handleFeature(id: string) {
+    try {
+      const response = await fetch(`/api/admin/auctions/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ featured: true }),
+      });
+      if (!response.ok) throw new Error("Feature update failed");
+      setDatabaseAuctions((current) => current.map((auction) => ({ ...auction, featured: auction.id === id })));
+    } catch { window.alert("Unable to change featured auction."); }
+  }
+
+  if (loading) {
+    return <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]"><LoadingSpinner size="lg" /></main>;
+  }
 
   return (
     <main className="min-h-screen bg-[#F7F8FA]">
@@ -487,6 +558,16 @@ export default function AuctionsAdminPage() {
 
                           <button
                             type="button"
+                            onClick={() => handleFeature(auction.id)}
+                            className={`grid h-9 w-9 place-items-center rounded-lg transition ${isFeatured(auction) ? "bg-[#F78000]/10 text-[#F78000]" : "text-black/40 hover:bg-[#F78000]/10 hover:text-[#F78000]"}`}
+                            title={isFeatured(auction) ? "Featured auction" : "Make featured auction"}
+                          >
+                            <Star size={16} fill={isFeatured(auction) ? "currentColor" : "none"} />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(auction.id)}
                             className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-red-50 hover:text-red-500"
                             title="Delete auction"
                           >
@@ -495,6 +576,7 @@ export default function AuctionsAdminPage() {
 
                           <button
                             type="button"
+                            onClick={() => handleComplete(auction.id)}
                             className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-black/5"
                             title="More options"
                           >
@@ -605,7 +687,18 @@ export default function AuctionsAdminPage() {
 
                       <button
                         type="button"
+                        onClick={() => handleFeature(auction.id)}
+                        className={`grid h-9 w-9 place-items-center rounded-lg border border-black/10 ${isFeatured(auction) ? "text-[#F78000]" : "text-black/40"}`}
+                        title={isFeatured(auction) ? "Featured auction" : "Make featured auction"}
+                      >
+                        <Star size={15} fill={isFeatured(auction) ? "currentColor" : "none"} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleComplete(auction.id)}
                         className="grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40"
+                        title="Complete auction"
                       >
                         <MoreHorizontal size={15} />
                       </button>

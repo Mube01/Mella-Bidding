@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:clean": "node scripts/clean-next.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "create-admin": "node scripts/create-admin.mjs",
+    "seed-auctions": "node scripts/seed-auctions.mjs",
+    "seed-sample-result": "node scripts/seed-sample-result.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

@@ -7,9 +7,33 @@ import {
 import FeaturedAuction from "./FeaturedAuction";
 import { auctions } from "./data";
 import { useLanguage } from "../context/LanguageContext";
+import { useEffect, useState } from "react";
 
 export default function Hero() {
   const { language, t } = useLanguage();
+  const [featuredAuction, setFeaturedAuction] = useState(auctions[0]);
+
+  useEffect(() => {
+    fetch(`/api/auctions?featured=true&lang=${language}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        const auction = data.auctions?.[0];
+        if (!data.success || !auction) return;
+        setFeaturedAuction({
+          id: auction.id,
+          title: auction.title,
+          subtitle: auction.subtitle,
+          description: auction.description,
+          category: auction.category,
+          image: auction.image,
+          time: "",
+          endsAt: auction.endsAt,
+          participants: auction.participantCount,
+          entry: `${auction.entryCost} ETB`,
+        });
+      })
+      .catch(() => undefined);
+  }, [language]);
 
   return (
     <section className="relative min-h-[760px] overflow-hidden border-b border-black/10 pt-[120px]">
@@ -121,7 +145,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <FeaturedAuction auction={auctions[0]} />
+        <FeaturedAuction auction={featuredAuction} />
       </div>
     </section>
   );

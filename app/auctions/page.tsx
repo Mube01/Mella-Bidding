@@ -1,19 +1,44 @@
 "use client";
 
 import { Search, SlidersHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AuctionCard from "../components/AuctionCard";
-import { auctions } from "../components/data";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
+import type { Auction } from "../components/data";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function AuctionsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [category, setCategory] = useState("all");
   const [search, setSearch] = useState("");
+  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/auctions?lang=${language}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data.success) return;
+        setAuctions(data.auctions.map((auction: any) => ({
+          id: auction.id,
+          title: auction.title,
+          subtitle: auction.subtitle,
+          description: auction.description,
+          category: auction.category,
+          image: auction.image,
+          time: "",
+          endsAt: auction.endsAt,
+          participants: auction.participantCount,
+          entry: `${auction.entryCost} ETB`,
+        })));
+      })
+      .catch(() => setAuctions([]))
+      .finally(() => setLoading(false));
+  }, [language]);
 
   const filteredAuctions = useMemo(() => {
     return auctions.filter((auction) => {
@@ -31,7 +56,7 @@ export default function AuctionsPage() {
 
       return matchesCategory && matchesSearch;
     });
-  }, [category, search]);
+  }, [auctions, category, search]);
   
 const categories = [
   {
@@ -189,7 +214,11 @@ const categories = [
           {/* ===================================================
               AUCTION GRID
           =================================================== */}
-          {filteredAuctions.length > 0 ? (
+          {loading ? (
+            <div className="flex min-h-[420px] items-center justify-center">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : filteredAuctions.length > 0 ? (
             <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
               {filteredAuctions.map((auction) => (

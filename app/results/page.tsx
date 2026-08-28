@@ -9,10 +9,11 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { useLanguage } from "../context/LanguageContext";
 
 type Result = {
@@ -115,21 +116,41 @@ const results: Result[] = [
 export default function ResultsPage() {
   const { t, language } = useLanguage();
   const [search, setSearch] = useState("");
+  const [databaseResults, setDatabaseResults] = useState<Result[] | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/results?lang=${language}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data.success) return;
+        setDatabaseResults(data.results.map((result: any) => ({
+          ...result,
+          winningBid: `ETB ${Number(result.winningBid).toLocaleString()}`,
+          date: new Date(result.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+          amDate: new Date(result.date).toLocaleDateString(),
+          subtitleKey: "brandNewSubtitle",
+          categoryKey: result.category === "Home" ? "homeCategory" : result.category === "Mystery Box" ? "mysteryBoxCategory" : "electronicsCategory",
+        })));
+      })
+      .catch(() => setDatabaseResults([]));
+  }, [language]);
+
+  const sourceResults = databaseResults ?? results;
 
   const filteredResults = useMemo(() => {
     const query = search.toLowerCase().trim();
 
     if (!query) {
-      return results;
+      return sourceResults;
     }
 
-    return results.filter(
+    return sourceResults.filter(
       (result) =>
         result.title.toLowerCase().includes(query) ||
         result.winner.toLowerCase().includes(query) ||
         result.id.toLowerCase().includes(query)
     );
-  }, [search]);
+  }, [search, sourceResults]);
 
   return (
     <main
@@ -210,17 +231,21 @@ export default function ResultsPage() {
               RESULTS
           =================================================== */}
 
-          {filteredResults.length > 0 ? (
-            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {databaseResults === null ? (
+            <div className="flex min-h-[420px] items-center justify-center">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : filteredResults.length > 0 ? (
+            <div className="mt-8 space-y-4">
               {filteredResults.map((result) => (
                 <article
                   key={result.id}
-                  className="group overflow-hidden rounded-2xl border border-[#999] bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className="group overflow-hidden rounded-2xl border border-black/10 bg-white transition duration-300 hover:border-[#1681C5]/30 hover:shadow-lg"
                 >
-                  <Link href={`/results/${result.id}`}>
+                  <Link href={`/results/${result.id}`} className="sm:flex">
                     {/* IMAGE */}
 
-                    <div className="relative aspect-[1.05/1] overflow-hidden border-b border-black/10">
+                    <div className="relative aspect-[1.4/1] shrink-0 overflow-hidden border-b border-black/10 sm:aspect-auto sm:min-h-[230px] sm:w-56 sm:border-b-0">
                       <img
                         src={result.image}
                         alt={result.title}
@@ -242,7 +267,7 @@ export default function ResultsPage() {
 
                     {/* CONTENT */}
 
-                    <div className="p-5">
+                    <div className="min-h-[230px] flex-1 p-5 sm:p-6">
                       {/* TITLE */}
 
                       <div className="flex items-start justify-between gap-4">
@@ -271,7 +296,7 @@ export default function ResultsPage() {
 
                       {/* WINNER / WINNING BID */}
 
-                      <div className="mt-5 grid grid-cols-2 gap-2 border-y border-black/10 py-4">
+                      <div className="mt-5 grid grid-cols-2 gap-4 border-y border-black/10 py-4 sm:max-w-xl">
                         {/* WINNER */}
 
                         <div>

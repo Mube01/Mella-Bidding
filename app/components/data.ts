@@ -8,6 +8,8 @@ export type Auction = {
   time: string;
   participants: number;
   entry: string;
+  endsAt?: string;
+  featured?: boolean;
 };
 
 export const auctions: Auction[] = [

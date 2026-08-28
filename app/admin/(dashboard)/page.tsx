@@ -3,18 +3,18 @@
 import {
   Activity,
   BarChart3,
-  Boxes,
   Clock3,
   CreditCard,
   Gavel,
-  Package,
   ShieldCheck,
   Trophy,
   Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminHeader from "../../components/admin/AdminHeader";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
 
 const stats = [
   {
@@ -94,6 +94,31 @@ const activities = [
 ];
 
 export default function AdminPage() {
+  const [databaseStats, setDatabaseStats] = useState<typeof stats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/stats", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data.success) return;
+        setDatabaseStats([
+          { ...stats[0], value: String(data.stats.live), detail: "Live now" },
+          { ...stats[1], value: Number(data.stats.users).toLocaleString(), detail: "Registered" },
+          { ...stats[2], value: Number(data.stats.bids).toLocaleString(), detail: "Submitted" },
+          { ...stats[3], value: "—", detail: "Payments pending" },
+        ]);
+      })
+      .catch(() => setDatabaseStats(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const visibleStats = databaseStats || stats;
+
+  if (loading) {
+    return <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]"><LoadingSpinner size="lg" /></main>;
+  }
+
   return (
     <main className="min-h-screen bg-[#F7F8FA] text-black">
 
@@ -140,7 +165,7 @@ export default function AdminPage() {
           ================================================= */}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-            {stats.map((stat) => {
+            {visibleStats.map((stat) => {
               const Icon = stat.icon;
 
               return (
@@ -372,51 +397,9 @@ export default function AdminPage() {
 
               </a>
 
-              {/* ADD PRODUCT */}
-              <a
-                href="/admin/products/new"
-                className="group rounded-2xl border border-black/10 bg-white p-5 transition hover:-translate-y-1 hover:border-[#1681C5]/30 hover:shadow-lg"
-              >
-
-                <Package
-                  size={20}
-                  className="text-[#1681C5]"
-                />
-
-                <h4 className="mt-5 text-sm font-semibold">
-                  Add Product
-                </h4>
-
-                <p className="mt-1 text-xs text-black/40">
-                  Add an auction product
-                </p>
-
-              </a>
-
-              {/* MYSTERY BOX */}
-              <a
-                href="/admin/mystery-boxes/new"
-                className="group rounded-2xl border border-black/10 bg-white p-5 transition hover:-translate-y-1 hover:border-[#1681C5]/30 hover:shadow-lg"
-              >
-
-                <Boxes
-                  size={20}
-                  className="text-[#F78000]"
-                />
-
-                <h4 className="mt-5 text-sm font-semibold">
-                  Mystery Box
-                </h4>
-
-                <p className="mt-1 text-xs text-black/40">
-                  Create a mystery box
-                </p>
-
-              </a>
-
               {/* VERIFY RESULTS */}
               <a
-                href="/admin/results"
+                  href="/results"
                 className="group rounded-2xl border border-black/10 bg-white p-5 transition hover:-translate-y-1 hover:border-[#1681C5]/30 hover:shadow-lg"
               >
 

@@ -5,7 +5,6 @@ import {
   Gavel,
   LayoutDashboard,
   LogOut,
-  Package,
   Settings,
   Trophy,
   Users,
@@ -45,11 +44,6 @@ const navigation = [
     href: "/admin/payments",
     icon: CreditCard,
   },
-  {
-    name: "Mystery Boxes",
-    href: "/admin/mystery-boxes",
-    icon: Package,
-  },
 ];
 
 const bottomNavigation = [
@@ -77,7 +71,7 @@ export default function AdminSidebar({
 
   async function handleLogout() {
     try {
-      await fetch("/api/auth/logout", {
+      await fetch("/api/auth/admin-logout", {
         method: "POST",
       });
     } catch (error) {

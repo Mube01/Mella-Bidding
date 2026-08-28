@@ -4,6 +4,7 @@ import { connectDB } from "../../../lib/db";
 import {
   createSession,
   hashPassword,
+  isSameOriginRequest,
 } from "../../../lib/auth";
 import User from "../../../models/user";
 
@@ -17,6 +18,16 @@ function isValidPhone(phone: string) {
 
 export async function POST(request: Request) {
   try {
+    if (!isSameOriginRequest(request)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid request origin.",
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     const name =
@@ -37,7 +48,14 @@ export async function POST(request: Request) {
     const remember =
       body.remember === true;
 
-    if (!name || !phone || !password) {
+    if (
+      !name ||
+      !phone ||
+      !password ||
+      name.length > 100 ||
+      phone.length > 32 ||
+      password.length > 128
+    ) {
       return NextResponse.json(
         {
           success: false,

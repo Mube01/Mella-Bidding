@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 type AuctionStatus =
   | "active"
@@ -31,7 +32,7 @@ type MyAuction = {
   endDate: string;
 };
 
-const myAuctions: MyAuction[] = [
+const sampleAuctions: MyAuction[] = [
   {
     id: "iphone-17-pro-max",
     title: "iPhone 17 Pro Max",
@@ -65,12 +66,7 @@ const myAuctions: MyAuction[] = [
 ];
 
 function LoadingCircle() {
-  return (
-    <div
-      className="h-10 w-10 animate-spin rounded-full border-4 border-[#F78000]/20 border-t-[#F78000]"
-      aria-label="Loading"
-    />
-  );
+  return <LoadingSpinner size="lg" />;
 }
 
 function formatAmount(amount: number) {
@@ -120,20 +116,23 @@ function StatusBadge({
 }
 
 export default function MyAuctionsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [loading, setLoading] = useState(true);
+  const [myAuctions, setMyAuctions] = useState<MyAuction[]>([]);
 
   const [activeFilter, setActiveFilter] =
     useState<"all" | AuctionStatus>("all");
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
+    fetch(`/api/my-auctions?lang=${language}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) setMyAuctions(data.auctions);
+      })
+      .catch(() => setMyAuctions([]))
+      .finally(() => setLoading(false));
+  }, [language]);
 
   const filteredAuctions =
     activeFilter === "all"

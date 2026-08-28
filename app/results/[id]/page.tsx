@@ -11,11 +11,26 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useLanguage } from "../../context/LanguageContext";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+
+type BidBreakdown = {
+  amount: number;
+  submissions: number;
+  unique: boolean;
+  winner: boolean;
+};
+
+type DatabaseResult = typeof results[number] & {
+  breakdown: BidBreakdown[];
+  winnerName: string | null;
+  winnerPhone: string | null;
+};
 
 const results = [
   {
@@ -100,13 +115,37 @@ const results = [
 
 export default function IndividualResultPage() {
   const params = useParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const id = Array.isArray(params.id)
     ? params.id[0]
     : params.id;
 
-  const result = results.find(
+  const [databaseResult, setDatabaseResult] = useState<DatabaseResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(`/api/results/${encodeURIComponent(String(id))}?lang=${language}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success && data.result) {
+          const match = data.result;
+          setDatabaseResult({
+            ...match,
+            winningBid: `ETB ${Number(match.winningBid).toLocaleString()}`,
+            date: new Date(match.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+            category: match.category,
+            breakdown: match.breakdown,
+            winnerName: match.winnerName,
+            winnerPhone: match.winnerPhone,
+          });
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [id, language]);
+
+  const result = databaseResult || results.find(
     (item) =>
       item.id.toLowerCase() ===
       String(id).toLowerCase()
@@ -118,7 +157,15 @@ export default function IndividualResultPage() {
    * ============================================================
    */
 
-  if (!result) {
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-white">
+        <LoadingSpinner size="lg" />
+      </main>
+    );
+  }
+
+  if (!databaseResult || !result) {
     return (
       <main className="min-h-screen bg-white">
         <Header />
@@ -318,8 +365,14 @@ export default function IndividualResultPage() {
                       </p>
 
                       <p className="mt-1 text-base font-bold">
-                        {result.winner}
+                        {databaseResult.winnerName || "Winner"}
                       </p>
+
+                      {databaseResult.winnerPhone && (
+                        <p className="mt-1 text-xs text-black/45">
+                          {databaseResult.winnerPhone}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -335,6 +388,22 @@ export default function IndividualResultPage() {
                     </p>
                   </div>
 
+                </div>
+              </div>
+
+              <div className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm">
+                <div className="border-b border-black/10 p-5">
+                  <p className="text-[10px] font-bold tracking-[0.15em] text-[#1681C5]">TRANSPARENT BID BREAKDOWN</p>
+                  <h2 className="mt-1 text-lg font-semibold">Every submitted amount</h2>
+                  <p className="mt-1 text-xs text-black/45">Bidder identities are private. Counts show exactly how the winner was determined.</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[500px] text-left text-sm">
+                    <thead className="bg-black/[0.02] text-xs uppercase tracking-wider text-black/40"><tr><th className="px-5 py-3">Bid amount</th><th className="px-5 py-3">Submissions</th><th className="px-5 py-3">Result</th></tr></thead>
+                    <tbody>
+                      {databaseResult.breakdown.map((bid) => <tr key={bid.amount} className="border-t border-black/5"><td className="px-5 py-4 font-mono font-semibold">ETB {bid.amount.toFixed(2)}</td><td className="px-5 py-4">{bid.submissions}</td><td className={`px-5 py-4 font-semibold ${bid.winner ? "text-[#F78000]" : bid.unique ? "text-[#1681C5]" : "text-black/45"}`}>{bid.winner ? "Winner: lowest unique bid" : bid.unique ? "Unique" : "Not unique"}</td></tr>)}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 

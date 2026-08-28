@@ -42,7 +42,12 @@ export async function POST(request: Request) {
     const adminLogin =
       body.admin === true;
 
-    if ((!phone && !email) || !password) {
+    if (
+      ((!phone && !email) || !password) ||
+      email.length > 254 ||
+      phone.length > 32 ||
+      password.length > 128
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -64,7 +69,7 @@ export async function POST(request: Request) {
         {
           success: false,
           message:
-            "Invalid phone number or password.",
+            "Invalid email or phone number or password.",
         },
         { status: 401 }
       );
@@ -81,7 +86,7 @@ export async function POST(request: Request) {
         {
           success: false,
           message:
-            "Invalid phone number or password.",
+            "Invalid email or phone number or password.",
         },
         { status: 401 }
       );
@@ -94,7 +99,7 @@ export async function POST(request: Request) {
           message:
             "This account does not have administrator access.",
         },
-        { status: 403 }
+        { status: 401 }
       );
     }
 

@@ -1,9 +1,22 @@
 import { NextResponse } from "next/server";
 
-import { clearSession } from "../../../lib/auth";
+import {
+  clearSession,
+  isSameOriginRequest,
+} from "../../../lib/auth";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    if (!isSameOriginRequest(request)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid request origin.",
+        },
+        { status: 403 }
+      );
+    }
+
     await clearSession();
 
     return NextResponse.json({

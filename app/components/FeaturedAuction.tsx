@@ -6,6 +6,8 @@ import {
   Zap,
 } from "lucide-react";
 import type { Auction } from "./data";
+import AuctionCountdown from "./AuctionCountdown";
+import { useEffect, useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
 
 export default function FeaturedAuction({
@@ -14,6 +16,16 @@ export default function FeaturedAuction({
   auction: Auction;
 }) {
   const { t } = useLanguage();
+  const [endsAt, setEndsAt] = useState(auction.endsAt);
+
+  useEffect(() => {
+    fetch(`/api/auctions/${auction.id}`, { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) setEndsAt(data.auction.endsAt);
+      })
+      .catch(() => undefined);
+  }, [auction.id]);
 
   return (
     <div className="relative">
@@ -25,8 +37,8 @@ export default function FeaturedAuction({
 
           {/* BYD IMAGE */}
           <img
-            src="/images/byd2.avif"
-            alt="BYD Seagull"
+            src={auction.image}
+            alt={auction.title}
             className="absolute inset-0 h-full w-full object-cover transition duration-700 hover:scale-105"
           />
 
@@ -60,11 +72,11 @@ export default function FeaturedAuction({
                 </p>
 
                 <h2 className="mt-1 font-display text-3xl tracking-[-0.03em] sm:text-4xl">
-                  BYD Seagull
+                  {auction.title}
                 </h2>
 
                 <p className="mt-1 text-sm text-white/65">
-                  {t("electricBrandNew")}
+                  {auction.subtitle}
                 </p>
               </div>
 
@@ -83,7 +95,7 @@ export default function FeaturedAuction({
                 </div>
 
                 <p className="mt-1 font-mono text-lg font-bold text-red-500">
-                  {auction.time}
+                  {endsAt ? <AuctionCountdown endsAt={endsAt} /> : auction.time}
                 </p>
 
               </div>

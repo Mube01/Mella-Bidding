@@ -1,15 +1,20 @@
 import { cookies } from "next/headers";
-import { createHmac } from "crypto";
+import {
+  createHmac,
+  timingSafeEqual,
+} from "crypto";
 import bcrypt from "bcryptjs";
+import { connectDB } from "./db";
+import User from "../models/user";
 
 const AUTH_COOKIE_NAME = "mella_session";
 
 function getAuthSecret(): string {
   const secret = process.env.AUTH_SECRET;
 
-  if (!secret) {
+  if (!secret || secret.length < 32) {
     throw new Error(
-      "AUTH_SECRET is not defined in .env.local"
+      "AUTH_SECRET must contain at least 32 characters"
     );
   }
 
@@ -62,7 +67,19 @@ function decodeSession(
       .update(data)
       .digest("base64url");
 
-    if (signature !== expectedSignature) {
+    const received = Buffer.from(
+      signature,
+      "utf8"
+    );
+    const expected = Buffer.from(
+      expectedSignature,
+      "utf8"
+    );
+
+    if (
+      received.length !== expected.length ||
+      !timingSafeEqual(received, expected)
+    ) {
       return null;
     }
 
@@ -154,6 +171,34 @@ export async function getSession(): Promise<
   }
 
   return decodeSession(token);
+}
+
+export async function getCurrentUser() {
+  const session = await getSession();
+
+  if (!session) {
+    return null;
+  }
+
+  await connectDB();
+
+  return User.findById(session.userId).select("name phone email role createdAt");
+}
+
+export async function requireAdmin() {
+  const user = await getCurrentUser();
+
+  if (!user || user.role !== "admin") {
+    return null;
+  }
+
+  return user;
+}
+
+export function isSameOriginRequest(request: Request): boolean {
+  const origin = request.headers.get("origin");
+
+  return !origin || origin === new URL(request.url).origin;
 }
 
 export async function clearSession(): Promise<void> {

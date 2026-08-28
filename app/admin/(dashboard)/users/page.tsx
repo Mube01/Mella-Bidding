@@ -8,12 +8,13 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 import AdminHeader from "../../../components/admin/AdminHeader";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 
-const users = [
+const sampleUsers = [
   {
     id: "U-00182",
     name: "Abebe Kebede",
@@ -61,6 +62,28 @@ const statuses = [
 export default function UsersAdminPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
+  const [users, setUsers] = useState(sampleUsers);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/users", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          setUsers(data.users.map((user: any) => ({
+            id: user._id,
+            name: user.name,
+            phone: user.phone,
+            bids: user.bids || 0,
+            spent: "—",
+            status: "Active",
+            joined: new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+          })));
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredUsers = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -77,7 +100,7 @@ export default function UsersAdminPage() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [search, status]);
+  }, [users, search, status]);
 
   const totalUsers = users.length;
 
@@ -88,6 +111,10 @@ export default function UsersAdminPage() {
   const suspendedUsers = users.filter(
     (user) => user.status === "Suspended"
   ).length;
+
+  if (loading) {
+    return <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]"><LoadingSpinner size="lg" /></main>;
+  }
 
   return (
     <main className="min-h-screen bg-[#F7F8FA]">
@@ -143,6 +170,9 @@ export default function UsersAdminPage() {
 
             <button
               type="button"
+              onClick={() => {
+                window.location.href = "/register";
+              }}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-[#1681C5] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#116d9f] sm:w-auto"
             >
               <UserPlus size={16} />
