@@ -33,12 +33,6 @@ export default function HowItWorksPage() {
     },
     {
       number: "03",
-      icon: CreditCard,
-      title: t("placeYourStrategy"),
-      description: t("placeYourStrategyDescription"),
-    },
-    {
-      number: "04",
       icon: Trophy,
       title: t("seeTheResult"),
       description: t("seeTheResultDescription"),
@@ -76,7 +70,7 @@ export default function HowItWorksPage() {
 
         {/* STEPS */}
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-28">
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {steps.map((step) => {
               const Icon = step.icon;
 

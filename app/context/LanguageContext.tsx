@@ -42,11 +42,10 @@ const translations = {
 
     chooseAuction: "Choose an auction",
     getYourBids: "Get your bids",
-    placeYourStrategy: "Place your strategy",
     seeTheResult: "See the result",
 
     browseProducts:
-      "Browse cars, electronics, appliances and special drops.",
+      "Browse vehicles, electronics, appliances and special drops.",
 
     choosePackage:
       "Choose a bid package and use your credits to participate.",
@@ -61,7 +60,7 @@ const translations = {
     participants: "PARTICIPANTS",
     enterYourBid: "ENTER YOUR BID",
     submitBid: "Submit Bid",
-    entryFrom: "Entry from",
+    entryFrom: "Service Fee",
 
     builtForFairPlay: "Built for fair play.",
     trustFirst: "Trust first.",
@@ -72,7 +71,7 @@ const translations = {
     terms: "Terms",
     privacy: "Privacy",
 
-    footerDescription: "A new way to bid in Ethiopia.",
+    footerDescription: "A new way to bid",
     allRightsReserved: "All rights reserved.",
 
     fairPlayTitle: "Built for fair play.",
@@ -94,19 +93,16 @@ const translations = {
       "We designed Mella around one principle: you should always understand what is happening with your bid.",
 
     chooseAuctionDescription:
-      "Browse cars, electronics, appliances and special drops.",
+      "Browse vehicles, electronics, appliances and special drops.",
 
     getYourBidsDescription:
       "Choose a bid package and use your credits to participate.",
-
-    placeYourStrategyDescription:
-      "Submit your bids before the countdown reaches zero.",
 
     seeTheResultDescription:
       "When the auction closes, the winning logic and result are published.",
 
     footerTagline:
-      "A new way to bid in Ethiopia.",
+      "A new way to bid",
 
     copyright:
       "© 2026 Mella. All rights reserved.",
@@ -116,13 +112,13 @@ const translations = {
     findYourNextWin: "Find your next win.",
 
     auctionsPageDescription:
-      "Explore live Mella auctions and discover cars, electronics, appliances and other exceptional products.",
+      "Explore live Mella auctions and discover vehicles, electronics, appliances and other exceptional products.",
 
     all: "All",
 
     electronics: "Electronics",
 
-    automotive: "Automotive",
+    automotive: "Vehicle",
 
     home: "Home",
 
@@ -150,7 +146,7 @@ const translations = {
     electric: "ELECTRIC",
 
     featuredAutomotiveAuction:
-      "FEATURED AUTOMOTIVE AUCTION",
+      "FEATURED VEHICLE AUCTION",
 
     electricBrandNew: "Electric • Brand New",
 
@@ -239,9 +235,6 @@ const translations = {
     enterPassword:
       "Enter your password",
 
-    keepMeSignedIn:
-      "Keep me signed in",
-
     signIn:
       "Sign in",
 
@@ -250,12 +243,6 @@ const translations = {
 
     createAccount:
       "Create an account",
-
-    mellaStaff:
-      "Mella Staff",
-
-    administratorLogin:
-      "Administrator login",
 
     showPassword:
       "Show password",
@@ -362,10 +349,10 @@ allRightsReservedShort:
 
     clearSearch: "Clear search",
 
-    resultsVisibleTitle: "Results should be visible.",
+    resultsVisibleTitle: "Results are visible.",
 
     resultsVisibleDescription:
-      "Every completed auction should have a clear record of its result. Mella is designed so participants can understand what happened after the countdown reaches zero.",
+      "Every completed auction have a clear record of its result. Mella is designed so participants can understand what happened after the countdown reaches zero.",
 
     publishedWinnerPoint: "Published winner",
 
@@ -479,12 +466,12 @@ exploreLiveAuctions:
 
     login: "ግባ",
 
-    startBidding: "መጫረቻ ይጀምሩ",
+    startBidding: "መጫረት ይጀምሩ",
 
     liveNow: "አሁን በቀጥታ",
 
     auctionsWorthWatching:
-      "ሊከታተሏቸው የሚገቡ ጨረታዎች።",
+      "ጨረታዎች",
 
     viewAllAuctions:
       "ሁሉንም ጨረታዎች ይመልከቱ",
@@ -496,19 +483,19 @@ exploreLiveAuctions:
       "ለማሸነፍ አዲስ መንገድ",
 
     bidSmart:
-      "በብልሃት ይጫረቱ።",
+      "በብልሃት",
 
     winMore:
-      "የበለጠ ያሸንፉ።",
+      "የበለጠ ያሸንፉ",
 
     heroDescription:
-      "Mella በኢትዮጵያ አዲስና ግልጽ የጨረታ ልምድን ያመጣል። ልዩ ምርቶችን ያግኙ፣ መጫረቻዎን ያስገቡ እና ብልህ ስትራቴጂዎ እንዲያሸንፍ ያድርጉ።",
+      "Mella አዲስና ግልጽ የጨረታ ልምድን አምጥቷል። ልዩ ምርቶችን ያግኙ፣ መጫረቻዎን ያስገቡ እና ብልህ ስትራቴጂዎ እንዲያሸንፍ ያድርጉ።",
 
     transparent:
       "ሙሉ ግልጽነት",
 
     localPayments:
-      "የአካባቢ ክፍያዎች",
+      "ክፍያዎች",
 
     auctions247:
       "ጨረታዎች",
@@ -517,22 +504,19 @@ exploreLiveAuctions:
       "MELLA እንዴት ይሰራል",
 
     simpleEnough:
-      "ለመረዳት ቀላል። ለማስታወስ የሚያስደስት።",
+      "ለመረዳት ቀላል",
 
     chooseAuction:
       "ጨረታ ይምረጡ",
 
     getYourBids:
-      "መጫረቻዎን ያግኙ",
-
-    placeYourStrategy:
       "ስትራቴጂዎን ይተግብሩ",
 
     seeTheResult:
       "ውጤቱን ይመልከቱ",
 
     browseProducts:
-      "መኪናዎችን፣ ኤሌክትሮኒክስን፣ የቤት እቃዎችን እና ልዩ ምርቶችን ይመልከቱ።",
+      "ተሽከርካሪዎችን፣ ኤሌክትሮኒክስን፣ የቤት እቃዎችን እና ልዩ ምርቶችን ይመልከቱ።",
 
     choosePackage:
       "የመጫረቻ ፓኬጅ ይምረጡ እና ክሬዲቶችዎን በመጠቀም ይሳተፉ።",
@@ -556,16 +540,16 @@ exploreLiveAuctions:
       "መጫረቻ ያስገቡ",
 
     entryFrom:
-      "መግቢያ ከ",
+      "የአገልግሎት ክፍያ",
 
     builtForFairPlay:
-      "ለፍትሃዊ ጨዋታ የተገነባ።",
+      "ለፍትሃዊ ጨዋታ የተገነባ",
 
     trustFirst:
-      "እምነት በመጀመሪያ።",
+      "እምነት በመጀመሪያ",
 
     newKindOfAuction:
-      "አዲስ ዓይነት ጨረታ።",
+      "አዲስ ዓይነት ጨረታ",
 
     securePayments:
       "አስተማማኝ ክፍያዎች",
@@ -577,7 +561,7 @@ exploreLiveAuctions:
       "የግላዊነት መመሪያ",
 
     footerDescription:
-      "በኢትዮጵያ ለመጫረት አዲስ መንገድ።",
+      "ለመጫረት አዲስ መንገድ",
 
     allRightsReserved:
       "መብቱ በሙሉ የተጠበቀ ነው።",
@@ -586,7 +570,7 @@ exploreLiveAuctions:
       "ለፍትሃዊ ጨዋታ የተገነባ።",
 
     fairPlayDescription:
-      "ሜላ የአሸናፊውን አመራረጥ ሂደት ግልጽ፣ ሊረጋገጥ የሚችል እና ለመረዳት ቀላል ያደርገዋል።",
+      "Mella የአሸናፊውን አመራረጥ ሂደት ግልጽ፣ ሊረጋገጥ የሚችል እና ለመረዳት ቀላል ያደርገዋል።",
 
     trustFirstTitle:
       "እምነት በመጀመሪያ።",
@@ -595,28 +579,25 @@ exploreLiveAuctions:
       "ግልጽ የጨረታ ደንቦች፣ ይፋ የሆኑ ውጤቶች እና ለኢትዮጵያ የተዘጋጀ የክፍያ ልምድ።",
 
     newAuctionTitle:
-      "አዲስ ዓይነት ጨረታ።",
+      "አዲስ ዓይነት ጨረታ",
 
     newAuctionDescription:
-      "ባህላዊው ከፍተኛ ጨረታ የሚያሸንፍበት የገበያ ስርዓት አይደለም። ሜላ በስትራቴጂ ላይ የተመሰረተ ነው።",
+      "ባህላዊው ከፍተኛ ጨረታ የሚያሸንፍበት የገበያ ስርዓት አይደለም። Mella በስትራቴጂ ላይ የተመሰረተ ነው።",
 
     howMellaDescription:
-      "ሜላን የነደፍነው በአንድ መርህ ላይ በመመስረት ነው፤ በጨረታዎ ላይ ምን እየተፈጠረ እንዳለ ሁልጊዜ መረዳት አለብዎት።",
+      "Mella ን የነደፍነው በአንድ መርህ ላይ በመመስረት ነው፤ በጨረታዎ ላይ ምን እየተፈጠረ እንዳለ ሁልጊዜ ማወቅ አለብዎት።",
 
     chooseAuctionDescription:
-      "መኪናዎችን፣ ኤሌክትሮኒክስን፣ የቤት እቃዎችን እና ልዩ ምርቶችን ይመልከቱ።",
+      "ተሽከርካሪዎችን፣ ኤሌክትሮኒክስን፣ የቤት እቃዎችን እና ልዩ ምርቶችን ይመልከቱ",
 
     getYourBidsDescription:
-      "የጨረታ ፓኬጅ ይምረጡና የጨረታ ክሬዲቶችዎን በመጠቀም ይሳተፉ።",
-
-    placeYourStrategyDescription:
-      "የጨረታው ጊዜ ከማለቁ በፊት ጨረታዎን ያስገቡ።",
+      "ዝቅተኛ ልዩ ይሆናል ብለው የሚያስቡትን ዋጋ ይምረጡ",
 
     seeTheResultDescription:
-      "ጨረታው ሲዘጋ የአሸናፊው አመራረጥ ሂደት እና ውጤቱ ይፋ ይደረጋል።",
+      "ጨረታው ሲዘጋ የአሸናፊው አመራረጥ ሂደት እና ውጤቱ ይፋ ይደረጋል",
 
     footerTagline:
-      "በኢትዮጵያ ጨረታ የሚሳተፉበት አዲስ መንገድ።",
+      "ጨረታ የሚሳተፉበት አዲስ መንገድ",
 
     copyright:
       "© 2026 Mella. መብቱ በሙሉ የተጠበቀ ነው።",
@@ -625,10 +606,10 @@ exploreLiveAuctions:
       "የቀጥታ ጨረታዎች",
 
     findYourNextWin:
-      "ቀጣዩን ዕድልዎን ያግኙ።",
+      "ቀጣዩን ዕድልዎን ያግኙ",
 
     auctionsPageDescription:
-      "የሜላን የቀጥታ ጨረታዎች ይመልከቱ፤ መኪናዎችን፣ ኤሌክትሮኒክስን፣ የቤት እቃዎችን እና ሌሎች ልዩ ምርቶችን ያግኙ።",
+      "የ Mella ን የቀጥታ ጨረታዎች ይመልከቱ፤ ተሽከርካሪዎችን፣ ኤሌክትሮኒክስን፣ የቤት እቃዎችን እና ሌሎች ልዩ ምርቶችን ያግኙ።",
 
     all:
       "ሁሉም",
@@ -637,7 +618,7 @@ exploreLiveAuctions:
       "ኤሌክትሮኒክስ",
 
     automotive:
-      "መኪናዎች",
+      "ተሽከርካሪዎች",
 
     home:
       "የቤት እቃዎች",
@@ -774,22 +755,19 @@ exploreLiveAuctions:
       "የ MELLA መለያ",
 
     loginPageTitle:
-      "እንኳን ደህና መጡ።",
+      "እንኳን ደህና መጡ",
 
     loginPageDescription:
-      "ወደ Mella መለያዎ ይግቡ እና በጨረታዎች ላይ መሳተፍዎን ይቀጥሉ።",
+      "ወደ Mella መለያዎ ይግቡ እና በጨረታዎች ላይ መሳተፍዎን ይቀጥሉ",
 
     password:
       "የይለፍ ቃል",
 
     forgotPassword:
-      "የይለፍ ቃልዎን ረሱ?",
+      "የይለፍ ቃልዎን ረስተዋል?",
 
     enterPassword:
       "የይለፍ ቃልዎን ያስገቡ",
-
-    keepMeSignedIn:
-      "እንደገና ሳልገባ እንዲቆይ",
 
     signIn:
       "ግባ",
@@ -799,12 +777,6 @@ exploreLiveAuctions:
 
     createAccount:
       "መለያ ይፍጠሩ",
-
-    mellaStaff:
-      "የ Mella ሰራተኞች",
-
-    administratorLogin:
-      "የአስተዳዳሪ መግቢያ",
 
     showPassword:
       "የይለፍ ቃሉን አሳይ",
@@ -820,10 +792,10 @@ exploreLiveAuctions:
       "MELLAን ይቀላቀሉ",
 
     createYourAccount:
-      "መለያዎን ይፍጠሩ።",
+      "መለያዎን ይፍጠሩ",
 
     registerPageDescription:
-      "የ Mella መለያዎን ይፍጠሩ እና በአስደሳች ጨረታዎች ላይ መሳተፍ ይጀምሩ።",
+      "የ Mella መለያዎን ይፍጠሩ እና በአስደሳች ጨረታዎች ላይ መሳተፍ ይጀምሩ",
 
     fullName:
       "ሙሉ ስም",
@@ -869,27 +841,27 @@ exploreLiveAuctions:
 
       // AM
 adminLabel: "አስተዳደር",
-userLabel: "ሜላ",
+userLabel: "Mella",
 
 adminHeroTitle:
   "ሁሉንም ነገር በቁጥጥር ስር ያድርጉ።",
 
 userHeroTitle:
-  "ዕድልዎ። ድልዎ።",
+  "ዕድልዎ፣ ድልዎ",
 
 adminHeroDescription:
   "ጨረታዎችን፣ ተሳታፊዎችን፣ መጫረቻዎችን እና ግብይቶችን ከአንድ ደህንነታማ ቦታ ያስተዳድሩ።",
 
 userHeroDescription:
-  "በአስደሳች የሜላ ጨረታዎች ይሳተፉ እና ሊያሸንፉት የሚችሉትን ይወቁ።",
+  "በአስደሳች የMella ጨረታዎች ይሳተፉ እና ሊያሸንፉት የሚችሉትን ይወቁ።",
 
 allRightsReservedShort:
   "መብቱ በሙሉ የተጠበቀ ነው።",
 
-      seeTheWins: "ድሎቹን ይመልከቱ።",
+      seeTheWins: "ድሎቹን ይመልከቱ",
 
     resultsPageDescription:
-      "የተጠናቀቁ የሜላ ጨረታዎችን፣ አሸናፊዎቻቸውን እና ይፋ የሆኑ ውጤቶቻቸውን ይመልከቱ። ጨረታው ሲያበቃም ግልጽነት አይቆምም።",
+      "የተጠናቀቁ የ Mella ጨረታዎችን፣ አሸናፊዎቻቸውን እና ይፋ የሆኑ ውጤቶቻቸውን ይመልከቱ። ጨረታው ሲያበቃም ግልጽነት አያበቃም።",
 
     completedAuctions: "የተጠናቀቁ ጨረታዎች",
 
@@ -915,10 +887,10 @@ allRightsReservedShort:
     clearSearch: "ፍለጋን አጽዳ",
 
     resultsVisibleTitle:
-      "ውጤቶች ግልጽ ሆነው መታየት አለባቸው።",
+      "ውጤቶች ግልጽ ሆነው ይታያሉ",
 
     resultsVisibleDescription:
-      "እያንዳንዱ የተጠናቀቀ ጨረታ ግልጽ የውጤት መዝገብ ሊኖረው ይገባል። ሜላ ቆጣሪው ወደ ዜሮ ከደረሰ በኋላ ምን እንደተፈጠረ ተሳታፊዎች እንዲረዱ ተዘጋጅቷል።",
+      "እያንዳንዱ የተጠናቀቀ ጨረታ ግልጽ የውጤት መዝገብ አለው።",
 
     publishedWinnerPoint: "ይፋ የሆነ አሸናፊ",
 
@@ -938,7 +910,7 @@ allRightsReservedShort:
     readyForNextWin: "ለሚቀጥለው ድልዎ ዝግጁ ነዎት?",
 
     exploreAvailableAuctions:
-      "በአሁኑ ጊዜ በሜላ ላይ የሚገኙትን ጨረታዎች ይመልከቱ።",
+      "በአሁኑ ጊዜ በ Mella ላይ የሚገኙትን ጨረታዎች ይመልከቱ።",
 
     electronicsCategory: "ኤሌክትሮኒክስ",
 
@@ -977,8 +949,8 @@ closeMenu: "ምናሌ ዝጋ",
 
 welcome: "እንኳን ደህና መጡ",
 accountDescription:
-  "የMella መለያዎን ያስተዳድሩ፣ በጨረታዎች ይሳተፉ እና የእንቅስቃሴዎን መረጃ ይከታተሉ።",
-mellaMember: "የMella አባል",
+  "የ Mella መለያዎን ያስተዳድሩ፣ በጨረታዎች ይሳተፉ እና የእንቅስቃሴዎን መረጃ ይከታተሉ።",
+mellaMember: "የ Mella አባል",
 findNextOpportunity: "ቀጣዩን እድልዎን ያግኙ።",
 myActivity: "የእኔ እንቅስቃሴ",
 trackAuctionsAndBids:
@@ -988,9 +960,9 @@ viewCompletedResults:
 signOut: "ውጣ",
 
 // AMHARIC
-myAuctionsTitle: "የእኔ ጨረታዎች።",
+myAuctionsTitle: "የእኔ ጨረታዎች",
 myAuctionsDescription:
-  "የተሳተፍክባቸውን ጨረታዎች፣ ያቀረብካቸውን ጨረታዎች እና ያሸነፍካቸውን ጨረታዎች ተከታተል።",
+  "የተሳተፉባቸውን ጨረታዎች፣ ዋጋ ያቀረቡባቸውን ጨረታዎች እና ያሸነፉባቸውን ጨረታዎች ይከታተሉ።",
 
 active: "ንቁ",
 won: "አሸንፈዋል",
@@ -1002,7 +974,7 @@ bids: "ጨረታዎች",
 myBid: "የእኔ ጨረታ",
 
 noAuctionsDescription:
-  "በዚህ ምድብ ውስጥ እስካሁን የተሳተፍክበት ጨረታ የለም።",
+  "በዚህ ምድብ ውስጥ እስካሁን የተሳተፉበት ጨረታ የለም።",
 
 viewAuction: "ጨረታውን ይመልከቱ",
 

@@ -17,12 +17,6 @@ const steps = [
   },
   {
     number: "03",
-    title: "placeYourStrategy",
-    description: "placeYourStrategyDescription",
-    color: "orange",
-  },
-  {
-    number: "04",
     title: "seeTheResult",
     description: "seeTheResultDescription",
     color: "emerald",

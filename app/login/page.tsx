@@ -313,25 +313,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* REMEMBER ME */}
-        <label className="flex cursor-pointer items-center gap-3">
-          <input
-            type="checkbox"
-            checked={remember}
-            onChange={(event) =>
-              setRemember(
-                event.target.checked
-              )
-            }
-            disabled={loading}
-            className="h-4 w-4 rounded border-black/20 accent-[#F78000] disabled:cursor-not-allowed"
-          />
-
-          <span className="text-xs text-black/50">
-            {t("keepMeSignedIn")}
-          </span>
-        </label>
-
         {/* SUBMIT */}
         <button
           type="submit"
@@ -375,20 +356,6 @@ export default function LoginPage() {
           className="mt-2 inline-block text-sm font-bold text-[#F78000] transition hover:text-[#d96d00] hover:underline"
         >
           {t("createAccount")}
-        </Link>
-      </div>
-
-      {/* ADMIN LOGIN */}
-      <div className="mt-7 border-t border-black/10 pt-6 text-center">
-        <p className="text-[10px] uppercase tracking-[0.14em] text-black/30">
-          {t("mellaStaff")}
-        </p>
-
-        <Link
-          href="/admin/login"
-          className="mt-2 inline-block text-xs font-semibold text-black/45 transition hover:text-[#1681C5]"
-        >
-          {t("administratorLogin")} →
         </Link>
       </div>
     </AuthShell>

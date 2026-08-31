@@ -32,35 +32,35 @@ export default function Footer() {
           {/* LINKS */}
           <div className="flex flex-wrap gap-x-8 gap-y-4 text-sm text-black/45">
             <a
-              href="#auctions"
+              href="/auctions"
               className="transition hover:text-[#1681C5]"
             >
               {t("auctions")}
             </a>
 
             <a
-              href="#how"
+              href="/how"
               className="transition hover:text-[#1681C5]"
             >
               {t("howItWorks")}
             </a>
 
             <a
-              href="#results"
+              href="/results"
               className="transition hover:text-[#1681C5]"
             >
               {t("results")}
             </a>
 
             <a
-              href="#"
+              href="/"
               className="transition hover:text-[#1681C5]"
             >
               {t("terms")}
             </a>
 
             <a
-              href="#"
+              href="/"
               className="transition hover:text-[#1681C5]"
             >
               {t("privacy")}

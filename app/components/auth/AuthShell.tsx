@@ -90,7 +90,7 @@ export default function AuthShell({
                     ? "ሁሉንም ነገር በቁጥጥር ስር ያድርጉ።"
                     : "Everything under control."
                   : isAmharic
-                    ? "ዕድልዎ። ድልዎ።"
+                    ? "ዕድልዎ፣ ድልዎ"
                     : "Your chance. Your win."}
               </h1>
 
@@ -106,8 +106,8 @@ export default function AuthShell({
                     ? "ጨረታዎችን፣ ተሳታፊዎችን፣ መጫረቻዎችን እና ግብይቶችን ከአንድ ደህንነታማ ቦታ ያስተዳድሩ።"
                     : "Manage auctions, participants, bids and transactions from one secure place."
                   : isAmharic
-                    ? "በአስደሳች የሜላ ጨረታዎች ይሳተፉ እና ሊያሸንፉት የሚችሉትን ይወቁ።"
-                    : "Participate in exciting Mella auctions and discover what you could win."}
+                    ? "በአስደሳች የ Mella ጨረታዎች ይሳተፉ"
+                    : "Participate in exciting Mella auctions."}
               </p>
 
               {/* ACCENT */}

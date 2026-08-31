@@ -75,7 +75,7 @@ export default function Hero() {
                 <br />
 
                 <span className="bg-gradient-to-r from-[#42A5E8] via-[#1681C5] to-[#0D5E96] bg-clip-text text-transparent">
-                  የበለጠ ያሸንፉ።
+                  የበለጠ ያሸንፉ
                 </span>
               </>
             )}

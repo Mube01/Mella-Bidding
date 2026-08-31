@@ -138,7 +138,7 @@ export default function AccountPage() {
           </p>
 
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-neutral-900 sm:text-5xl">
-            {t("welcome")}, {firstName}.
+            {t("welcome")}, {firstName}
           </h1>
 
           <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-500">
