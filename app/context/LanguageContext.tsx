@@ -452,7 +452,38 @@ nextOpportunity:
   "Find your next opportunity.",
 
 exploreLiveAuctions:
-  "Explore live Mella auctions and see what's available right now.",
+      "Explore live Mella auctions and see what's available right now.",
+
+    // Auction Details Page
+    status: "Status",
+    auction: "Auction",
+    yourBid: "YOUR BID",
+    bidAmount: "Bid amount",
+    enterAmount: "Enter amount",
+    submitting: "Submitting...",
+    bidSubmitted: "Bid submitted successfully.",
+    bidFailed: "Unable to submit bid.",
+    bidFailedRetry: "Unable to submit bid. Please try again.",
+    signInRequired: "You must be signed in and have enough bid credits to participate.",
+    bidPackages: "BID PACKAGES",
+    chooseBidPackage: "Choose a bid package",
+    discountedPrice: "Discounted package price",
+    continueWithBids: "Continue with {count} bids",
+    paymentNotConnected: "Payment is not connected yet. This package is ready for checkout.",
+    knowTheRules: "Know the rules.",
+    placeYourBid: "Place your bid",
+    placeYourBidDescription: "Choose your amount and submit your bid before the auction closes.",
+    competeStrategically: "Compete strategically",
+    competeDescription: "Other participants are competing using their own bidding strategies.",
+    transparentProcess: "Transparent process",
+    transparentDescription: "Auction rules and results are presented clearly.",
+    securePaymentsDescription: "The payment process is convenient for users.",
+    differentExperience: "A different auction experience",
+    differentExperienceDescription: "Mella offers a strategic experience different from traditional auctions.",
+    auctionNotFound: "Auction not found",
+    auctionNotFoundDescription: "The auction you're looking for doesn't exist or is no longer available.",
+    backToAuctions: "Back to auctions",
+    serviceFee: "Service Fee",
   },
 
   am: {
@@ -567,13 +598,13 @@ exploreLiveAuctions:
       "መብቱ በሙሉ የተጠበቀ ነው።",
 
     fairPlayTitle:
-      "ለፍትሃዊ ጨዋታ የተገነባ።",
+      "ለፍትሃዊ ጨዋታ የተገነባ",
 
     fairPlayDescription:
       "Mella የአሸናፊውን አመራረጥ ሂደት ግልጽ፣ ሊረጋገጥ የሚችል እና ለመረዳት ቀላል ያደርገዋል።",
 
     trustFirstTitle:
-      "እምነት በመጀመሪያ።",
+      "እምነት በመጀመሪያ",
 
     trustFirstDescription:
       "ግልጽ የጨረታ ደንቦች፣ ይፋ የሆኑ ውጤቶች እና ለኢትዮጵያ የተዘጋጀ የክፍያ ልምድ።",
@@ -969,10 +1000,6 @@ won: "አሸንፈዋል",
 ended: "ያበቃ",
 notWon: "አላሸነፉም",
 
-allAuctions: "ሁሉም ጨረታዎች",
-bids: "ጨረታዎች",
-myBid: "የእኔ ጨረታ",
-
 noAuctionsDescription:
   "በዚህ ምድብ ውስጥ እስካሁን የተሳተፉበት ጨረታ የለም።",
 
@@ -992,7 +1019,41 @@ nextOpportunity:
   "ቀጣዩን እድልዎን ያግኙ።",
 
 exploreLiveAuctions:
-  "የMella ንቁ ጨረታዎችን ይመልከቱ እና አሁን ያሉትን እድሎች ያስሱ።",
+      "የMella ንቁ ጨረታዎችን ይመልከቱ እና አሁን ያሉትን እድሎች ያስሱ።",
+
+// Auction Details Page - Amharic
+    allAuctions: "ሁሉም ጨረታዎች",
+    status: "ሁኔታ",
+    auction: "ጨረታ",
+    yourBid: "የመጫረቻ መጠን",
+    myBid: "የእኔ ጨረታ",
+    bidAmount: "የመጫረቻ መጠን",
+    enterAmount: "መጠን ያስገቡ",
+    submitting: "በመላክ ላይ...",
+    bidSubmitted: "መጫረቻዎ በተሳካ ሁኔታ ተልኳል።",
+    bidFailed: "መጫረቻውን መላክ አልተቻለም።",
+    bidFailedRetry: "መጫረቻውን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+    signInRequired: "መጫረቻ ለማስገባት በመለያዎ መግባት እና በቂ የመጫረቻ ክሬዲት መኖር አለበት።",
+    bidPackages: "የመጫረቻ ጥቅሎች",
+    chooseBidPackage: "የመጫረቻ ጥቅል ይምረጡ",
+    bids: "መጫረቻዎች",
+    discountedPrice: "ቅናሽ ያለው ዋጋ",
+    continueWithBids: "{count} መጫረቻዎችን ይግዙ",
+    paymentNotConnected: "የክፍያ አገልግሎቱ ሲዘጋጅ ይህ ጥቅል ይገኛል።",
+    knowTheRules: "ደንቦቹን ይረዱ።",
+    placeYourBid: "መጫረቻዎን ያስገቡ",
+    placeYourBidDescription: "የሚፈልጉትን መጠን ይምረጡና መጫረቻዎን ከጨረታው ጊዜ ከማለቁ በፊት ያስገቡ።",
+    competeStrategically: "ከሌሎች ጋር ይወዳደሩ",
+    competeDescription: "ሌሎች ተሳታፊዎችም የራሳቸውን ስትራቴጂ በመጠቀም ይሳተፋሉ።",
+    transparentProcess: "ግልጽ ሂደት",
+    transparentDescription: "የጨረታ ደንቦች እና ውጤቶች በግልጽ ይታያሉ።",
+    securePaymentsDescription: "የክፍያ ሂደቱ ተጠቃሚዎች ምቹ ነው።",
+    differentExperience: "ልዩ የጨረታ ልምድ",
+    differentExperienceDescription: "Mella ከተለመዱት የጨረታ ስርዓቶች የተለየ ስትራቴጂያዊ ልምድ ያቀርባል።",
+    auctionNotFound: "ጨረታው አልተገኘም",
+    auctionNotFoundDescription: "የጠየቁት ጨረታ አሁን አይገኝም ወይም ከስርዓቱ ተወግዷል።",
+    backToAuctions: "ወደ ጨረታዎች ተመለስ",
+    serviceFee: "የአገልግሎት ክፍያ",
   },
 };
 

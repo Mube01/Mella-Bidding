@@ -16,6 +16,7 @@ import { FormEvent, useState } from "react";
 
 import AuthShell from "../../components/auth/AuthShell";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { useRouter } from "next/navigation";
 
 type Notification = {
   type: "success" | "error";
@@ -41,6 +42,8 @@ export default function AdminLoginPage() {
 
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
 
   const [notification, setNotification] =
     useState<Notification>(null);
@@ -117,8 +120,8 @@ export default function AdminLoginPage() {
       );
 
       setTimeout(() => {
-        window.location.href = "/admin";
-      }, 700);
+  router.replace("/admin");
+}, 700);
     } catch (error) {
       console.error("ADMIN_LOGIN_ERROR:", error);
 

@@ -182,7 +182,11 @@ export async function getCurrentUser() {
 
   await connectDB();
 
-  return User.findById(session.userId).select("name phone email role createdAt");
+  const user = await User.findById(session.userId)
+    .select("name phone email role createdAt")
+    .lean();
+
+  return user;
 }
 
 export async function requireAdmin() {

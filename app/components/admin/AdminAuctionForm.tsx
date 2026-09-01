@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "../ui/LoadingSpinner";
 import { useLanguage } from "../../context/LanguageContext";
+import { X, GripVertical } from "lucide-react";
 
 type FormValues = {
   titleEn: string;
@@ -14,6 +15,7 @@ type FormValues = {
   descriptionAm: string;
   category: string;
   image: string;
+  images: string[];
   entryCost: string;
   startsAt: string;
   endsAt: string;
@@ -21,7 +23,8 @@ type FormValues = {
 
 const initialValues: FormValues = {
   titleEn: "", titleAm: "", subtitleEn: "", subtitleAm: "", descriptionEn: "", descriptionAm: "", category: "Electronics",
-  image: "", entryCost: "1", startsAt: "", endsAt: "",
+  image: "", 
+  images: [], entryCost: "1", startsAt: "", endsAt: "",
 };
 
 export default function AdminAuctionForm({ id }: { id?: string }) {
@@ -39,7 +42,20 @@ export default function AdminAuctionForm({ id }: { id?: string }) {
       .then((data) => {
         if (!data.success) throw new Error("Auction not found");
         const auction = data.auction;
-        setValues({ titleEn: auction.titleEn || auction.title?.en || auction.title || "", titleAm: auction.titleAm || auction.title?.am || auction.title || "", subtitleEn: auction.subtitleEn || auction.subtitle?.en || auction.subtitle || "", subtitleAm: auction.subtitleAm || auction.subtitle?.am || auction.subtitle || "", descriptionEn: auction.descriptionEn || auction.description?.en || auction.description || "", descriptionAm: auction.descriptionAm || auction.description?.am || auction.description || "", category: auction.category, image: auction.image, entryCost: String(auction.entryCost), startsAt: toInputDate(auction.startsAt), endsAt: toInputDate(auction.endsAt) });
+        setValues({ 
+          titleEn: auction.titleEn || auction.title?.en || auction.title || "", 
+          titleAm: auction.titleAm || auction.title?.am || auction.title || "", 
+          subtitleEn: auction.subtitleEn || auction.subtitle?.en || auction.subtitle || "", 
+          subtitleAm: auction.subtitleAm || auction.subtitle?.am || auction.subtitle || "", 
+          descriptionEn: auction.descriptionEn || auction.description?.en || auction.description || "", 
+          descriptionAm: auction.descriptionAm || auction.description?.am || auction.description || "", 
+          category: auction.category, 
+          image: auction.image, 
+          images: Array.isArray(auction.images) ? auction.images : [], 
+          entryCost: String(auction.entryCost), 
+          startsAt: toInputDate(auction.startsAt), 
+          endsAt: toInputDate(auction.endsAt) 
+        });
       })
       .catch(() => setError("Unable to load auction."))
       .finally(() => setLoading(false));
@@ -100,6 +116,34 @@ export default function AdminAuctionForm({ id }: { id?: string }) {
     }
   }
 
+  async function uploadGalleryImage(file: File) {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+    if (!cloudName || !uploadPreset) {
+      setError("Cloudinary is not configured. Add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET.");
+      return;
+    }
+    setSaving(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", uploadPreset);
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body: formData });
+      const data = await response.json();
+      if (!response.ok || !data.secure_url) throw new Error("Cloudinary upload failed.");
+      setValues((current) => ({ ...current, images: [...current.images, data.secure_url] }));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to upload image.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function removeGalleryImage(index: number) {
+    setValues((current) => ({ ...current, images: current.images.filter((_, i) => i !== index) }));
+  }
+
   if (loading) return <div className="flex min-h-[60vh] items-center justify-center"><LoadingSpinner size="lg" /></div>;
 
   return (
@@ -122,6 +166,25 @@ export default function AdminAuctionForm({ id }: { id?: string }) {
       <section className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         <div className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm"><h2 className="text-lg font-semibold">Auction image</h2><p className="mt-1 text-sm text-black/45">Upload a product image directly to Cloudinary.</p><input type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadImage(file); }} disabled={saving} required={!id && !values.image} className="mt-5 block w-full text-sm" />{values.image && <img src={values.image} alt="Auction preview" className="mt-5 aspect-video w-full rounded-xl object-cover" />}</div>
         <div className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm"><h2 className="text-lg font-semibold">Timing and entry</h2><p className="mt-1 text-sm text-black/45">Set when bidding opens and closes.</p><div className="mt-5 grid gap-5 sm:grid-cols-2"><Field label="Entry cost (ETB)" value={values.entryCost} onChange={(value) => update("entryCost", value)} type="number" min="0" step="0.01" required /><div /><Field label="Starts at" value={values.startsAt} onChange={(value) => update("startsAt", value)} type="datetime-local" required /><Field label="Ends at" value={values.endsAt} onChange={(value) => update("endsAt", value)} type="datetime-local" required /></div></div>
+      </section>
+
+      {/* Gallery Images Section */}
+      <section className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold">Gallery images</h2>
+        <p className="mt-1 text-sm text-black/45">Add additional photos for the auction gallery.</p>
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/avif" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadGalleryImage(file); event.target.value = ""; }} disabled={saving} className="mt-5 block w-full text-sm" />
+        {values.images.length > 0 && (
+          <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4">
+            {values.images.map((image, index) => (
+              <div key={`${image}-${index}`} className="relative group">
+                <img src={image} alt={`Gallery ${index + 1}`} className="aspect-square w-full rounded-xl object-cover" />
+                <button type="button" onClick={() => removeGalleryImage(index)} className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
       <div className="flex justify-end gap-3"><button type="button" onClick={() => router.back()} className="rounded-full border border-black/10 px-5 py-3 text-sm font-semibold">Cancel</button><button disabled={saving} className="rounded-full bg-[#1681C5] px-6 py-3 text-sm font-bold text-white disabled:opacity-60">{saving ? "Saving..." : id ? "Save auction" : "Create auction"}</button></div>
     </form>

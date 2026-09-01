@@ -4,9 +4,14 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import AuctionCard from "./AuctionCard";
+import BidConfirmationModal from "./BidConfirmationModal";
 import type { Auction } from "./data";
 import LoadingSpinner from "./ui/LoadingSpinner";
 import { useLanguage } from "../context/LanguageContext";
@@ -27,42 +32,92 @@ function SectionLabel({
 export default function Auctions() {
   const { t, language } = useLanguage();
 
-  const [auctions, setAuctions] = useState<Auction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [auctions, setAuctions] =
+    useState<Auction[]>([]);
 
-  /*
-   * When the user focuses the price input:
-   * - automatic sliding pauses
-   * - manual arrows still work
-   * - mobile swipe still works
-   * - slide indicators still work
-   */
-  const [editingBid, setEditingBid] = useState(false);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [isMobile, setIsMobile] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [editingBid, setEditingBid] =
+    useState(false);
 
-  /*
-   * Touch/swipe state
-   */
-  const touchStartX = useRef<number | null>(null);
-  const touchCurrentX = useRef<number | null>(null);
-  const isDragging = useRef(false);
+  const [isInteracting, setIsInteracting] =
+    useState(false);
 
-  /*
-   * ============================================================
-   * RESPONSIVE STATE
-   * ============================================================
-   */
+  const [isMobile, setIsMobile] =
+    useState(false);
+
+  const [currentSlide, setCurrentSlide] =
+    useState(0);
+
+  /* =========================================================
+     BID CONFIRMATION STATE
+  ========================================================= */
+
+  const [
+    selectedAuction,
+    setSelectedAuction,
+  ] = useState<Auction | null>(null);
+
+  const [
+    selectedBidAmount,
+    setSelectedBidAmount,
+  ] = useState(0);
+
+  const [
+    selectedServiceFee,
+    setSelectedServiceFee,
+  ] = useState(0);
+
+  const [
+    showBidModal,
+    setShowBidModal,
+  ] = useState(false);
+
+  const [
+    bidLoading,
+    setBidLoading,
+  ] = useState(false);
+
+  /* =========================================================
+     SUCCESS MESSAGE
+  ========================================================= */
+
+  const [
+    successAuctionId,
+    setSuccessAuctionId,
+  ] = useState<string | number | null>(null);
+
+  /* =========================================================
+     TOUCH / SWIPE
+  ========================================================= */
+
+  const touchStartX =
+    useRef<number | null>(null);
+
+  const touchCurrentX =
+    useRef<number | null>(null);
+
+  const isDragging =
+    useRef(false);
+
+  /* =========================================================
+     RESPONSIVE STATE
+  ========================================================= */
 
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(
+        window.innerWidth < 768
+      );
     };
 
     checkScreenSize();
 
-    window.addEventListener("resize", checkScreenSize);
+    window.addEventListener(
+      "resize",
+      checkScreenSize
+    );
 
     return () => {
       window.removeEventListener(
@@ -72,41 +127,55 @@ export default function Auctions() {
     };
   }, []);
 
-  /*
-   * ============================================================
-   * FETCH AUCTIONS
-   * ============================================================
-   */
+  /* =========================================================
+     FETCH AUCTIONS
+  ========================================================= */
 
   useEffect(() => {
     let cancelled = false;
 
     setLoading(true);
 
-    fetch(`/api/auctions?lang=${language}`, {
-      cache: "no-store",
-    })
-      .then((response) => response.json())
+    fetch(
+      `/api/auctions?lang=${language}`,
+      {
+        cache: "no-store",
+      }
+    )
+      .then((response) =>
+        response.json()
+      )
       .then((data) => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
 
         if (data.success) {
           const formattedAuctions: Auction[] =
-            data.auctions.map((auction: any) => ({
-              id: auction.id,
-              title: auction.title,
-              subtitle: auction.subtitle,
-              description: auction.description,
-              category: auction.category,
-              image: auction.image,
-              time: "",
-              endsAt: auction.endsAt,
-              participants:
-                auction.participantCount,
-              entry: `${auction.entryCost} ETB`,
-            }));
+            data.auctions.map(
+              (auction: any) => ({
+                id: auction.id,
+                title: auction.title,
+                subtitle:
+                  auction.subtitle,
+                description:
+                  auction.description,
+                category:
+                  auction.category,
+                image: auction.image,
+                time: "",
+                endsAt:
+                  auction.endsAt,
+                participants:
+                  auction.participantCount,
+                entry:
+                  `${auction.entryCost} ETB`,
+              })
+            );
 
-          setAuctions(formattedAuctions);
+          setAuctions(
+            formattedAuctions
+          );
         } else {
           setAuctions([]);
         }
@@ -127,28 +196,22 @@ export default function Auctions() {
     };
   }, [language]);
 
-  /*
-   * ============================================================
-   * SLIDE CONFIGURATION
-   * ============================================================
-   *
-   * Desktop:
-   * 3 auctions per slide
-   *
-   * Mobile:
-   * 1 auction per slide
-   */
+  /* =========================================================
+     SLIDE CONFIGURATION
+  ========================================================= */
 
-  const cardsPerSlide = isMobile ? 1 : 3;
+  const cardsPerSlide =
+    isMobile ? 1 : 3;
 
-  const totalSlides = Math.ceil(
-    auctions.length / cardsPerSlide
-  );
+  const totalSlides =
+    Math.ceil(
+      auctions.length /
+        cardsPerSlide
+    );
 
-  /*
-   * Keep current slide valid when the screen changes
-   * from mobile to desktop or vice versa.
-   */
+  /* =========================================================
+     KEEP SLIDE VALID
+  ========================================================= */
 
   useEffect(() => {
     if (totalSlides === 0) {
@@ -156,117 +219,258 @@ export default function Auctions() {
       return;
     }
 
-    setCurrentSlide((current) =>
-      Math.min(current, totalSlides - 1)
+    setCurrentSlide(
+      (current) =>
+        Math.min(
+          current,
+          totalSlides - 1
+        )
     );
   }, [totalSlides]);
 
-  /*
-   * ============================================================
-   * NEXT SLIDE
-   * ============================================================
-   */
+  /* =========================================================
+     NEXT SLIDE
+  ========================================================= */
 
   const nextSlide = () => {
-    if (totalSlides <= 1) return;
+    if (totalSlides <= 1) {
+      return;
+    }
 
-    setCurrentSlide((current) =>
-      current >= totalSlides - 1
-        ? 0
-        : current + 1
+    setCurrentSlide(
+      (current) =>
+        current >=
+        totalSlides - 1
+          ? 0
+          : current + 1
     );
   };
 
-  /*
-   * ============================================================
-   * PREVIOUS SLIDE
-   * ============================================================
-   */
+  /* =========================================================
+     PREVIOUS SLIDE
+  ========================================================= */
 
   const previousSlide = () => {
-    if (totalSlides <= 1) return;
+    if (totalSlides <= 1) {
+      return;
+    }
 
-    setCurrentSlide((current) =>
-      current <= 0
-        ? totalSlides - 1
-        : current - 1
+    setCurrentSlide(
+      (current) =>
+        current <= 0
+          ? totalSlides - 1
+          : current - 1
     );
   };
 
-  /*
-   * ============================================================
-   * GO TO SLIDE
-   * ============================================================
-   */
+  /* =========================================================
+     GO TO SLIDE
+  ========================================================= */
 
-  const goToSlide = (index: number) => {
-    if (totalSlides <= 0) return;
+  const goToSlide = (
+    index: number
+  ) => {
+    if (totalSlides <= 0) {
+      return;
+    }
 
     setCurrentSlide(
       Math.max(
         0,
-        Math.min(index, totalSlides - 1)
+        Math.min(
+          index,
+          totalSlides - 1
+        )
       )
     );
   };
 
-  /*
-   * ============================================================
-   * AUTOMATIC SLIDING
-   * ============================================================
-   *
-   * IMPORTANT:
-   *
-   * editingBid pauses ONLY automatic sliding.
-   *
-   * It does NOT disable:
-   * - Previous button
-   * - Next button
-   * - Mobile swipe
-   * - Slide indicators
-   */
+  /* =========================================================
+     AUTO SLIDING
+  ========================================================= */
 
   useEffect(() => {
     if (
       loading ||
       totalSlides <= 1 ||
-      editingBid
+      editingBid ||
+      showBidModal ||
+      isInteracting
     ) {
       return;
     }
 
-    const interval = window.setInterval(() => {
-      setCurrentSlide((current) =>
-        current >= totalSlides - 1
-          ? 0
-          : current + 1
-      );
-    }, 5000);
+    const interval =
+      window.setInterval(() => {
+        setCurrentSlide(
+          (current) =>
+            current >=
+            totalSlides - 1
+              ? 0
+              : current + 1
+        );
+      }, 5000);
 
     return () => {
-      window.clearInterval(interval);
+      window.clearInterval(
+        interval
+      );
     };
   }, [
     loading,
     totalSlides,
     editingBid,
+    showBidModal,
+    isInteracting,
   ]);
 
-  /*
-   * ============================================================
-   * MOBILE TOUCH START
-   * ============================================================
-   */
+  /* =========================================================
+     OPEN BID CONFIRMATION
+  ========================================================= */
+
+  const handleBidRequest = (
+    auction: Auction,
+    bidAmount: number,
+    serviceFee: number
+  ) => {
+    setSelectedAuction(
+      auction
+    );
+
+    setSelectedBidAmount(
+      bidAmount
+    );
+
+    setSelectedServiceFee(
+      serviceFee
+    );
+
+    setShowBidModal(true);
+
+    /*
+     * Stop automatic carousel movement
+     * while the user is confirming.
+     */
+    setEditingBid(true);
+  };
+
+  /* =========================================================
+     CLOSE BID CONFIRMATION
+  ========================================================= */
+
+  const closeBidModal = () => {
+    if (bidLoading) {
+      return;
+    }
+
+    setShowBidModal(false);
+
+    setSelectedAuction(null);
+
+    setSelectedBidAmount(0);
+
+    setSelectedServiceFee(0);
+
+    /*
+     * Keep auto-scroll paused after
+     * user has interacted with a bid.
+     */
+    setEditingBid(true);
+  };
+
+  /* =========================================================
+     CONFIRM BID
+  ========================================================= */
+
+  const confirmBid = async () => {
+    if (!selectedAuction) {
+      return;
+    }
+
+    setBidLoading(true);
+
+    try {
+      const response =
+        await fetch(
+          "/api/bids",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            credentials:
+              "include",
+            body: JSON.stringify({
+              auctionId:
+                selectedAuction.id,
+              amount:
+                selectedBidAmount,
+            }),
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (response.ok) {
+        const auctionId =
+          selectedAuction.id;
+
+        setShowBidModal(false);
+
+        setSelectedAuction(null);
+
+        setSelectedBidAmount(0);
+
+        setSelectedServiceFee(0);
+
+        setSuccessAuctionId(
+          auctionId
+        );
+
+        window.setTimeout(() => {
+          setSuccessAuctionId(
+            null
+          );
+        }, 3000);
+      } else {
+        window.alert(
+          data.error ||
+            (language === "am"
+              ? "መጫረቻውን መላክ አልተቻለም።"
+              : "Unable to submit bid.")
+        );
+      }
+    } catch {
+      window.alert(
+        language === "am"
+          ? "መጫረቻውን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
+          : "Unable to submit bid. Please try again."
+      );
+    } finally {
+      setBidLoading(false);
+    }
+  };
+
+  /* =========================================================
+     MOBILE TOUCH START
+  ========================================================= */
 
   const handleTouchStart = (
     event: React.TouchEvent<HTMLDivElement>
   ) => {
-    if (!isMobile || totalSlides <= 1) {
+    if (
+      !isMobile ||
+      totalSlides <= 1 ||
+      showBidModal
+    ) {
       return;
     }
 
     touchStartX.current =
-      event.touches[0]?.clientX ?? null;
+      event.touches[0]?.clientX ??
+      null;
 
     touchCurrentX.current =
       touchStartX.current;
@@ -274,38 +478,37 @@ export default function Auctions() {
     isDragging.current = true;
   };
 
-  /*
-   * ============================================================
-   * MOBILE TOUCH MOVE
-   * ============================================================
-   */
+  /* =========================================================
+     MOBILE TOUCH MOVE
+  ========================================================= */
 
   const handleTouchMove = (
     event: React.TouchEvent<HTMLDivElement>
   ) => {
     if (
       !isMobile ||
-      !isDragging.current
+      !isDragging.current ||
+      showBidModal
     ) {
       return;
     }
 
     touchCurrentX.current =
-      event.touches[0]?.clientX ?? null;
+      event.touches[0]?.clientX ??
+      null;
   };
 
-  /*
-   * ============================================================
-   * MOBILE TOUCH END
-   * ============================================================
-   */
+  /* =========================================================
+     MOBILE TOUCH END
+  ========================================================= */
 
   const handleTouchEnd = () => {
     if (
       !isMobile ||
       !isDragging.current ||
       touchStartX.current === null ||
-      touchCurrentX.current === null
+      touchCurrentX.current === null ||
+      showBidModal
     ) {
       return;
     }
@@ -316,7 +519,10 @@ export default function Auctions() {
 
     const swipeThreshold = 50;
 
-    if (Math.abs(distance) >= swipeThreshold) {
+    if (
+      Math.abs(distance) >=
+      swipeThreshold
+    ) {
       if (distance < 0) {
         nextSlide();
       } else {
@@ -325,24 +531,25 @@ export default function Auctions() {
     }
 
     touchStartX.current = null;
+
     touchCurrentX.current = null;
+
     isDragging.current = false;
   };
 
-  /*
-   * ============================================================
-   * RENDER
-   * ============================================================
-   */
+  /* =========================================================
+     RENDER
+  ========================================================= */
 
   return (
     <section
       id="auctions"
       className="mx-auto w-full max-w-7xl overflow-hidden px-6 py-24 lg:px-10"
+      onClick={() => setIsInteracting(false)}
     >
-      {/* ======================================================
+      {/* ====================================================
           HEADER
-      ====================================================== */}
+      ==================================================== */}
 
       <div>
         <SectionLabel>
@@ -350,101 +557,92 @@ export default function Auctions() {
         </SectionLabel>
 
         <h2 className="font-display text-5xl tracking-[-0.03em] sm:text-6xl">
-          {t("auctionsWorthWatching")}
+          {t(
+            "auctionsWorthWatching"
+          )}
         </h2>
       </div>
 
-      {/* ======================================================
+      {/* ====================================================
           CAROUSEL
-      ====================================================== */}
+      ==================================================== */}
 
       <div className="relative mt-12 w-full min-w-0">
-        {/* ====================================================
-            DESKTOP PREVIOUS BUTTON
-        ==================================================== */}
-{totalSlides > 1 && (
-  <button
-    type="button"
-    onClick={previousSlide}
-    aria-label="Previous auctions"
-    className="
-      absolute
-      -left-6
-      top-1/2
-      z-30
-      hidden
-      h-11
-      w-11
-      -translate-y-1/2
-      items-center
-      justify-center
-      rounded-full
-      border
-      border-black/10
-      bg-white/95
-      text-black
-      shadow-lg
-      backdrop-blur-sm
-      transition
-      hover:-translate-x-1
-      hover:border-[#1681C5]/40
-      hover:text-[#1681C5]
-      lg:flex
-    "
-  >
-    <ArrowLeft size={18} />
-  </button>
-)}
+        {/* PREVIOUS */}
 
-        {/* ====================================================
-            DESKTOP NEXT BUTTON
-        ==================================================== */}
+        {totalSlides > 1 && (
+          <button
+            type="button"
+            onClick={previousSlide}
+            aria-label="Previous auctions"
+            className="
+              absolute
+              -left-6
+              top-1/2
+              z-30
+              hidden
+              h-11
+              w-11
+              -translate-y-1/2
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-black/10
+              bg-white/95
+              text-black
+              shadow-lg
+              backdrop-blur-sm
+              transition
+              hover:-translate-x-1
+              hover:border-[#1681C5]/40
+              hover:text-[#1681C5]
+              lg:flex
+            "
+          >
+            <ArrowLeft size={18} />
+          </button>
+        )}
 
-       {totalSlides > 1 && (
-  <button
-    type="button"
-    onClick={nextSlide}
-    aria-label="Next auctions"
-    className="
-      absolute
-      -right-6
-      top-1/2
-      z-30
-      hidden
-      h-11
-      w-11
-      -translate-y-1/2
-      items-center
-      justify-center
-      rounded-full
-      border
-      border-black/10
-      bg-white/95
-      text-black
-      shadow-lg
-      backdrop-blur-sm
-      transition
-      hover:translate-x-1
-      hover:border-[#1681C5]/40
-      hover:text-[#1681C5]
-      lg:flex
-    "
-  >
-    <ArrowRight size={18} />
-  </button>
-)}
-        {/* ====================================================
+        {/* NEXT */}
+
+        {totalSlides > 1 && (
+          <button
+            type="button"
+            onClick={nextSlide}
+            aria-label="Next auctions"
+            className="
+              absolute
+              -right-6
+              top-1/2
+              z-30
+              hidden
+              h-11
+              w-11
+              -translate-y-1/2
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-black/10
+              bg-white/95
+              text-black
+              shadow-lg
+              backdrop-blur-sm
+              transition
+              hover:translate-x-1
+              hover:border-[#1681C5]/40
+              hover:text-[#1681C5]
+              lg:flex
+            "
+          >
+            <ArrowRight size={18} />
+          </button>
+        )}
+
+        {/* ==================================================
             VIEWPORT
-
-            VERY IMPORTANT:
-
-            overflow-hidden
-            w-full
-            min-w-0
-
-            This guarantees that the slide track cannot
-            visually escape the parent container.
-        ==================================================== */}
+        ================================================== */}
 
         <div
           className="
@@ -453,9 +651,19 @@ export default function Auctions() {
             min-w-0
             overflow-hidden
           "
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsInteracting(true);
+          }}
+          onTouchStart={
+            handleTouchStart
+          }
+          onTouchMove={
+            handleTouchMove
+          }
+          onTouchEnd={
+            handleTouchEnd
+          }
         >
           {loading ? (
             <div className="flex min-h-[420px] w-full items-center justify-center">
@@ -470,17 +678,6 @@ export default function Auctions() {
               </p>
             </div>
           ) : (
-            /*
-             * ==================================================
-             * TRACK
-             * ==================================================
-             *
-             * Every slide is EXACTLY 100% of the viewport.
-             *
-             * min-w-0 is important because it allows the grid
-             * to shrink instead of forcing the parent wider.
-             */
-
             <div
               className="
                 flex
@@ -499,68 +696,97 @@ export default function Auctions() {
             >
               {Array.from({
                 length: totalSlides,
-              }).map((_, slideIndex) => {
-                const slideAuctions =
-                  auctions.slice(
-                    slideIndex * cardsPerSlide,
-                    slideIndex * cardsPerSlide +
-                      cardsPerSlide
-                  );
+              }).map(
+                (_, slideIndex) => {
+                  const slideAuctions =
+                    auctions.slice(
+                      slideIndex *
+                        cardsPerSlide,
+                      slideIndex *
+                        cardsPerSlide +
+                        cardsPerSlide
+                    );
 
-                return (
-                  <div
-                    key={slideIndex}
-                    className="
-                      w-full
-                      min-w-full
-                      max-w-full
-                      shrink-0
-                      overflow-hidden
-                    "
-                  >
+                  return (
                     <div
+                      key={slideIndex}
                       className="
-                        grid
                         w-full
-                        min-w-0
+                        min-w-full
                         max-w-full
-                        grid-cols-1
-                        gap-5
-                        md:grid-cols-2
-                        lg:grid-cols-3
+                        shrink-0
+                        overflow-hidden
                       "
                     >
-                      {slideAuctions.map(
-                        (auction) => (
-                          <div
-                            key={auction.id}
-                            className="
-                              min-w-0
-                              max-w-full
-                              overflow-hidden
-                            "
-                          >
-                            <AuctionCard
-                              auction={auction}
-                              onPriceFocus={() =>
-                                setEditingBid(true)
+                      <div
+                        className="
+                          grid
+                          w-full
+                          min-w-0
+                          max-w-full
+                          grid-cols-1
+                          gap-5
+                          md:grid-cols-2
+                          lg:grid-cols-3
+                        "
+                      >
+                        {slideAuctions.map(
+                          (auction) => (
+                            <div
+                              key={
+                                auction.id
                               }
-                            />
-                          </div>
-                        )
-                      )}
+                              className="
+                                min-w-0
+                                max-w-full
+                                overflow-hidden
+                              "
+                            >
+                              <AuctionCard
+                                auction={
+                                  auction
+                                }
+                                onPriceFocus={() =>
+                                  setEditingBid(
+                                    true
+                                  )
+                                }
+                                onBidRequest={
+                                  handleBidRequest
+                                }
+                              />
+
+                              {/* SUCCESS MESSAGE */}
+
+                              {successAuctionId ===
+                                auction.id && (
+                                <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-green-50 px-4 py-3 text-xs font-bold text-green-700">
+                                  <span>
+                                    ✓
+                                  </span>
+
+                                  {language ===
+                                  "am"
+                                    ? "መጫረቻ በተሳካ ሁኔታ ተልኳል"
+                                    : "Bid submitted successfully"}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* ======================================================
+      {/* ====================================================
           MOBILE SWIPE HINT
-      ====================================================== */}
+      ==================================================== */}
 
       {isMobile &&
         totalSlides > 1 && (
@@ -577,9 +803,9 @@ export default function Auctions() {
           </div>
         )}
 
-      {/* ======================================================
+      {/* ====================================================
           SLIDE INDICATORS
-      ====================================================== */}
+      ==================================================== */}
 
       {totalSlides > 1 && (
         <div className="mt-8 flex items-center justify-center gap-2">
@@ -589,7 +815,9 @@ export default function Auctions() {
             <button
               key={index}
               type="button"
-              onClick={() => goToSlide(index)}
+              onClick={() =>
+                goToSlide(index)
+              }
               aria-label={`Go to auction slide ${
                 index + 1
               }`}
@@ -604,7 +832,8 @@ export default function Auctions() {
                 transition-all
                 duration-300
                 ${
-                  currentSlide === index
+                  currentSlide ===
+                  index
                     ? "w-8 bg-[#1681C5]"
                     : "w-2 bg-black/15 hover:bg-[#1681C5]/50"
                 }
@@ -614,23 +843,9 @@ export default function Auctions() {
         </div>
       )}
 
-      {/* ======================================================
-          BID EDITING STATUS
-      ====================================================== */}
-
-      {editingBid && (
-        <div className="mt-5 flex items-center justify-center gap-2 text-[10px] font-semibold tracking-[0.08em] text-[#1681C5]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#1681C5]" />
-
-          {language === "am"
-            ? "ራስ-ሰር መንሸራተት ቆሟል"
-            : "AUTO-SCROLL PAUSED"}
-        </div>
-      )}
-
-      {/* ======================================================
+      {/* ====================================================
           VIEW ALL AUCTIONS
-      ====================================================== */}
+      ==================================================== */}
 
       <div className="mt-10 flex justify-center">
         <a
@@ -671,6 +886,28 @@ export default function Auctions() {
           />
         </a>
       </div>
+
+      {selectedAuction && (
+        <BidConfirmationModal
+          isOpen={showBidModal}
+          auctionTitle={
+            selectedAuction.title
+          }
+          bidAmount={
+            selectedBidAmount
+          }
+          serviceFee={
+            selectedServiceFee
+          }
+          onConfirm={confirmBid}
+          onCancel={
+            closeBidModal
+          }
+          isLoading={
+            bidLoading
+          }
+        />
+      )}
     </section>
   );
 }

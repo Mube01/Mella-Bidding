@@ -8,9 +8,20 @@ import {
 import User from "../../../models/user";
 
 function normalizePhone(phone: string): string {
-  return phone
+  let normalized = phone
     .replace(/\s+/g, "")
     .trim();
+  
+  // Convert +251 to 0 (e.g., +2519XXXXXXXX -> 09XXXXXXXX)
+  if (normalized.startsWith("+251")) {
+    normalized = "0" + normalized.slice(4);
+  }
+  // Convert 251 to 0 (e.g., 2519XXXXXXXX -> 09XXXXXXXX)
+  else if (normalized.startsWith("251")) {
+    normalized = "0" + normalized.slice(3);
+  }
+  
+  return normalized;
 }
 
 function normalizeEmail(email: string): string {
@@ -42,12 +53,7 @@ export async function POST(request: Request) {
     const adminLogin =
       body.admin === true;
 
-    if (
-      ((!phone && !email) || !password) ||
-      email.length > 254 ||
-      phone.length > 32 ||
-      password.length > 128
-    ) {
+    if ((!phone && !email) || !password) {
       return NextResponse.json(
         {
           success: false,
@@ -69,7 +75,7 @@ export async function POST(request: Request) {
         {
           success: false,
           message:
-            "Invalid email or phone number or password.",
+            "Invalid phone number or password.",
         },
         { status: 401 }
       );
@@ -86,7 +92,7 @@ export async function POST(request: Request) {
         {
           success: false,
           message:
-            "Invalid email or phone number or password.",
+            "Invalid phone number or password.",
         },
         { status: 401 }
       );
@@ -99,7 +105,7 @@ export async function POST(request: Request) {
           message:
             "This account does not have administrator access.",
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 

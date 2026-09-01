@@ -8,12 +8,23 @@ import {
 } from "../../../lib/auth";
 import User from "../../../models/user";
 
-function normalizePhone(phone: string) {
-  return phone.replace(/\s+/g, "").trim();
+function normalizePhone(phone: string): string {
+  let normalized = phone.replace(/\s+/g, "").trim();
+  
+  // Convert +251 to 0 (e.g., +2519XXXXXXXX -> 09XXXXXXXX)
+  if (normalized.startsWith("+251")) {
+    normalized = "0" + normalized.slice(4);
+  }
+  // Convert 251 to 0 (e.g., 2519XXXXXXXX -> 09XXXXXXXX)
+  else if (normalized.startsWith("251")) {
+    normalized = "0" + normalized.slice(3);
+  }
+  
+  return normalized;
 }
 
 function isValidPhone(phone: string) {
-  return /^(09\d{8}|\+2519\d{8})$/.test(phone);
+  return /^09\d{8}$/.test(phone);
 }
 
 export async function POST(request: Request) {

@@ -16,6 +16,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       update.category = body.category;
     }
     if (typeof body.image === "string") update.image = body.image.trim();
+    if (Array.isArray(body.images)) update.images = body.images.filter((url: unknown) => typeof url === "string" && url.trim());
     if (typeof body.status === "string") update.status = body.status.trim();
     for (const [field, key] of [["titleEn", "en"], ["titleAm", "am"]] as const) {
       if (typeof body[field] === "string") update[`title.${key}`] = body[field].trim();
@@ -79,6 +80,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
             descriptionAm: auction.description.am,
             category: auction.category,
             image: auction.image,
+            images: auction.images || [],
             entryCost: auction.entryCost,
             startsAt: auction.startsAt,
             endsAt: auction.endsAt,

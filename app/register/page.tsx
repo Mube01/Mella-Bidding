@@ -264,7 +264,7 @@ export default function RegisterPage() {
               onChange={(event) =>
                 setPhone(event.target.value)
               }
-              placeholder="09XX XXX XXX"
+              placeholder="09XXXXXXXX"
               autoComplete="tel"
               required
               disabled={loading}

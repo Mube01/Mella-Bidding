@@ -19,7 +19,7 @@ export async function GET(
     const bids = await Bid.find({ auctionId: auction._id }).sort({ createdAt: -1 }).select("amount userId createdAt").lean();
     return NextResponse.json({
       success: true,
-      auction: { ...auction, id: auction.publicId, title: auction.title[language], subtitle: auction.subtitle[language], description: auction.description[language], titleEn: auction.title.en, titleAm: auction.title.am, subtitleEn: auction.subtitle.en, subtitleAm: auction.subtitle.am, descriptionEn: auction.description.en, descriptionAm: auction.description.am, status: getAuctionStatus(auction), _id: undefined },
+      auction: { ...auction, id: auction.publicId, title: auction.title[language], subtitle: auction.subtitle[language], description: auction.description[language], titleEn: auction.title.en, titleAm: auction.title.am, subtitleEn: auction.subtitle.en, subtitleAm: auction.subtitle.am, descriptionEn: auction.description.en, descriptionAm: auction.description.am, images: auction.images || [], status: getAuctionStatus(auction), _id: undefined },
       bids: bids.map((bid) => ({ amount: bid.amount, createdAt: bid.createdAt })),
     });
   } catch (error) {
