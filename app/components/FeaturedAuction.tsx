@@ -94,7 +94,7 @@ export default function FeaturedAuction({
                   </p>
                 </div>
 
-                <p className="mt-1 font-mono text-md font-bold text-red-500">
+                <p className="mt-1 font-mono text-[15px] font-bold text-red-500">
                   {endsAt ? <AuctionCountdown endsAt={endsAt} /> : auction.time}
                 </p>
 
