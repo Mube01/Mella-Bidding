@@ -155,7 +155,7 @@ export default function AuctionCard({
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <Link href={`/auctions/${auction.id}`}>
-              <h3 className="font-display text-2xl text-black transition hover:text-[#1681C5]">
+              <h3 className="font-display text-xl text-black transition hover:text-[#1681C5]">
                 {auction.title}
               </h3>
             </Link>
@@ -183,7 +183,7 @@ export default function AuctionCard({
               {t("endsIn")}
             </p>
 
-            <p className="mt-1 font-mono text-md font-semibold text-red-600">
+            <p className="mt-1 font-mono text-[16px] font-semibold text-red-600">
               {auction.endsAt ? (
                 <AuctionCountdown endsAt={auction.endsAt} />
               ) : (

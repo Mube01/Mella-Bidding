@@ -183,25 +183,22 @@ export default function AuctionDetailsPage() {
    * ============================================================
    */
 
-  const packageOptions = [
-    {
-      bids: 5 as const,
+const bidPrice = Number(auction?.entryCost ?? 0);
 
-      discount: 5,
-
-      price:
-        75 * 5 * 0.95,
-    },
-
-    {
-      bids: 10 as const,
-
-      discount: 12,
-
-      price:
-        75 * 10 * 0.88,
-    },
-  ];
+const packageOptions = [
+  {
+    bids: 5 as const,
+    discount: 5,
+    originalPrice: bidPrice * 5,
+    price: bidPrice * 5 * 0.95,
+  },
+  {
+    bids: 10 as const,
+    discount: 12,
+    originalPrice: bidPrice * 10,
+    price: bidPrice * 10 * 0.88,
+  },
+];
 
   const selectedPackageDetails =
     packageOptions.find(
@@ -884,10 +881,9 @@ export default function AuctionDetailsPage() {
                     </h2>
                   </div>
 
-                  <span className="shrink-0 text-xs font-semibold text-black/40">
-                    ETB 75 /
-                    bid
-                  </span>
+                 <span className="shrink-0 text-xs font-semibold text-black/40">
+  ETB {bidPrice.toFixed(2)} / bid
+</span>
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -941,19 +937,27 @@ export default function AuctionDetailsPage() {
                             </span>
                           </div>
 
-                          <p className="mt-2 text-lg font-bold text-[#1681C5]">
-                            ETB{" "}
-                            {option.price.toFixed(
-                              2
-                            )}
-                          </p>
+                          <div className="mt-3 flex items-baseline gap-2">
+  <p className="text-lg font-bold text-[#1681C5]">
+  ETB {option.price.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</p>
 
-                          <p className="mt-1 text-xs text-black/40">
-                            {language ===
-                            "am"
-                              ? "ቅናሽ ያለው ዋጋ"
-                              : "Discounted package price"}
-                          </p>
+  <p className="text-xs text-black/35 line-through">
+  ETB {option.originalPrice.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
+</p>
+</div>
+
+<p className="mt-1 text-xs text-black/40">
+  {language === "am"
+    ? `${option.bids} መጫረቻ × ETB ${bidPrice.toFixed(2)}`
+    : `${option.bids} bids × ETB ${bidPrice.toFixed(2)}`}
+</p>
                         </button>
                       );
                     }
