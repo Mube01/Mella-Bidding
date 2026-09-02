@@ -183,7 +183,7 @@ export default function AuctionCard({
               {t("endsIn")}
             </p>
 
-            <p className="mt-1 font-mono text-[16px] font-semibold text-red-600">
+            <p className="mt-1 font-mono text-[15px] font-semibold text-red-600">
               {auction.endsAt ? (
                 <AuctionCountdown endsAt={auction.endsAt} />
               ) : (

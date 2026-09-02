@@ -1,5 +1,8 @@
 "use client";
 
+
+import { useLanguage } from "../context/LanguageContext";
+
 import { useEffect, useState } from "react";
 
 type Countdown = {
@@ -24,6 +27,8 @@ function getCountdown(endsAt: string): Countdown {
 export default function AuctionCountdown({ endsAt }: { endsAt: string }) {
   const [countdown, setCountdown] = useState(() => getCountdown(endsAt));
 
+  const { language } = useLanguage();
+
   useEffect(() => {
     const update = () => setCountdown(getCountdown(endsAt));
     const interval = setInterval(update, 1000);
@@ -31,12 +36,20 @@ export default function AuctionCountdown({ endsAt }: { endsAt: string }) {
     return () => clearInterval(interval);
   }, [endsAt]);
 
-  const parts = [
-    countdown.days > 0 ? `${countdown.days}d` : "",
-    countdown.hours > 0 ? `${countdown.hours}h` : "",
-    countdown.minutes > 0 ? `${countdown.minutes}m` : "",
-    `${countdown.seconds}s`,
-  ].filter(Boolean);
+  const isAmharic = language === "am";
+
+const parts = [
+  countdown.days > 0
+    ? `${countdown.days}${isAmharic ? "ቀ" : "d"}`
+    : "",
+  countdown.hours > 0
+    ? `${countdown.hours}${isAmharic ? "ሰ" : "h"}`
+    : "",
+  countdown.minutes > 0
+    ? `${countdown.minutes}${isAmharic ? "ደ" : "m"}`
+    : "",
+  `${countdown.seconds}${isAmharic ? "ሴ" : "s"}`,
+].filter(Boolean);
 
   return <span>{parts.join(" : ")}</span>;
 }
