@@ -469,7 +469,7 @@ export default function IndividualResultPage() {
                           className="border-t border-black/5"
                         >
                           <td className="whitespace-nowrap px-4 py-3 font-mono font-semibold sm:px-5 sm:py-4">
-                            ETB {bid.amount.toFixed(2)}
+                            {language === "am" ? "ብር" : "ETB"} {bid.amount.toFixed(2)}
                           </td>
 
                           <td className="px-4 py-3 sm:px-5 sm:py-4">

@@ -1,5 +1,6 @@
 "use client";
 
+import { Currency } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -484,6 +485,7 @@ exploreLiveAuctions:
     auctionNotFoundDescription: "The auction you're looking for doesn't exist or is no longer available.",
     backToAuctions: "Back to auctions",
     serviceFee: "Service Fee",
+    currency: "ETB"
   },
 
   am: {
@@ -982,18 +984,18 @@ welcome: "እንኳን ደህና መጡ",
 accountDescription:
   "የ Mella መለያዎን ያስተዳድሩ፣ በጨረታዎች ይሳተፉ እና የእንቅስቃሴዎን መረጃ ይከታተሉ።",
 mellaMember: "የ Mella አባል",
-findNextOpportunity: "ቀጣዩን እድልዎን ያግኙ።",
+findNextOpportunity: "ቀጣዩን እድልዎን ያግኙ",
 myActivity: "የእኔ እንቅስቃሴ",
 trackAuctionsAndBids:
-  "የተሳተፉባቸውን ጨረታዎች እና ጨረታ መረጃዎን ይከታተሉ።",
+  "የተሳተፉባቸውን ጨረታዎች እና ጨረታ መረጃዎን ይከታተሉ",
 viewCompletedResults:
-  "የተጠናቀቁ የጨረታ ውጤቶችን ይመልከቱ።",
+  "የተጠናቀቁ የጨረታ ውጤቶችን ይመልከቱ",
 signOut: "ውጣ",
 
 // AMHARIC
 myAuctionsTitle: "የእኔ ጨረታዎች",
 myAuctionsDescription:
-  "የተሳተፉባቸውን ጨረታዎች፣ ዋጋ ያቀረቡባቸውን ጨረታዎች እና ያሸነፉባቸውን ጨረታዎች ይከታተሉ።",
+  "የተሳተፉባቸውን ጨረታዎች፣ ዋጋ ያቀረቡባቸውን ጨረታዎች እና ያሸነፉባቸውን ጨረታዎች ይከታተሉ",
 
 active: "ንቁ",
 won: "አሸንፈዋል",
@@ -1001,7 +1003,7 @@ ended: "ያበቃ",
 notWon: "አላሸነፉም",
 
 noAuctionsDescription:
-  "በዚህ ምድብ ውስጥ እስካሁን የተሳተፉበት ጨረታ የለም።",
+  "በዚህ ምድብ ውስጥ እስካሁን የተሳተፉበት ጨረታ የለም",
 
 viewAuction: "ጨረታውን ይመልከቱ",
 
@@ -1016,10 +1018,10 @@ auctionHasEnded:
 
 keepBidding: "ጨረታዎን ይቀጥሉ",
 nextOpportunity:
-  "ቀጣዩን እድልዎን ያግኙ።",
+  "ቀጣዩን እድልዎን ያግኙ",
 
 exploreLiveAuctions:
-      "የMella ንቁ ጨረታዎችን ይመልከቱ እና አሁን ያሉትን እድሎች ያስሱ።",
+      "የ Mella ንቁ ጨረታዎችን ይመልከቱ እና አሁን ያሉትን እድሎች ያስሱ",
 
 // Auction Details Page - Amharic
     allAuctions: "ሁሉም ጨረታዎች",
@@ -1054,6 +1056,7 @@ exploreLiveAuctions:
     auctionNotFoundDescription: "የጠየቁት ጨረታ አሁን አይገኝም ወይም ከስርዓቱ ተወግዷል።",
     backToAuctions: "ወደ ጨረታዎች ተመለስ",
     serviceFee: "የአገልግሎት ክፍያ",
+    currency: "ብር",
   },
 };
 

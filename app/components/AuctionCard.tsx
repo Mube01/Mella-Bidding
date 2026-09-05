@@ -30,7 +30,9 @@ export default function AuctionCard({
   onPriceFocus,
   onBidRequest,
 }: AuctionCardProps) {
-  const [bid, setBid] = useState(1);
+  const [bid, setBid] = useState<number>(1);
+  const [bidInput, setBidInput] = useState<string>("1.00");
+
   const [successMessage, setSuccessMessage] = useState(false);
 
   const { language, t } = useLanguage();
@@ -40,32 +42,94 @@ export default function AuctionCard({
   ========================================================= */
 
   const decreaseBid = () => {
-    setBid((value) =>
-      Math.max(1, Number((value - 0.01).toFixed(2)))
+    const currentBid = Number(bidInput);
+
+    const safeBid = Number.isFinite(currentBid)
+      ? currentBid
+      : bid;
+
+    const newBid = Math.max(
+      1,
+      Number((safeBid - 0.01).toFixed(2))
     );
+
+    setBid(newBid);
+    setBidInput(newBid.toFixed(2));
   };
 
   const increaseBid = () => {
-    setBid((value) =>
-      Number((value + 0.01).toFixed(2))
+    const currentBid = Number(bidInput);
+
+    const safeBid = Number.isFinite(currentBid)
+      ? currentBid
+      : bid;
+
+    const newBid = Number(
+      (safeBid + 0.01).toFixed(2)
     );
+
+    setBid(newBid);
+    setBidInput(newBid.toFixed(2));
   };
+
+  /* =========================================================
+     MANUAL BID INPUT
+  ========================================================= */
 
   const handleBidChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = event.target.value;
 
-    if (value === "") {
-      setBid(1);
+    /*
+      Allow:
+      1
+      1.
+      1.2
+      1.25
+      10.50
+
+      Reject:
+      letters
+      negative numbers
+      multiple decimals
+    */
+
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
       return;
     }
 
-    const number = Number(value);
-
-    if (!Number.isNaN(number) && number >= 1) {
-      setBid(Number(number.toFixed(2)));
+    // Allow the user to temporarily have an empty input.
+    if (value === "") {
+      setBidInput("");
+      return;
     }
+
+    // Allow "1." while the user is still typing.
+    if (value === ".") {
+      setBidInput("0.");
+      setBid(0);
+      return;
+    }
+
+    const numericValue = Number(value);
+
+    if (Number.isNaN(numericValue)) {
+      return;
+    }
+
+    /*
+      Bid cannot be below 1.
+
+      We still allow the user to type "1." and "1.2"
+      naturally.
+    */
+    if (numericValue < 1 && !value.startsWith("0.")) {
+      return;
+    }
+
+    setBidInput(value);
+    setBid(numericValue);
   };
 
   /* =========================================================
@@ -78,12 +142,27 @@ export default function AuctionCard({
     event.preventDefault();
     event.stopPropagation();
 
+    const numericBid = Number(bidInput);
+
+    // Validate before submitting.
+    if (
+      bidInput === "" ||
+      Number.isNaN(numericBid) ||
+      numericBid < 1
+    ) {
+      setBidInput("1");
+      setBid(1);
+      return;
+    }
+
     const serviceFee =
-      parseFloat(String(auction.entry).replace(/[^\d.]/g, "")) || 0;
+      parseFloat(
+        String(auction.entry).replace(/[^\d.]/g, "")
+      ) || 0;
 
     onBidRequest(
       auction,
-      bid,
+      Number(numericBid.toFixed(2)),
       serviceFee
     );
   };
@@ -235,14 +314,79 @@ export default function AuctionCard({
 
             <div className="relative flex flex-1 items-center rounded-xl border border-black/10 bg-white focus-within:border-[#F78000] focus-within:ring-2 focus-within:ring-[#F78000]/10">
               <input
-                type="number"
-                min="1"
-                step="0.01"
-                value={bid.toFixed(2)}
+                type="text"
+                inputMode="decimal"
+                value={bidInput}
                 onChange={handleBidChange}
                 onFocus={onPriceFocus}
                 onClick={(event) => {
                   event.stopPropagation();
+                }}
+                onKeyDown={(event) => {
+                  // Prevent invalid keyboard characters.
+                  if (
+                    event.key === "e" ||
+                    event.key === "E" ||
+                    event.key === "+" ||
+                    event.key === "-"
+                  ) {
+                    event.preventDefault();
+                  }
+
+                  // Submit bid with Enter.
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+
+                    const numericBid = Number(bidInput);
+
+                    if (
+                      bidInput !== "" &&
+                      !Number.isNaN(numericBid) &&
+                      numericBid >= 1
+                    ) {
+                      const serviceFee =
+                        parseFloat(
+                          String(auction.entry).replace(
+                            /[^\d.]/g,
+                            ""
+                          )
+                        ) || 0;
+
+                      onBidRequest(
+                        auction,
+                        Number(numericBid.toFixed(2)),
+                        serviceFee
+                      );
+                    }
+                  }
+
+                  event.stopPropagation();
+                }}
+                onBlur={() => {
+                  /*
+                    If the user leaves the field empty or
+                    enters something below 1, restore 1.
+                  */
+
+                  const numericValue = Number(bidInput);
+
+                  if (
+                    bidInput === "" ||
+                    Number.isNaN(numericValue) ||
+                    numericValue < 1
+                  ) {
+                    setBid(1);
+                    setBidInput("1");
+                    return;
+                  }
+
+                  // Normalize to max 2 decimal places on blur.
+                  const normalized = Number(
+                    numericValue.toFixed(2)
+                  );
+
+                  setBid(normalized);
+                  setBidInput(normalized.toString());
                 }}
                 className="h-11 w-full bg-transparent px-4 pr-14 text-center font-mono text-md font-bold text-black outline-none"
                 aria-label={`${t(
@@ -250,9 +394,10 @@ export default function AuctionCard({
                 )} ${auction.title}`}
               />
 
-              <span className="absolute right-4 text-[10px] font-bold text-black/35">
-                ETB
-              </span>
+            <span className="pointer-events-none absolute right-4 text-[10px] font-bold text-black/35">
+              {t("currency")}
+            </span>
+
             </div>
 
             {/* PLUS */}
@@ -303,9 +448,9 @@ export default function AuctionCard({
             ENTRY
         ================================================= */}
 
-        <p className="mt-3 text-center text-[12px] text-black/40">
+        <p className="mt-3 text-center text-[14px] text-black/60">
           {t("entryFrom")}{" "}
-          <span className="font-bold text-black/70">
+          <span className="font-bold text-black/90">
             {auction.entry}
           </span>
         </p>

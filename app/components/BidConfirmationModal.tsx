@@ -146,7 +146,7 @@ export default function BidConfirmationModal({
               </span>
 
               <span className="font-mono font-bold text-[#F78000]">
-                ETB {bidAmount.toFixed(2)}
+                {language === "am" ? "ብር" : "ETB"} {bidAmount.toFixed(2)}
               </span>
             </div>
           </div>
@@ -162,7 +162,7 @@ export default function BidConfirmationModal({
               </span>
 
               <span className="font-mono font-bold text-[#1681C5]">
-                ETB {serviceFee.toFixed(2)}
+                {language === "am" ? "ብር" : "ETB"} {serviceFee.toFixed(2)}
               </span>
             </div>
           </div>

@@ -59,12 +59,6 @@ export default function Footer() {
               {t("terms")}
             </a>
 
-            <a
-              href="/"
-              className="transition hover:text-[#1681C5]"
-            >
-              {t("privacy")}
-            </a>
           </div>
         </div>
 

@@ -70,9 +70,20 @@ function getLocalizedContent(
   language: "en" | "am"
 ) {
   return {
-    title: language === "am" ? auction.titleAm : auction.titleEn,
-    subtitle: language === "am" ? auction.subtitleAm : auction.subtitleEn,
-    description: language === "am" ? auction.descriptionAm : auction.descriptionEn,
+    title:
+      language === "am"
+        ? auction.titleAm
+        : auction.titleEn,
+
+    subtitle:
+      language === "am"
+        ? auction.subtitleAm
+        : auction.subtitleEn,
+
+    description:
+      language === "am"
+        ? auction.descriptionAm
+        : auction.descriptionEn,
   };
 }
 
@@ -134,47 +145,89 @@ export default function AuctionDetailsPage() {
    */
 
   const decreaseBid = () => {
-    setBid((value) =>
-      Math.max(
-        1,
-        Number(
-          (
-            Number(value || 1) -
-            0.01
-          ).toFixed(2)
-        )
-      ).toFixed(2)
+    const currentBid = Number(bid || 1);
+
+    const newBid = Math.max(
+      1,
+      Number(
+        (currentBid - 0.01).toFixed(2)
+      )
     );
+
+    setBid(newBid.toFixed(2));
   };
 
   const increaseBid = () => {
-    setBid((value) =>
-      Number(
-        Number(value || 1) +
-          0.01
-      ).toFixed(2)
+    const currentBid = Number(bid || 1);
+
+    const newBid = Number(
+      (currentBid + 0.01).toFixed(2)
     );
+
+    setBid(newBid.toFixed(2));
   };
+
+  /*
+   * ============================================================
+   * MANUAL BID INPUT
+   * ============================================================
+   */
 
   const handleBidChange = (
     value: string
   ) => {
+    // Allow only digits and an optional decimal point
+    // with a maximum of 2 decimal places.
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+      return;
+    }
+
+    // Allow the user to temporarily clear the field.
     if (value === "") {
       setBid("");
+      return;
+    }
 
+    // Allow typing the decimal point after a number.
+    if (value === ".") {
+      setBid("0.");
       return;
     }
 
     const number = Number(value);
 
-    if (
-      Number.isFinite(number) &&
-      number >= 1
-    ) {
-      setBid(
-        number.toFixed(2)
-      );
+    if (!Number.isFinite(number)) {
+      return;
     }
+
+    // Minimum bid is 1.
+    if (number < 1) {
+      return;
+    }
+
+    // Keep exactly what the user typed while editing.
+    setBid(value);
+  };
+
+  /*
+   * ============================================================
+   * FORMAT BID WHEN INPUT LOSES FOCUS
+   * ============================================================
+   */
+
+  const handleBidBlur = () => {
+    const number = Number(bid);
+
+    if (
+      bid === "" ||
+      !Number.isFinite(number) ||
+      number < 1
+    ) {
+      setBid("1.00");
+      return;
+    }
+
+    setBid(number.toFixed(2));
   };
 
   /*
@@ -183,30 +236,30 @@ export default function AuctionDetailsPage() {
    * ============================================================
    */
 
-const bidPrice = Number(auction?.entryCost ?? 0);
+  const bidPrice = Number(
+    auction?.entryCost ?? 0
+  );
 
-const packageOptions = [
-  {
-    bids: 5 as const,
-    discount: 5,
-    originalPrice: bidPrice * 5,
-    price: bidPrice * 5 * 0.95,
-  },
-  {
-    bids: 10 as const,
-    discount: 12,
-    originalPrice: bidPrice * 10,
-    price: bidPrice * 10 * 0.88,
-  },
-];
+  const packageOptions = [
+    {
+      bids: 5 as const,
+      discount: 5,
+      originalPrice: bidPrice * 5,
+      price: bidPrice * 5 * 0.95,
+    },
+    {
+      bids: 10 as const,
+      discount: 12,
+      originalPrice: bidPrice * 10,
+      price: bidPrice * 10 * 0.88,
+    },
+  ];
 
   const selectedPackageDetails =
     packageOptions.find(
       (option) =>
-        option.bids ===
-        selectedPackage
-    ) ||
-    packageOptions[0];
+        option.bids === selectedPackage
+    ) || packageOptions[0];
 
   function handlePackagePurchase() {
     setPackageMessage(
@@ -246,10 +299,15 @@ const packageOptions = [
             loadedAuction
           );
 
-          // Set the first image as selected (main image + gallery)
+          // Set the first image as selected
+          // (main image + gallery)
           const allImages = [
             loadedAuction.image,
-            ...(Array.isArray(loadedAuction.images) ? loadedAuction.images : []),
+            ...(Array.isArray(
+              loadedAuction.images
+            )
+              ? loadedAuction.images
+              : []),
           ].filter(Boolean);
 
           setSelectedImage(
@@ -332,10 +390,13 @@ const packageOptions = [
    * ============================================================
    */
 
-  // Combine main image with gallery images for full gallery
+  // Combine main image with gallery images
+  // for full gallery
   const galleryImages = [
     auction.image,
-    ...(Array.isArray(auction.images) ? auction.images : []),
+    ...(Array.isArray(auction.images)
+      ? auction.images
+      : []),
   ].filter(Boolean);
 
   /*
@@ -349,12 +410,21 @@ const packageOptions = [
   ) => {
     event.preventDefault();
 
+    const numericBid = Number(bid);
+
     if (
-      !bid.trim() ||
+      bid.trim() === "" ||
+      !Number.isFinite(numericBid) ||
+      numericBid < 1 ||
       bidLoading
     ) {
+      setBid("1.00");
       return;
     }
+
+    // Always format the bid before showing
+    // the confirmation modal.
+    setBid(numericBid.toFixed(2));
 
     setShowModal(true);
   };
@@ -366,6 +436,16 @@ const packageOptions = [
    */
 
   const confirmBid = async () => {
+    const numericBid = Number(bid);
+
+    if (
+      !Number.isFinite(numericBid) ||
+      numericBid < 1
+    ) {
+      setBid("1.00");
+      return;
+    }
+
     setBidLoading(true);
 
     setBidMessage("");
@@ -388,7 +468,7 @@ const packageOptions = [
               auction.id,
 
             amount:
-              Number(bid),
+              numericBid,
           }),
         }
       );
@@ -403,7 +483,9 @@ const packageOptions = [
           true
         );
 
-        setBid("");
+        // Reset to the default value
+        // instead of leaving the field empty.
+        setBid("1.00");
 
         setTimeout(() => {
           setSuccessMessage(
@@ -440,6 +522,7 @@ const packageOptions = [
       <Header />
 
       <div className="pt-[120px]">
+
         {/* =====================================================
             BREADCRUMB
         ===================================================== */}
@@ -463,14 +546,17 @@ const packageOptions = [
 
         <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-12">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-10">
+
             {/* =================================================
                 IMAGE GALLERY
             ================================================= */}
 
             <div className="min-w-0">
+
               {/* MAIN IMAGE */}
 
               <div className="relative overflow-hidden rounded-[24px] border border-black/10 bg-white sm:rounded-[28px]">
+
                 {/* LIVE BADGE */}
 
                 <div className="absolute left-3 top-3 z-10 flex items-center gap-2 rounded-full bg-white/95 px-3 py-2 text-[9px] font-bold tracking-[0.12em] text-[#1681C5] shadow-sm backdrop-blur sm:left-5 sm:top-5 sm:px-4 sm:text-[10px]">
@@ -488,7 +574,10 @@ const packageOptions = [
                       auction.image
                     }
                     alt={
-                      getLocalizedContent(auction, language).title
+                      getLocalizedContent(
+                        auction,
+                        language
+                      ).title
                     }
                     className="h-full w-full object-contain"
                   />
@@ -499,8 +588,7 @@ const packageOptions = [
                   THUMBNAILS
               ================================================= */}
 
-              {galleryImages.length >
-                1 && (
+              {galleryImages.length > 1 && (
                 <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-5 sm:gap-3">
                   {galleryImages.map(
                     (
@@ -526,18 +614,14 @@ const packageOptions = [
                               : "border-black/10 hover:border-black/25"
                           }`}
                           aria-label={`View image ${
-                            index +
-                            1
+                            index + 1
                           }`}
                         >
                           <div className="aspect-square">
                             <img
-                              src={
-                                image
-                              }
+                              src={image}
                               alt={`${auction.title} ${
-                                index +
-                                1
+                                index + 1
                               }`}
                               className="h-full w-full object-cover"
                             />
@@ -558,11 +642,10 @@ const packageOptions = [
               ================================================= */}
 
               <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+
                 <SmallStat
                   icon={
-                    <Users
-                      size={16}
-                    />
+                    <Users size={16} />
                   }
                   label={
                     language === "am"
@@ -577,9 +660,7 @@ const packageOptions = [
 
                 <SmallStat
                   icon={
-                    <Clock3
-                      size={16}
-                    />
+                    <Clock3 size={16} />
                   }
                   label={
                     language === "am"
@@ -595,9 +676,7 @@ const packageOptions = [
 
                 <SmallStat
                   icon={
-                    <Gavel
-                      size={16}
-                    />
+                    <Gavel size={16} />
                   }
                   label={
                     language === "am"
@@ -614,6 +693,7 @@ const packageOptions = [
             ================================================= */}
 
             <div className="min-w-0">
+
               {/* CATEGORY */}
 
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.22em] text-[#1681C5]">
@@ -625,20 +705,38 @@ const packageOptions = [
               {/* TITLE */}
 
               <h1 className="mt-5 break-words font-display text-4xl leading-[0.95] tracking-[-0.04em] sm:text-6xl">
-                {getLocalizedContent(auction, language).title}
+                {
+                  getLocalizedContent(
+                    auction,
+                    language
+                  ).title
+                }
               </h1>
 
               {/* SUBTITLE */}
 
               <p className="mt-4 text-base leading-7 text-black/50">
-                {getLocalizedContent(auction, language).subtitle}
+                {
+                  getLocalizedContent(
+                    auction,
+                    language
+                  ).subtitle
+                }
               </p>
 
               {/* DESCRIPTION */}
 
-              {getLocalizedContent(auction, language).description && (
+              {getLocalizedContent(
+                auction,
+                language
+              ).description && (
                 <p className="mt-5 text-sm leading-6 text-black/45">
-                  {getLocalizedContent(auction, language).description}
+                  {
+                    getLocalizedContent(
+                      auction,
+                      language
+                    ).description
+                  }
                 </p>
               )}
 
@@ -650,6 +748,7 @@ const packageOptions = [
 
               <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                 <div className="flex items-center justify-between gap-4">
+
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.15em] text-black/35">
                       {language === "am"
@@ -669,6 +768,7 @@ const packageOptions = [
                   <div className="hidden h-12 w-12 place-items-center rounded-xl bg-[#F78000]/10 text-[#F78000] sm:grid">
                     <Clock3 size={20} />
                   </div>
+
                 </div>
               </div>
 
@@ -676,9 +776,7 @@ const packageOptions = [
 
               <div className="mt-4 flex items-center justify-between rounded-xl border border-black/10 px-4 py-3">
                 <div className="flex items-center gap-2 text-sm text-black/45">
-                  <Users
-                    size={16}
-                  />
+                  <Users size={16} />
 
                   {language === "am"
                     ? "ተሳታፊዎች"
@@ -695,9 +793,7 @@ const packageOptions = [
 
               <div className="mt-3 flex items-center justify-between rounded-xl border border-black/10 px-4 py-3">
                 <div className="flex items-center gap-2 text-sm text-black/45">
-                  <Gavel
-                    size={16}
-                  />
+                  <Gavel size={16} />
 
                   {language === "am"
                     ? "የአገልግሎት ክፍያ"
@@ -705,7 +801,9 @@ const packageOptions = [
                 </div>
 
                 <span className="text-sm font-bold">
-                  ETB {auction.entryCost?.toFixed(2) ?? "0.00"}
+                  {language === "am" ? "ብር" : "ETB"}{" "}
+                  {auction.entryCost?.toFixed(2) ??
+                    "0.00"}
                 </span>
               </div>
 
@@ -717,18 +815,18 @@ const packageOptions = [
                 onSubmit={handleBid}
                 className="mt-6 rounded-2xl border border-black/10 bg-white p-5 shadow-sm"
               >
+
                 <div className="flex items-center justify-between gap-4">
+
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.15em] text-[#F78000]">
-                      {language ===
-                      "am"
+                      {language === "am"
                         ? "የመጫረቻ መጠን"
                         : "YOUR BID"}
                     </p>
 
                     <h2 className="mt-1 text-lg font-semibold">
-                      {language ===
-                      "am"
+                      {language === "am"
                         ? "መጫረቻዎን ያስገቡ"
                         : "Enter your bid"}
                     </h2>
@@ -738,10 +836,15 @@ const packageOptions = [
                     size={20}
                     className="shrink-0 text-[#F78000]"
                   />
+
                 </div>
 
                 <div className="mt-5">
+
                   <div className="flex gap-2">
+
+                    {/* DECREASE */}
+
                     <button
                       type="button"
                       onClick={
@@ -750,39 +853,63 @@ const packageOptions = [
                       className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-black/10 bg-black/5 text-black transition hover:border-[#F78000] hover:bg-[#F78000] hover:text-white"
                       aria-label="Decrease bid"
                     >
-                      <Minus
-                        size={16}
-                      />
+                      <Minus size={16} />
                     </button>
 
-<div className="relative flex flex-1 items-center rounded-xl border border-black/10 bg-white focus-within:border-[#1681C5] focus-within:ring-2 focus-within:ring-[#1681C5]/10">
+                    {/* BID INPUT */}
+
+                    <div className="relative flex flex-1 items-center rounded-xl border border-black/10 bg-white focus-within:border-[#1681C5] focus-within:ring-2 focus-within:ring-[#1681C5]/10">
+
                       <input
-                        type="number"
-                        min="1"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         value={bid}
-                        onChange={(
-                          event
-                        ) =>
+                        onChange={(event) =>
                           handleBidChange(
-                            event
-                              .target
-                              .value
+                            event.target.value
                           )
                         }
+                        onBlur={
+                          handleBidBlur
+                        }
+                        onKeyDown={(
+                          event
+                        ) => {
+                          // Prevent characters that
+                          // are not valid for decimal input.
+                          if (
+                            event.key ===
+                              "e" ||
+                            event.key ===
+                              "E" ||
+                            event.key ===
+                              "+" ||
+                            event.key ===
+                              "-"
+                          ) {
+                            event.preventDefault();
+                          }
+                        }}
                         placeholder={
-                          language ===
-                          "am"
+                          language === "am"
                             ? "የመጫረቻ መጠን"
                             : "Enter amount"
                         }
                         className="h-11 w-full min-w-0 bg-transparent px-4 pr-20 text-center font-mono text-md font-bold outline-none sm:px-4"
+                        aria-label={
+                          language === "am"
+                            ? "የመጫረቻ መጠን"
+                            : "Bid amount"
+                        }
                       />
 
                       <span className="absolute right-12 text-[10px] font-bold text-black/35 sm:right-12">
-                        ETB
+                        {language === "am" ? "ብር" : "ETB"}
                       </span>
+
                     </div>
+
+                    {/* INCREASE */}
 
                     <button
                       type="button"
@@ -792,12 +919,13 @@ const packageOptions = [
                       className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-black/10 bg-black/5 text-black transition hover:border-[#F78000] hover:bg-[#F78000] hover:text-white"
                       aria-label="Increase bid"
                     >
-                      <Plus
-                        size={16}
-                      />
+                      <Plus size={16} />
                     </button>
+
                   </div>
                 </div>
+
+                {/* SUBMIT */}
 
                 <button
                   type="submit"
@@ -807,12 +935,10 @@ const packageOptions = [
                   className="group mt-4 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#F78000] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#F78000]/20 transition hover:bg-[#D96E00] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {bidLoading
-                    ? language ===
-                      "am"
+                    ? language === "am"
                       ? "በመላክ ላይ..."
                       : "Submitting..."
-                    : language ===
-                        "am"
+                    : language === "am"
                       ? "መጫረቻ ያስገቡ"
                       : "Submit Bid"}
 
@@ -824,16 +950,18 @@ const packageOptions = [
                   )}
                 </button>
 
+                {/* ERROR */}
+
                 {bidMessage && (
                   <p
                     role="status"
                     className="mt-3 text-center text-xs text-black/50"
                   >
-                    {
-                      bidMessage
-                    }
+                    {bidMessage}
                   </p>
                 )}
+
+                {/* SUCCESS */}
 
                 {successMessage && (
                   <div
@@ -844,19 +972,18 @@ const packageOptions = [
                       size={16}
                     />
 
-                    {language ===
-                    "am"
+                    {language === "am"
                       ? "መጫረቻዎ በተሳካ ሁኔታ ተልኳል።"
                       : "Bid submitted successfully."}
                   </div>
                 )}
 
                 <p className="mt-3 text-center text-[10px] leading-5 text-black/35">
-                  {language ===
-                  "am"
+                  {language === "am"
                     ? "መጫረቻ ለማስገባት በመለያዎ መግባት እና በቂ የመጫረቻ ክሬዲት መኖር አለበት።"
                     : "You must be signed in and have enough bid credits to participate."}
                 </p>
+
               </form>
 
               {/* =================================================
@@ -864,29 +991,33 @@ const packageOptions = [
               ================================================= */}
 
               <div className="mt-6 rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
+
                 <div className="flex items-start justify-between gap-4">
+
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.15em] text-[#1681C5]">
-                      {language ===
-                      "am"
+                      {language === "am"
                         ? "የመጫረቻ ጥቅሎች"
                         : "BID PACKAGES"}
                     </p>
 
                     <h2 className="mt-1 text-lg font-semibold">
-                      {language ===
-                      "am"
+                      {language === "am"
                         ? "የመጫረቻ ጥቅል ይምረጡ"
                         : "Choose a bid package"}
                     </h2>
                   </div>
 
-                 <span className="shrink-0 text-xs font-semibold text-black/40">
-  ETB {bidPrice.toFixed(2)} / bid
-</span>
+                  <span className="shrink-0 text-xs font-semibold text-black/40">
+                    {language === "am" ? "ብር" : "ETB"}{" "}
+                    {bidPrice.toFixed(2)}{" "}
+                    / bid
+                  </span>
+
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
+
                   {packageOptions.map(
                     (option) => {
                       const active =
@@ -917,13 +1048,14 @@ const packageOptions = [
                             active
                           }
                         >
+
                           <div className="flex items-center justify-between gap-3">
+
                             <span className="text-base font-bold">
                               {
                                 option.bids
                               }{" "}
-                              {language ===
-                              "am"
+                              {language === "am"
                                 ? "መጫረቻዎች"
                                 : "bids"}
                             </span>
@@ -935,33 +1067,46 @@ const packageOptions = [
                               }
                               %
                             </span>
+
                           </div>
 
                           <div className="mt-3 flex items-baseline gap-2">
-  <p className="text-lg font-bold text-[#1681C5]">
-  ETB {option.price.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}
-</p>
 
-  <p className="text-xs text-black/35 line-through">
-  ETB {option.originalPrice.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}
-</p>
-</div>
+                            <p className="text-lg font-bold text-[#1681C5]">
+                              {language === "am" ? "ብር" : "ETB"}{" "}
+                              {option.price.toLocaleString(
+                                "en-US",
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )}
+                            </p>
 
-<p className="mt-1 text-xs text-black/40">
-  {language === "am"
-    ? `${option.bids} መጫረቻ × ETB ${bidPrice.toFixed(2)}`
-    : `${option.bids} bids × ETB ${bidPrice.toFixed(2)}`}
-</p>
+                            <p className="text-xs text-black/35 line-through">
+                              {language === "am" ? "ብር" : "ETB"}{" "}
+                              {option.originalPrice.toLocaleString(
+                                "en-US",
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )}
+                            </p>
+
+                          </div>
+
+                          <p className="mt-1 text-xs text-black/40">
+                            {language === "am"
+                              ? `${option.bids} መጫረቻ × ብር ${bidPrice.toFixed(2)}`
+                              : `${option.bids} bids × ETB ${bidPrice.toFixed(2)}`}
+                          </p>
+
                         </button>
                       );
                     }
                   )}
+
                 </div>
 
                 <button
@@ -971,8 +1116,7 @@ const packageOptions = [
                   }
                   className="mt-4 flex h-11 w-full items-center justify-center rounded-xl bg-[#1681C5] px-4 text-sm font-bold text-white transition hover:bg-[#116d9f]"
                 >
-                  {language ===
-                  "am"
+                  {language === "am"
                     ? `${selectedPackageDetails.bids} መጫረቻዎችን ይግዙ`
                     : `Continue with ${selectedPackageDetails.bids} bids`}
                 </button>
@@ -982,12 +1126,12 @@ const packageOptions = [
                     role="status"
                     className="mt-3 text-center text-xs text-[#1681C5]"
                   >
-                    {
-                      packageMessage
-                    }
+                    {packageMessage}
                   </p>
                 )}
+
               </div>
+
             </div>
           </div>
         </section>
@@ -997,49 +1141,49 @@ const packageOptions = [
         ===================================================== */}
 
         <section className="border-y border-black/10 bg-black/[0.02]">
+
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-10 lg:py-16">
+
             <div className="max-w-2xl">
+
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.25em] text-[#1681C5]">
+
                 <span className="h-px w-8 bg-[#1681C5]" />
 
-                {language ===
-                "am"
+                {language === "am"
                   ? "እንዴት ይሰራል"
                   : "HOW IT WORKS"}
+
               </div>
 
               <h2 className="mt-4 font-display text-4xl tracking-[-0.03em] sm:text-5xl">
-                {language ===
-                "am"
+                {language === "am"
                   ? "ደንቦቹን ይረዱ"
                   : "Know the rules."}
               </h2>
 
               <p className="mt-4 text-sm leading-6 text-black/45">
-                {language ===
-                "am"
+                {language === "am"
                   ? "Mella የጨረታ ሂደቱ ግልጽና ለመረዳት ቀላል ሆኖ ተዘጋጅቷል።"
                   : "Mella is designed to keep the auction process transparent and easy to understand."}
               </p>
+
             </div>
 
             <div className="mt-10 grid gap-4 md:grid-cols-3">
+
               <RuleCard
                 number="01"
                 icon={
-                  <Gavel
-                    size={19}
-                  />
+                  <Gavel size={19} />
                 }
                 title={
-                  language ===
-                  "am"
+                  language === "am"
                     ? "መጫረቻዎን ያስገቡ"
                     : "Place your bid"
                 }
                 description={
-                  language ===
-                  "am"
+                  language === "am"
                     ? "የሚፈልጉትን መጠን ይምረጡና መጫረቻዎን ከጨረታው ጊዜ ከማለቁ በፊት ያስገቡ።"
                     : "Choose your amount and submit your bid before the auction closes."
                 }
@@ -1048,19 +1192,15 @@ const packageOptions = [
               <RuleCard
                 number="02"
                 icon={
-                  <Users
-                    size={19}
-                  />
+                  <Users size={19} />
                 }
                 title={
-                  language ===
-                  "am"
+                  language === "am"
                     ? "ከሌሎች ጋር ይወዳደሩ"
                     : "Compete strategically"
                 }
                 description={
-                  language ===
-                  "am"
+                  language === "am"
                     ? "ሌሎች ተሳታፊዎችም የራሳቸውን ስትራቴጂ በመጠቀም ይሳተፋሉ።"
                     : "Other participants are competing using their own bidding strategies."
                 }
@@ -1069,23 +1209,20 @@ const packageOptions = [
               <RuleCard
                 number="03"
                 icon={
-                  <ShieldCheck
-                    size={19}
-                  />
+                  <ShieldCheck size={19} />
                 }
                 title={
-                  language ===
-                  "am"
+                  language === "am"
                     ? "ውጤቱን ይመልከቱ"
                     : "See the result"
                 }
                 description={
-                  language ===
-                  "am"
+                  language === "am"
                     ? "ጨረታው ሲያበቃ የአሸናፊው አመራረጥ ሂደት እና ውጤቱ ይፋ ይደረጋል።"
                     : "When the auction closes, the winning logic and result are published."
                 }
               />
+
             </div>
           </div>
         </section>
@@ -1095,22 +1232,20 @@ const packageOptions = [
         ===================================================== */}
 
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-10 lg:py-20">
+
           <div className="grid gap-5 md:grid-cols-3">
+
             <TrustCard
               icon={
-                <ShieldCheck
-                  size={20}
-                />
+                <ShieldCheck size={20} />
               }
               title={
-                language ===
-                "am"
+                language === "am"
                   ? "ግልጽ ሂደት"
                   : "Transparent process"
               }
               description={
-                language ===
-                "am"
+                language === "am"
                   ? "የጨረታ ደንቦች እና ውጤቶች በግልጽ ይታያሉ።"
                   : "Auction rules and results are presented clearly."
               }
@@ -1118,19 +1253,15 @@ const packageOptions = [
 
             <TrustCard
               icon={
-                <CheckCircle2
-                  size={20}
-                />
+                <CheckCircle2 size={20} />
               }
               title={
-                language ===
-                "am"
+                language === "am"
                   ? "አስተማማኝ ክፍያ"
                   : "Secure payments"
               }
               description={
-                language ===
-                "am"
+                language === "am"
                   ? "የክፍያ ሂደቱ ተጠቃሚዎች ምቹ ነው።"
                   : "The payment process is convenient for users."
               }
@@ -1138,23 +1269,20 @@ const packageOptions = [
 
             <TrustCard
               icon={
-                <Sparkles
-                  size={20}
-                />
+                <Sparkles size={20} />
               }
               title={
-                language ===
-                "am"
+                language === "am"
                   ? "ልዩ የጨረታ ልምድ"
                   : "A different auction experience"
               }
               description={
-                language ===
-                "am"
+                language === "am"
                   ? "Mella ከተለመዱት የጨረታ ስርዓቶች የተለየ ስትራቴጂያዊ ልምድ ያቀርባል።"
                   : "Mella offers a strategic experience different from traditional auctions."
               }
             />
+
           </div>
         </section>
 
@@ -1167,7 +1295,12 @@ const packageOptions = [
         <BidConfirmationModal
           isOpen={showModal}
           auctionTitle={
-            auction ? getLocalizedContent(auction, language).title : ""
+            auction
+              ? getLocalizedContent(
+                  auction,
+                  language
+                ).title
+              : ""
           }
           bidAmount={Number(bid)}
           serviceFee={
@@ -1183,6 +1316,7 @@ const packageOptions = [
             bidLoading
           }
         />
+
       </div>
     </main>
   );
@@ -1205,17 +1339,21 @@ function SmallStat({
 }) {
   return (
     <div className="min-w-0 rounded-xl border border-black/10 bg-white p-2.5 sm:p-3">
+
       <div className="flex min-w-0 items-center gap-1.5 text-black/35 sm:gap-2">
+
         {icon}
 
         <span className="truncate text-[8px] font-bold uppercase tracking-[0.06em] sm:text-[9px] sm:tracking-[0.08em]">
           {label}
         </span>
+
       </div>
 
       <p className="mt-2 truncate text-xs font-bold">
         {value}
       </p>
+
     </div>
   );
 }
@@ -1239,7 +1377,9 @@ function RuleCard({
 }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-6">
+
       <div className="flex items-center justify-between">
+
         <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
           {icon}
         </div>
@@ -1247,6 +1387,7 @@ function RuleCard({
         <span className="font-mono text-xs text-black/20">
           {number}
         </span>
+
       </div>
 
       <h3 className="mt-6 text-base font-semibold">
@@ -1256,6 +1397,7 @@ function RuleCard({
       <p className="mt-2 text-sm leading-6 text-black/40">
         {description}
       </p>
+
     </div>
   );
 }
@@ -1277,6 +1419,7 @@ function TrustCard({
 }) {
   return (
     <div className="rounded-2xl border border-black/10 p-6">
+
       <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#F78000]/10 text-[#F78000]">
         {icon}
       </div>
@@ -1288,6 +1431,7 @@ function TrustCard({
       <p className="mt-2 text-sm leading-6 text-black/40">
         {description}
       </p>
+
     </div>
   );
 }

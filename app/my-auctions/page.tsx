@@ -395,7 +395,7 @@ export default function MyAuctionsPage() {
                                 auction.myBid
                               )}{" "}
                               <span className="text-sm font-medium text-neutral-400">
-                                ETB
+                                {language === "am" ? "ብር" : "ETB"}
                               </span>
                             </p>
 

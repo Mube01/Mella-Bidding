@@ -89,7 +89,7 @@ export default function AuctionsPage() {
             time: "",
             endsAt: auction.endsAt,
             participants: auction.participantCount,
-            entry: `${auction.entryCost} ETB`,
+            entry: `${auction.entryCost} ${t("currency")}`,
           }))
         );
       } catch {

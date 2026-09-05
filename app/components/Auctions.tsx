@@ -152,26 +152,20 @@ export default function Auctions() {
 
         if (data.success) {
           const formattedAuctions: Auction[] =
-            data.auctions.map(
-              (auction: any) => ({
-                id: auction.id,
-                title: auction.title,
-                subtitle:
-                  auction.subtitle,
-                description:
-                  auction.description,
-                category:
-                  auction.category,
-                image: auction.image,
-                time: "",
-                endsAt:
-                  auction.endsAt,
-                participants:
-                  auction.participantCount,
-                entry:
-                  `${auction.entryCost} ETB`,
-              })
-            );
+  data.auctions.map(
+    (auction: any) => ({
+      id: auction.id,
+      title: auction.title,
+      subtitle: auction.subtitle,
+      description: auction.description,
+      category: auction.category,
+      image: auction.image,
+      time: "",
+      endsAt: auction.endsAt,
+      participants: auction.participantCount,
+      entry: `${auction.entryCost} ${t("currency")}`,
+    })
+  );
 
           setAuctions(
             formattedAuctions

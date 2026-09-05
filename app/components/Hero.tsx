@@ -20,22 +20,22 @@ export default function Hero() {
       .then((response) => response.json())
       .then((data) => {
         const auction = data.auctions?.[0];
-        if (!data.success || !auction) return;
-        setFeaturedAuction({
-          id: auction.id,
-          title: auction.title,
-          subtitle: auction.subtitle,
-          description: auction.description,
-          category: auction.category,
-          image: auction.image,
-          time: "",
-          endsAt: auction.endsAt,
-          participants: auction.participantCount,
-          entry: `${auction.entryCost} ETB`,
-        });
-      })
-      .catch(() => undefined);
-  }, [language]);
+if (!data.success || !auction) return;
+setFeaturedAuction({
+  id: auction.id,
+  title: auction.title,
+  subtitle: auction.subtitle,
+  description: auction.description,
+  category: auction.category,
+  image: auction.image,
+  time: "",
+  endsAt: auction.endsAt,
+  participants: auction.participantCount,
+  entry: `${auction.entryCost} ${t("currency")}`,
+});
+})
+.catch(() => undefined);
+}, [language]);
 
   return (
     <section className="relative min-h-[760px] overflow-hidden border-b border-black/10 pt-[120px]">
@@ -125,7 +125,7 @@ export default function Hero() {
             {/* Local Payments */}
             <div>
               <p className="text-2xl font-bold text-[#1681C5]">
-                ETB
+                {language === "am" ? "ብር" : "ETB"}
               </p>
 
               <p className="mt-1 text-[10px] tracking-[0.18em] text-black/40">
