@@ -59,14 +59,6 @@ export async function GET(request: Request) {
       });
     }
 
-    /*
-     * ADMIN CONTROLLED ORDER
-     *
-     * The auction order selected by the admin
-     * is now the primary sorting rule.
-     *
-     * endsAt is only used as a fallback.
-     */
     const auctions = includeAll
       ? await Auction.find()
           .sort({

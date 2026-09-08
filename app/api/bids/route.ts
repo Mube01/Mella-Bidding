@@ -64,6 +64,7 @@ const validAmountFormat = /^\d+(?:\.\d{1,2})?$/.test(
 );
 
 const amount = Number(amountString);
+
     if (
   !auctionId ||
   !validAmountFormat ||
