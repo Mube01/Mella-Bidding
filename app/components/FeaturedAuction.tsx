@@ -5,6 +5,7 @@ import {
   Clock3,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 import type { Auction } from "./data";
 import AuctionCountdown from "./AuctionCountdown";
 import { useEffect, useState } from "react";
@@ -19,27 +20,34 @@ export default function FeaturedAuction({
   const [endsAt, setEndsAt] = useState(auction.endsAt);
 
   useEffect(() => {
-    fetch(`/api/auctions/${auction.id}`, { cache: "no-store" })
+    fetch(`/api/auctions/${auction.id}`, {
+      cache: "no-store",
+    })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) setEndsAt(data.auction.endsAt);
+        if (data.success) {
+          setEndsAt(data.auction.endsAt);
+        }
       })
       .catch(() => undefined);
   }, [auction.id]);
 
   return (
-    <div className="relative">
+    <Link
+      href={`/auctions/${auction.id}`}
+      className="group relative block"
+    >
       {/* Background glow */}
       <div className="absolute -inset-10 rounded-[3rem] bg-gradient-to-r from-[#1681C5]/20 via-[#F78000]/10 to-emerald-400/20 blur-3xl" />
 
-      <div className="relative overflow-hidden rounded-[1.8rem] border border-black/10 bg-white shadow-2xl">
+      <div className="relative overflow-hidden rounded-[1.8rem] border border-black/10 bg-white shadow-2xl transition duration-500 group-hover:-translate-y-1 group-hover:shadow-3xl">
         <div className="relative aspect-[4/5.5] overflow-hidden sm:aspect-[4/4.3]">
 
           {/* BYD IMAGE */}
           <img
             src={auction.image}
             alt={auction.title}
-            className="absolute inset-0 h-full w-full object-cover transition duration-700 hover:scale-105"
+            className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
           />
 
           {/* Dark gradient */}
@@ -61,13 +69,13 @@ export default function FeaturedAuction({
           </div>
 
           {/* CONTENT */}
-          <div className="absolute inset-x-5 bottom-5 text-white ">
+          <div className="absolute inset-x-5 bottom-5 text-white">
 
             <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
               {/* TITLE */}
               <div>
-                <p className="text-[9px] font-bold tracking-[0.22em] text-white/60 ">
+                <p className="text-[9px] font-bold tracking-[0.22em] text-white/60">
                   {t("featuredAutomotiveAuction")}
                 </p>
 
@@ -75,7 +83,7 @@ export default function FeaturedAuction({
                   {auction.title}
                 </h2>
 
-                <p className="mt-1 text-sm text-white/65 ">
+                <p className="mt-1 text-sm text-white/65">
                   {auction.subtitle}
                 </p>
               </div>
@@ -95,7 +103,11 @@ export default function FeaturedAuction({
                 </div>
 
                 <p className="mt-1 font-mono text-[15px] font-bold text-red-500">
-                  {endsAt ? <AuctionCountdown endsAt={endsAt} /> : auction.time}
+                  {endsAt ? (
+                    <AuctionCountdown endsAt={endsAt} />
+                  ) : (
+                    auction.time
+                  )}
                 </p>
 
               </div>
@@ -162,6 +174,6 @@ export default function FeaturedAuction({
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

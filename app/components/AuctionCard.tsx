@@ -6,8 +6,8 @@ import {
   Users,
   Minus,
   Plus,
-  CheckCircle2,
 } from "lucide-react";
+
 import Link from "next/link";
 import { useState } from "react";
 
@@ -23,17 +23,20 @@ type AuctionCardProps = {
     bidAmount: number,
     serviceFee: number
   ) => void;
+  onToast?: (
+    message: string,
+    type?: "success" | "error"
+  ) => void;
 };
 
 export default function AuctionCard({
   auction,
   onPriceFocus,
   onBidRequest,
+  onToast,
 }: AuctionCardProps) {
   const [bid, setBid] = useState<number>(1);
   const [bidInput, setBidInput] = useState<string>("1.00");
-
-  const [successMessage, setSuccessMessage] = useState(false);
 
   const { language, t } = useLanguage();
 
@@ -83,6 +86,7 @@ export default function AuctionCard({
 
     /*
       Allow:
+
       1
       1.
       1.2
@@ -90,6 +94,7 @@ export default function AuctionCard({
       10.50
 
       Reject:
+
       letters
       negative numbers
       multiple decimals
@@ -105,7 +110,7 @@ export default function AuctionCard({
       return;
     }
 
-    // Allow "1." while the user is still typing.
+    // Allow "." while the user is typing.
     if (value === ".") {
       setBidInput("0.");
       setBid(0);
@@ -120,10 +125,9 @@ export default function AuctionCard({
 
     /*
       Bid cannot be below 1.
-
-      We still allow the user to type "1." and "1.2"
-      naturally.
+      We still allow the user to type decimal values naturally.
     */
+
     if (numericValue < 1 && !value.startsWith("0.")) {
       return;
     }
@@ -152,6 +156,14 @@ export default function AuctionCard({
     ) {
       setBidInput("1");
       setBid(1);
+
+      onToast?.(
+  language === "am"
+    ? "እባክዎ ትክክለኛ የመጫረቻ መጠን ያስገቡ።"
+    : "Please enter a valid bid amount.",
+  "error"
+);
+
       return;
     }
 
@@ -190,20 +202,9 @@ export default function AuctionCard({
     }
   };
 
-  /* =========================================================
-     SUCCESS MESSAGE
-  ========================================================= */
-
-  const showSuccessMessage = () => {
-    setSuccessMessage(true);
-
-    window.setTimeout(() => {
-      setSuccessMessage(false);
-    }, 3000);
-  };
-
   return (
     <article className="group overflow-hidden rounded-2xl border border-[#999] bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+
       {/* ===================================================
           IMAGE
       =================================================== */}
@@ -227,12 +228,12 @@ export default function AuctionCard({
       =================================================== */}
 
       <div className="p-5">
-        {/* =================================================
-            TITLE
-        ================================================= */}
+
+        {/* TITLE */}
 
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
+
             <Link href={`/auctions/${auction.id}`}>
               <h3 className="font-display text-xl text-black transition hover:text-[#1681C5]">
                 {auction.title}
@@ -249,11 +250,10 @@ export default function AuctionCard({
           </span>
         </div>
 
-        {/* =================================================
-            INFO
-        ================================================= */}
+        {/* INFO */}
 
         <div className="mt-5 grid grid-cols-[1.35fr_0.65fr] gap-2 border-y border-black/10 py-4">
+
           {/* ENDS IN */}
 
           <div>
@@ -285,16 +285,16 @@ export default function AuctionCard({
           </div>
         </div>
 
-        {/* =================================================
-            BID
-        ================================================= */}
+        {/* BID */}
 
         <div className="mt-4">
+
           <p className="mb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-black/40">
             {t("enterYourBid")}
           </p>
 
           <div className="flex gap-2">
+
             {/* MINUS */}
 
             <button
@@ -313,6 +313,7 @@ export default function AuctionCard({
             {/* INPUT */}
 
             <div className="relative flex flex-1 items-center rounded-xl border border-black/10 bg-white focus-within:border-[#F78000] focus-within:ring-2 focus-within:ring-[#F78000]/10">
+
               <input
                 type="text"
                 inputMode="decimal"
@@ -323,6 +324,7 @@ export default function AuctionCard({
                   event.stopPropagation();
                 }}
                 onKeyDown={(event) => {
+
                   // Prevent invalid keyboard characters.
                   if (
                     event.key === "e" ||
@@ -337,7 +339,8 @@ export default function AuctionCard({
                   if (event.key === "Enter") {
                     event.preventDefault();
 
-                    const numericBid = Number(bidInput);
+                    const numericBid =
+                      Number(bidInput);
 
                     if (
                       bidInput !== "" &&
@@ -346,7 +349,9 @@ export default function AuctionCard({
                     ) {
                       const serviceFee =
                         parseFloat(
-                          String(auction.entry).replace(
+                          String(
+                            auction.entry
+                          ).replace(
                             /[^\d.]/g,
                             ""
                           )
@@ -354,21 +359,26 @@ export default function AuctionCard({
 
                       onBidRequest(
                         auction,
-                        Number(numericBid.toFixed(2)),
+                        Number(
+                          numericBid.toFixed(2)
+                        ),
                         serviceFee
                       );
+                    } else {
+                      onToast?.(
+  language === "am"
+    ? "እባክዎ ትክክለኛ የመጫረቻ መጠን ያስገቡ።"
+    : "Please enter a valid bid amount.",
+  "error"
+);
                     }
                   }
 
                   event.stopPropagation();
                 }}
                 onBlur={() => {
-                  /*
-                    If the user leaves the field empty or
-                    enters something below 1, restore 1.
-                  */
-
-                  const numericValue = Number(bidInput);
+                  const numericValue =
+                    Number(bidInput);
 
                   if (
                     bidInput === "" ||
@@ -380,13 +390,15 @@ export default function AuctionCard({
                     return;
                   }
 
-                  // Normalize to max 2 decimal places on blur.
-                  const normalized = Number(
-                    numericValue.toFixed(2)
-                  );
+                  const normalized =
+                    Number(
+                      numericValue.toFixed(2)
+                    );
 
                   setBid(normalized);
-                  setBidInput(normalized.toString());
+                  setBidInput(
+                    normalized.toString()
+                  );
                 }}
                 className="h-11 w-full bg-transparent px-4 pr-14 text-center font-mono text-md font-bold text-black outline-none"
                 aria-label={`${t(
@@ -394,10 +406,9 @@ export default function AuctionCard({
                 )} ${auction.title}`}
               />
 
-            <span className="pointer-events-none absolute right-4 text-[10px] font-bold text-black/35">
-              {t("currency")}
-            </span>
-
+              <span className="pointer-events-none absolute right-4 text-[10px] font-bold text-black/35">
+                {t("currency")}
+              </span>
             </div>
 
             {/* PLUS */}
@@ -417,39 +428,26 @@ export default function AuctionCard({
           </div>
         </div>
 
-        {/* =================================================
-            SUBMIT
-        ================================================= */}
+        {/* SUBMIT */}
 
-        {successMessage ? (
-          <div className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-green-50 px-4 text-sm font-bold text-green-700 shadow-md">
-            <CheckCircle2 size={16} />
+        <button
+          type="button"
+          onClick={handleBid}
+          className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#F78000] px-4 text-sm font-bold text-white shadow-md shadow-[#F78000]/20 transition hover:bg-[#D96E00] hover:shadow-lg"
+        >
+          {t("submitBid")}
 
-            {language === "am"
-              ? "መጫረቻ በተሳካ ሁኔታ ተልኳል"
-              : "Bid submitted successfully"}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={handleBid}
-            className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#F78000] px-4 text-sm font-bold text-white shadow-md shadow-[#F78000]/20 transition hover:bg-[#D96E00] hover:shadow-lg"
-          >
-            {t("submitBid")}
+          <ArrowRight
+            size={16}
+            className="transition-transform group-hover:translate-x-1"
+          />
+        </button>
 
-            <ArrowRight
-              size={16}
-              className="transition-transform group-hover:translate-x-1"
-            />
-          </button>
-        )}
-
-        {/* =================================================
-            ENTRY
-        ================================================= */}
+        {/* ENTRY */}
 
         <p className="mt-3 text-center text-[14px] text-black/60">
           {t("entryFrom")}{" "}
+
           <span className="font-bold text-black/90">
             {auction.entry}
           </span>

@@ -12,7 +12,6 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
-
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,16 +20,14 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import AuctionCountdown from "../../components/AuctionCountdown";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Toast from "../../components/ui/Toast";
 import BidConfirmationModal from "../../components/BidConfirmationModal";
 import { useLanguage } from "../../context/LanguageContext";
 
 type AuctionDetails = {
   id: string;
-
   title: string;
-
   subtitle: string;
-
   description: string;
 
   // Localized fields from database
@@ -50,11 +47,8 @@ type AuctionDetails = {
   images: string[];
 
   participantCount: number;
-
   entryCost: number;
-
   startsAt: string;
-
   endsAt: string;
 
   status:
@@ -64,7 +58,10 @@ type AuctionDetails = {
     | "cancelled";
 };
 
-// Helper function to get localized content
+// =============================================================
+// HELPER FUNCTION - LOCALIZED CONTENT
+// =============================================================
+
 function getLocalizedContent(
   auction: AuctionDetails,
   language: "en" | "am"
@@ -87,9 +84,12 @@ function getLocalizedContent(
   };
 }
 
+// =============================================================
+// PAGE
+// =============================================================
+
 export default function AuctionDetailsPage() {
   const params = useParams();
-
   const { language } = useLanguage();
 
   const auctionId = Array.isArray(params.id)
@@ -99,8 +99,7 @@ export default function AuctionDetailsPage() {
   const [auction, setAuction] =
     useState<AuctionDetails | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   /*
    * ============================================================
@@ -117,8 +116,7 @@ export default function AuctionDetailsPage() {
    * ============================================================
    */
 
-  const [bid, setBid] =
-    useState("1.00");
+  const [bid, setBid] = useState("1.00");
 
   const [selectedPackage, setSelectedPackage] =
     useState<5 | 10>(5);
@@ -129,14 +127,42 @@ export default function AuctionDetailsPage() {
   const [bidLoading, setBidLoading] =
     useState(false);
 
-  const [bidMessage, setBidMessage] =
-    useState("");
-
   const [showModal, setShowModal] =
     useState(false);
 
-  const [successMessage, setSuccessMessage] =
-    useState(false);
+  /*
+   * ============================================================
+   * TOAST
+   * ============================================================
+   */
+
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+    isOpen: boolean;
+  }>({
+    message: "",
+    type: "error",
+    isOpen: false,
+  });
+
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "error"
+  ) => {
+    setToast({
+      message,
+      type,
+      isOpen: true,
+    });
+  };
+
+  const closeToast = () => {
+    setToast((current) => ({
+      ...current,
+      isOpen: false,
+    }));
+  };
 
   /*
    * ============================================================
@@ -149,9 +175,7 @@ export default function AuctionDetailsPage() {
 
     const newBid = Math.max(
       1,
-      Number(
-        (currentBid - 0.01).toFixed(2)
-      )
+      Number((currentBid - 0.01).toFixed(2))
     );
 
     setBid(newBid.toFixed(2));
@@ -173,9 +197,7 @@ export default function AuctionDetailsPage() {
    * ============================================================
    */
 
-  const handleBidChange = (
-    value: string
-  ) => {
+  const handleBidChange = (value: string) => {
     // Allow only digits and an optional decimal point
     // with a maximum of 2 decimal places.
     if (!/^\d*\.?\d{0,2}$/.test(value)) {
@@ -278,7 +300,6 @@ export default function AuctionDetailsPage() {
   useEffect(() => {
     if (!auctionId) return;
 
-    // Fetch with language parameter to get localized content
     fetch(
       `/api/auctions/${encodeURIComponent(
         String(auctionId)
@@ -287,20 +308,15 @@ export default function AuctionDetailsPage() {
         cache: "no-store",
       }
     )
-      .then((response) =>
-        response.json()
-      )
+      .then((response) => response.json())
       .then((data) => {
         if (data.success) {
           const loadedAuction =
             data.auction;
 
-          setAuction(
-            loadedAuction
-          );
+          setAuction(loadedAuction);
 
           // Set the first image as selected
-          // (main image + gallery)
           const allImages = [
             loadedAuction.image,
             ...(Array.isArray(
@@ -313,10 +329,19 @@ export default function AuctionDetailsPage() {
           setSelectedImage(
             allImages[0] || ""
           );
+        } else {
+          setAuction(null);
         }
       })
       .catch(() => {
         setAuction(null);
+
+        showToast(
+          language === "am"
+            ? "ጨረታውን መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
+            : "Unable to load the auction. Please try again.",
+          "error"
+        );
       })
       .finally(() => {
         setLoading(false);
@@ -390,8 +415,6 @@ export default function AuctionDetailsPage() {
    * ============================================================
    */
 
-  // Combine main image with gallery images
-  // for full gallery
   const galleryImages = [
     auction.image,
     ...(Array.isArray(auction.images)
@@ -419,6 +442,14 @@ export default function AuctionDetailsPage() {
       bidLoading
     ) {
       setBid("1.00");
+
+      showToast(
+        language === "am"
+          ? "እባክዎ ትክክለኛ የመጫረቻ መጠን ያስገቡ።"
+          : "Please enter a valid bid amount.",
+        "error"
+      );
+
       return;
     }
 
@@ -443,68 +474,65 @@ export default function AuctionDetailsPage() {
       numericBid < 1
     ) {
       setBid("1.00");
+
+      showToast(
+        language === "am"
+          ? "እባክዎ ትክክለኛ የመጫረቻ መጠን ያስገቡ።"
+          : "Please enter a valid bid amount.",
+        "error"
+      );
+
       return;
     }
 
     setBidLoading(true);
-
-    setBidMessage("");
 
     try {
       const response = await fetch(
         "/api/bids",
         {
           method: "POST",
-
           headers: {
             "Content-Type":
               "application/json",
           },
-
           credentials: "include",
-
           body: JSON.stringify({
-            auctionId:
-              auction.id,
-
-            amount:
-              numericBid,
+            auctionId: auction.id,
+            amount: numericBid,
           }),
         }
       );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (response.ok) {
         setShowModal(false);
 
-        setSuccessMessage(
-          true
-        );
-
-        // Reset to the default value
-        // instead of leaving the field empty.
+        // Reset bid input.
         setBid("1.00");
 
-        setTimeout(() => {
-          setSuccessMessage(
-            false
-          );
-        }, 3000);
+        showToast(
+          language === "am"
+            ? "መጫረቻዎ በተሳካ ሁኔታ ተልኳል።"
+            : "Bid submitted successfully.",
+          "success"
+        );
       } else {
-        setBidMessage(
+        showToast(
           data.error ||
             (language === "am"
               ? "መጫረቻውን መላክ አልተቻለም።"
-              : "Unable to submit bid.")
+              : "Unable to submit bid."),
+          "error"
         );
       }
     } catch {
-      setBidMessage(
+      showToast(
         language === "am"
           ? "መጫረቻውን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
-          : "Unable to submit bid. Please try again."
+          : "Unable to submit bid. Please try again.",
+        "error"
       );
     } finally {
       setBidLoading(false);
@@ -521,8 +549,15 @@ export default function AuctionDetailsPage() {
     <main className="min-h-screen bg-white">
       <Header />
 
-      <div className="pt-[120px]">
+      {/* TOAST */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isOpen={toast.isOpen}
+        onClose={closeToast}
+      />
 
+      <div className="pt-[120px]">
         {/* =====================================================
             BREADCRUMB
         ===================================================== */}
@@ -546,17 +581,14 @@ export default function AuctionDetailsPage() {
 
         <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-12">
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-10">
-
             {/* =================================================
                 IMAGE GALLERY
             ================================================= */}
 
             <div className="min-w-0">
-
               {/* MAIN IMAGE */}
 
               <div className="relative overflow-hidden rounded-[24px] border border-black/10 bg-white sm:rounded-[28px]">
-
                 {/* LIVE BADGE */}
 
                 <div className="absolute left-3 top-3 z-10 flex items-center gap-2 rounded-full bg-white/95 px-3 py-2 text-[9px] font-bold tracking-[0.12em] text-[#1681C5] shadow-sm backdrop-blur sm:left-5 sm:top-5 sm:px-4 sm:text-[10px]">
@@ -642,11 +674,8 @@ export default function AuctionDetailsPage() {
               ================================================= */}
 
               <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
-
                 <SmallStat
-                  icon={
-                    <Users size={16} />
-                  }
+                  icon={<Users size={16} />}
                   label={
                     language === "am"
                       ? "ተሳታፊዎች"
@@ -659,9 +688,7 @@ export default function AuctionDetailsPage() {
                 />
 
                 <SmallStat
-                  icon={
-                    <Clock3 size={16} />
-                  }
+                  icon={<Clock3 size={16} />}
                   label={
                     language === "am"
                       ? "ሁኔታ"
@@ -675,9 +702,7 @@ export default function AuctionDetailsPage() {
                 />
 
                 <SmallStat
-                  icon={
-                    <Gavel size={16} />
-                  }
+                  icon={<Gavel size={16} />}
                   label={
                     language === "am"
                       ? "ጨረታ"
@@ -693,7 +718,6 @@ export default function AuctionDetailsPage() {
             ================================================= */}
 
             <div className="min-w-0">
-
               {/* CATEGORY */}
 
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.22em] text-[#1681C5]">
@@ -748,7 +772,6 @@ export default function AuctionDetailsPage() {
 
               <div className="rounded-2xl border border-black/10 bg-black/[0.02] p-5">
                 <div className="flex items-center justify-between gap-4">
-
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.15em] text-black/35">
                       {language === "am"
@@ -768,7 +791,6 @@ export default function AuctionDetailsPage() {
                   <div className="hidden h-12 w-12 place-items-center rounded-xl bg-[#F78000]/10 text-[#F78000] sm:grid">
                     <Clock3 size={20} />
                   </div>
-
                 </div>
               </div>
 
@@ -801,7 +823,9 @@ export default function AuctionDetailsPage() {
                 </div>
 
                 <span className="text-sm font-bold">
-                  {language === "am" ? "ብር" : "ETB"}{" "}
+                  {language === "am"
+                    ? "ብር"
+                    : "ETB"}{" "}
                   {auction.entryCost?.toFixed(2) ??
                     "0.00"}
                 </span>
@@ -815,9 +839,7 @@ export default function AuctionDetailsPage() {
                 onSubmit={handleBid}
                 className="mt-6 rounded-2xl border border-black/10 bg-white p-5 shadow-sm"
               >
-
                 <div className="flex items-center justify-between gap-4">
-
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.15em] text-[#F78000]">
                       {language === "am"
@@ -836,13 +858,10 @@ export default function AuctionDetailsPage() {
                     size={20}
                     className="shrink-0 text-[#F78000]"
                   />
-
                 </div>
 
                 <div className="mt-5">
-
                   <div className="flex gap-2">
-
                     {/* DECREASE */}
 
                     <button
@@ -859,7 +878,6 @@ export default function AuctionDetailsPage() {
                     {/* BID INPUT */}
 
                     <div className="relative flex flex-1 items-center rounded-xl border border-black/10 bg-white focus-within:border-[#1681C5] focus-within:ring-2 focus-within:ring-[#1681C5]/10">
-
                       <input
                         type="text"
                         inputMode="decimal"
@@ -875,8 +893,6 @@ export default function AuctionDetailsPage() {
                         onKeyDown={(
                           event
                         ) => {
-                          // Prevent characters that
-                          // are not valid for decimal input.
                           if (
                             event.key ===
                               "e" ||
@@ -904,9 +920,10 @@ export default function AuctionDetailsPage() {
                       />
 
                       <span className="absolute right-12 text-[10px] font-bold text-black/35 sm:right-12">
-                        {language === "am" ? "ብር" : "ETB"}
+                        {language === "am"
+                          ? "ብር"
+                          : "ETB"}
                       </span>
-
                     </div>
 
                     {/* INCREASE */}
@@ -921,7 +938,6 @@ export default function AuctionDetailsPage() {
                     >
                       <Plus size={16} />
                     </button>
-
                   </div>
                 </div>
 
@@ -929,9 +945,7 @@ export default function AuctionDetailsPage() {
 
                 <button
                   type="submit"
-                  disabled={
-                    bidLoading
-                  }
+                  disabled={bidLoading}
                   className="group mt-4 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#F78000] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#F78000]/20 transition hover:bg-[#D96E00] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {bidLoading
@@ -950,40 +964,11 @@ export default function AuctionDetailsPage() {
                   )}
                 </button>
 
-                {/* ERROR */}
-
-                {bidMessage && (
-                  <p
-                    role="status"
-                    className="mt-3 text-center text-xs text-black/50"
-                  >
-                    {bidMessage}
-                  </p>
-                )}
-
-                {/* SUCCESS */}
-
-                {successMessage && (
-                  <div
-                    role="status"
-                    className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-green-50 py-3 text-xs font-semibold text-green-700"
-                  >
-                    <CheckCircle2
-                      size={16}
-                    />
-
-                    {language === "am"
-                      ? "መጫረቻዎ በተሳካ ሁኔታ ተልኳል።"
-                      : "Bid submitted successfully."}
-                  </div>
-                )}
-
                 <p className="mt-3 text-center text-[10px] leading-5 text-black/35">
                   {language === "am"
                     ? "መጫረቻ ለማስገባት በመለያዎ መግባት እና በቂ የመጫረቻ ክሬዲት መኖር አለበት።"
                     : "You must be signed in and have enough bid credits to participate."}
                 </p>
-
               </form>
 
               {/* =================================================
@@ -991,9 +976,7 @@ export default function AuctionDetailsPage() {
               ================================================= */}
 
               <div className="mt-6 rounded-2xl border border-black/10 bg-white p-5 shadow-sm">
-
                 <div className="flex items-start justify-between gap-4">
-
                   <div>
                     <p className="text-[10px] font-bold tracking-[0.15em] text-[#1681C5]">
                       {language === "am"
@@ -1009,15 +992,15 @@ export default function AuctionDetailsPage() {
                   </div>
 
                   <span className="shrink-0 text-xs font-semibold text-black/40">
-                    {language === "am" ? "ብር" : "ETB"}{" "}
+                    {language === "am"
+                      ? "ብር"
+                      : "ETB"}{" "}
                     {bidPrice.toFixed(2)}{" "}
                     / bid
                   </span>
-
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
-
                   {packageOptions.map(
                     (option) => {
                       const active =
@@ -1048,14 +1031,13 @@ export default function AuctionDetailsPage() {
                             active
                           }
                         >
-
                           <div className="flex items-center justify-between gap-3">
-
                             <span className="text-base font-bold">
                               {
                                 option.bids
                               }{" "}
-                              {language === "am"
+                              {language ===
+                              "am"
                                 ? "መጫረቻዎች"
                                 : "bids"}
                             </span>
@@ -1067,13 +1049,14 @@ export default function AuctionDetailsPage() {
                               }
                               %
                             </span>
-
                           </div>
 
                           <div className="mt-3 flex items-baseline gap-2">
-
                             <p className="text-lg font-bold text-[#1681C5]">
-                              {language === "am" ? "ብር" : "ETB"}{" "}
+                              {language ===
+                              "am"
+                                ? "ብር"
+                                : "ETB"}{" "}
                               {option.price.toLocaleString(
                                 "en-US",
                                 {
@@ -1084,7 +1067,10 @@ export default function AuctionDetailsPage() {
                             </p>
 
                             <p className="text-xs text-black/35 line-through">
-                              {language === "am" ? "ብር" : "ETB"}{" "}
+                              {language ===
+                              "am"
+                                ? "ብር"
+                                : "ETB"}{" "}
                               {option.originalPrice.toLocaleString(
                                 "en-US",
                                 {
@@ -1093,20 +1079,18 @@ export default function AuctionDetailsPage() {
                                 }
                               )}
                             </p>
-
                           </div>
 
                           <p className="mt-1 text-xs text-black/40">
-                            {language === "am"
+                            {language ===
+                            "am"
                               ? `${option.bids} መጫረቻ × ብር ${bidPrice.toFixed(2)}`
                               : `${option.bids} bids × ETB ${bidPrice.toFixed(2)}`}
                           </p>
-
                         </button>
                       );
                     }
                   )}
-
                 </div>
 
                 <button
@@ -1129,9 +1113,7 @@ export default function AuctionDetailsPage() {
                     {packageMessage}
                   </p>
                 )}
-
               </div>
-
             </div>
           </div>
         </section>
@@ -1141,19 +1123,14 @@ export default function AuctionDetailsPage() {
         ===================================================== */}
 
         <section className="border-y border-black/10 bg-black/[0.02]">
-
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-10 lg:py-16">
-
             <div className="max-w-2xl">
-
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.25em] text-[#1681C5]">
-
                 <span className="h-px w-8 bg-[#1681C5]" />
 
                 {language === "am"
                   ? "እንዴት ይሰራል"
                   : "HOW IT WORKS"}
-
               </div>
 
               <h2 className="mt-4 font-display text-4xl tracking-[-0.03em] sm:text-5xl">
@@ -1167,16 +1144,12 @@ export default function AuctionDetailsPage() {
                   ? "Mella የጨረታ ሂደቱ ግልጽና ለመረዳት ቀላል ሆኖ ተዘጋጅቷል።"
                   : "Mella is designed to keep the auction process transparent and easy to understand."}
               </p>
-
             </div>
 
             <div className="mt-10 grid gap-4 md:grid-cols-3">
-
               <RuleCard
                 number="01"
-                icon={
-                  <Gavel size={19} />
-                }
+                icon={<Gavel size={19} />}
                 title={
                   language === "am"
                     ? "መጫረቻዎን ያስገቡ"
@@ -1191,9 +1164,7 @@ export default function AuctionDetailsPage() {
 
               <RuleCard
                 number="02"
-                icon={
-                  <Users size={19} />
-                }
+                icon={<Users size={19} />}
                 title={
                   language === "am"
                     ? "ከሌሎች ጋር ይወዳደሩ"
@@ -1208,9 +1179,7 @@ export default function AuctionDetailsPage() {
 
               <RuleCard
                 number="03"
-                icon={
-                  <ShieldCheck size={19} />
-                }
+                icon={<ShieldCheck size={19} />}
                 title={
                   language === "am"
                     ? "ውጤቱን ይመልከቱ"
@@ -1222,7 +1191,6 @@ export default function AuctionDetailsPage() {
                     : "When the auction closes, the winning logic and result are published."
                 }
               />
-
             </div>
           </div>
         </section>
@@ -1232,13 +1200,9 @@ export default function AuctionDetailsPage() {
         ===================================================== */}
 
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-10 lg:py-20">
-
           <div className="grid gap-5 md:grid-cols-3">
-
             <TrustCard
-              icon={
-                <ShieldCheck size={20} />
-              }
+              icon={<ShieldCheck size={20} />}
               title={
                 language === "am"
                   ? "ግልጽ ሂደት"
@@ -1252,9 +1216,7 @@ export default function AuctionDetailsPage() {
             />
 
             <TrustCard
-              icon={
-                <CheckCircle2 size={20} />
-              }
+              icon={<CheckCircle2 size={20} />}
               title={
                 language === "am"
                   ? "አስተማማኝ ክፍያ"
@@ -1268,9 +1230,7 @@ export default function AuctionDetailsPage() {
             />
 
             <TrustCard
-              icon={
-                <Sparkles size={20} />
-              }
+              icon={<Sparkles size={20} />}
               title={
                 language === "am"
                   ? "ልዩ የጨረታ ልምድ"
@@ -1282,7 +1242,6 @@ export default function AuctionDetailsPage() {
                   : "Mella offers a strategic experience different from traditional auctions."
               }
             />
-
           </div>
         </section>
 
@@ -1306,17 +1265,12 @@ export default function AuctionDetailsPage() {
           serviceFee={
             auction?.entryCost || 0
           }
-          onConfirm={
-            confirmBid
-          }
+          onConfirm={confirmBid}
           onCancel={() =>
             setShowModal(false)
           }
-          isLoading={
-            bidLoading
-          }
+          isLoading={bidLoading}
         />
-
       </div>
     </main>
   );
@@ -1339,21 +1293,17 @@ function SmallStat({
 }) {
   return (
     <div className="min-w-0 rounded-xl border border-black/10 bg-white p-2.5 sm:p-3">
-
       <div className="flex min-w-0 items-center gap-1.5 text-black/35 sm:gap-2">
-
         {icon}
 
         <span className="truncate text-[8px] font-bold uppercase tracking-[0.06em] sm:text-[9px] sm:tracking-[0.08em]">
           {label}
         </span>
-
       </div>
 
       <p className="mt-2 truncate text-xs font-bold">
         {value}
       </p>
-
     </div>
   );
 }
@@ -1377,9 +1327,7 @@ function RuleCard({
 }) {
   return (
     <div className="rounded-2xl border border-black/10 bg-white p-6">
-
       <div className="flex items-center justify-between">
-
         <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
           {icon}
         </div>
@@ -1387,7 +1335,6 @@ function RuleCard({
         <span className="font-mono text-xs text-black/20">
           {number}
         </span>
-
       </div>
 
       <h3 className="mt-6 text-base font-semibold">
@@ -1397,7 +1344,6 @@ function RuleCard({
       <p className="mt-2 text-sm leading-6 text-black/40">
         {description}
       </p>
-
     </div>
   );
 }
@@ -1419,7 +1365,6 @@ function TrustCard({
 }) {
   return (
     <div className="rounded-2xl border border-black/10 p-6">
-
       <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#F78000]/10 text-[#F78000]">
         {icon}
       </div>
@@ -1431,7 +1376,6 @@ function TrustCard({
       <p className="mt-2 text-sm leading-6 text-black/40">
         {description}
       </p>
-
     </div>
   );
 }

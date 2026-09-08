@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
+
 import {
   useEffect,
   useRef,
@@ -12,9 +13,16 @@ import {
 
 import AuctionCard from "./AuctionCard";
 import BidConfirmationModal from "./BidConfirmationModal";
+import Toast from "./ui/Toast";
+
 import type { Auction } from "./data";
 import LoadingSpinner from "./ui/LoadingSpinner";
+
 import { useLanguage } from "../context/LanguageContext";
+
+/* =========================================================
+   SECTION LABEL
+========================================================= */
 
 function SectionLabel({
   children,
@@ -29,8 +37,16 @@ function SectionLabel({
   );
 }
 
+/* =========================================================
+   AUCTIONS
+========================================================= */
+
 export default function Auctions() {
   const { t, language } = useLanguage();
+
+  /* =========================================================
+     AUCTIONS STATE
+  ========================================================= */
 
   const [auctions, setAuctions] =
     useState<Auction[]>([]);
@@ -80,13 +96,44 @@ export default function Auctions() {
   ] = useState(false);
 
   /* =========================================================
-     SUCCESS MESSAGE
+     TOAST STATE
   ========================================================= */
 
-  const [
-    successAuctionId,
-    setSuccessAuctionId,
-  ] = useState<string | number | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+    isOpen: boolean;
+  }>({
+    message: "",
+    type: "error",
+    isOpen: false,
+  });
+
+  /* =========================================================
+     SHOW TOAST
+  ========================================================= */
+
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "error"
+  ) => {
+    setToast({
+      message,
+      type,
+      isOpen: true,
+    });
+  };
+
+  /* =========================================================
+     CLOSE TOAST
+  ========================================================= */
+
+  const closeToast = () => {
+    setToast((current) => ({
+      ...current,
+      isOpen: false,
+    }));
+  };
 
   /* =========================================================
      TOUCH / SWIPE
@@ -152,20 +199,25 @@ export default function Auctions() {
 
         if (data.success) {
           const formattedAuctions: Auction[] =
-  data.auctions.map(
-    (auction: any) => ({
-      id: auction.id,
-      title: auction.title,
-      subtitle: auction.subtitle,
-      description: auction.description,
-      category: auction.category,
-      image: auction.image,
-      time: "",
-      endsAt: auction.endsAt,
-      participants: auction.participantCount,
-      entry: `${auction.entryCost} ${t("currency")}`,
-    })
-  );
+            data.auctions.map(
+              (auction: any) => ({
+                id: auction.id,
+                title: auction.title,
+                subtitle: auction.subtitle,
+                description:
+                  auction.description,
+                category:
+                  auction.category,
+                image: auction.image,
+                time: "",
+                endsAt: auction.endsAt,
+                participants:
+                  auction.participantCount,
+                entry: `${auction.entryCost} ${t(
+                  "currency"
+                )}`,
+              })
+            );
 
           setAuctions(
             formattedAuctions
@@ -177,6 +229,13 @@ export default function Auctions() {
       .catch(() => {
         if (!cancelled) {
           setAuctions([]);
+
+          showToast(
+            language === "am"
+              ? "ጨረታዎችን መጫን አልተቻለም።"
+              : "Unable to load auctions.",
+            "error"
+          );
         }
       })
       .finally(() => {
@@ -188,7 +247,7 @@ export default function Auctions() {
     return () => {
       cancelled = true;
     };
-  }, [language]);
+  }, [language, t]);
 
   /* =========================================================
      SLIDE CONFIGURATION
@@ -389,15 +448,19 @@ export default function Auctions() {
           "/api/bids",
           {
             method: "POST",
+
             headers: {
               "Content-Type":
                 "application/json",
             },
+
             credentials:
               "include",
+
             body: JSON.stringify({
               auctionId:
                 selectedAuction.id,
+
               amount:
                 selectedBidAmount,
             }),
@@ -407,10 +470,11 @@ export default function Auctions() {
       const data =
         await response.json();
 
-      if (response.ok) {
-        const auctionId =
-          selectedAuction.id;
+      /* =====================================================
+         SUCCESS
+      ===================================================== */
 
+      if (response.ok) {
         setShowBidModal(false);
 
         setSelectedAuction(null);
@@ -419,28 +483,43 @@ export default function Auctions() {
 
         setSelectedServiceFee(0);
 
-        setSuccessAuctionId(
-          auctionId
+        /*
+         * Keep carousel stopped after
+         * the user submits a bid.
+         */
+        setEditingBid(true);
+
+        showToast(
+          language === "am"
+            ? "መጫረቻ በተሳካ ሁኔታ ተልኳል"
+            : "Bid submitted successfully",
+          "success"
         );
 
-        window.setTimeout(() => {
-          setSuccessAuctionId(
-            null
-          );
-        }, 3000);
-      } else {
-        window.alert(
-          data.error ||
-            (language === "am"
-              ? "መጫረቻውን መላክ አልተቻለም።"
-              : "Unable to submit bid.")
-        );
+        return;
       }
+
+      /* =====================================================
+         API ERROR
+      ===================================================== */
+
+      showToast(
+        data.error ||
+          (language === "am"
+            ? "መጫረቻውን መላክ አልተቻለም።"
+            : "Unable to submit bid."),
+        "error"
+      );
     } catch {
-      window.alert(
+      /* =====================================================
+         NETWORK / UNKNOWN ERROR
+      ===================================================== */
+
+      showToast(
         language === "am"
           ? "መጫረቻውን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
-          : "Unable to submit bid. Please try again."
+          : "Unable to submit bid. Please try again.",
+        "error"
       );
     } finally {
       setBidLoading(false);
@@ -539,7 +618,9 @@ export default function Auctions() {
     <section
       id="auctions"
       className="mx-auto w-full max-w-7xl overflow-hidden px-6 py-24 lg:px-10"
-      onClick={() => setIsInteracting(false)}
+      onClick={() =>
+        setIsInteracting(false)
+      }
     >
       {/* ====================================================
           HEADER
@@ -562,6 +643,7 @@ export default function Auctions() {
       ==================================================== */}
 
       <div className="relative mt-12 w-full min-w-0">
+
         {/* PREVIOUS */}
 
         {totalSlides > 1 && (
@@ -748,23 +830,10 @@ export default function Auctions() {
                                 onBidRequest={
                                   handleBidRequest
                                 }
+                                onToast={
+                                  showToast
+                                }
                               />
-
-                              {/* SUCCESS MESSAGE */}
-
-                              {successAuctionId ===
-                                auction.id && (
-                                <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-green-50 px-4 py-3 text-xs font-bold text-green-700">
-                                  <span>
-                                    ✓
-                                  </span>
-
-                                  {language ===
-                                  "am"
-                                    ? "መጫረቻ በተሳካ ሁኔታ ተልኳል"
-                                    : "Bid submitted successfully"}
-                                </div>
-                              )}
                             </div>
                           )
                         )}
@@ -881,6 +950,10 @@ export default function Auctions() {
         </a>
       </div>
 
+      {/* ====================================================
+          BID CONFIRMATION MODAL
+      ==================================================== */}
+
       {selectedAuction && (
         <BidConfirmationModal
           isOpen={showBidModal}
@@ -902,6 +975,17 @@ export default function Auctions() {
           }
         />
       )}
+
+      {/* ====================================================
+          TOAST
+      ==================================================== */}
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isOpen={toast.isOpen}
+        onClose={closeToast}
+      />
     </section>
   );
 }
