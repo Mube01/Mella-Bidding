@@ -213,6 +213,7 @@ export default function Auctions() {
                 endsAt: auction.endsAt,
                 participants:
                   auction.participantCount,
+                bidCount: auction.bidCount,
                 entry: `${auction.entryCost} ${t(
                   "currency"
                 )}`,
@@ -233,7 +234,7 @@ export default function Auctions() {
           showToast(
             language === "am"
               ? "ጨረታዎችን መጫን አልተቻለም።"
-              : "Unable to load auctions.",
+              : "Unable to load auctions. Please try again.",
             "error"
           );
         }
@@ -362,7 +363,7 @@ export default function Auctions() {
               ? 0
               : current + 1
         );
-      }, 5000);
+      }, 6000);
 
     return () => {
       window.clearInterval(
@@ -443,29 +444,27 @@ export default function Auctions() {
     setBidLoading(true);
 
     try {
-      const response =
-        await fetch(
-          "/api/bids",
-          {
-            method: "POST",
+      const response = await fetch(
+        "/api/bids",
+        {
+          method: "POST",
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
 
-            credentials:
-              "include",
+          credentials: "include",
 
-            body: JSON.stringify({
-              auctionId:
-                selectedAuction.id,
+          body: JSON.stringify({
+            auctionId:
+              selectedAuction.id,
 
-              amount:
-                selectedBidAmount,
-            }),
-          }
-        );
+            amount:
+              selectedBidAmount,
+          }),
+        }
+      );
 
       const data =
         await response.json();
@@ -489,10 +488,15 @@ export default function Auctions() {
          */
         setEditingBid(true);
 
+        /*
+         * IMPORTANT:
+         * Toast appears ONLY after the server
+         * successfully accepts the confirmed bid.
+         */
         showToast(
           language === "am"
-            ? "መጫረቻ በተሳካ ሁኔታ ተልኳል"
-            : "Bid submitted successfully",
+            ? "መጫረቻዎ በተሳካ ሁኔታ ተልኳል።"
+            : "Your bid has been submitted successfully.",
           "success"
         );
 
@@ -506,8 +510,8 @@ export default function Auctions() {
       showToast(
         data.error ||
           (language === "am"
-            ? "መጫረቻውን መላክ አልተቻለም።"
-            : "Unable to submit bid."),
+            ? "መጫረቻዎ ሊላክ አልቻለም።"
+            : "Your bid could not be submitted."),
         "error"
       );
     } catch {
@@ -517,8 +521,8 @@ export default function Auctions() {
 
       showToast(
         language === "am"
-          ? "መጫረቻውን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
-          : "Unable to submit bid. Please try again.",
+          ? "አንድ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ።"
+          : "Something went wrong. Please try again.",
         "error"
       );
     } finally {
@@ -829,9 +833,6 @@ export default function Auctions() {
                                 }
                                 onBidRequest={
                                   handleBidRequest
-                                }
-                                onToast={
-                                  showToast
                                 }
                               />
                             </div>

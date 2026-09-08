@@ -12,6 +12,7 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -46,7 +47,7 @@ type AuctionDetails = {
   // Gallery images
   images: string[];
 
-  participantCount: number;
+  bidCount: number;
   entryCost: number;
   startsAt: string;
   endsAt: string;
@@ -173,9 +174,13 @@ export default function AuctionDetailsPage() {
   const decreaseBid = () => {
     const currentBid = Number(bid || 1);
 
+    const safeBid = Number.isFinite(currentBid)
+      ? currentBid
+      : 1;
+
     const newBid = Math.max(
       1,
-      Number((currentBid - 0.01).toFixed(2))
+      Number((safeBid - 0.01).toFixed(2))
     );
 
     setBid(newBid.toFixed(2));
@@ -184,8 +189,12 @@ export default function AuctionDetailsPage() {
   const increaseBid = () => {
     const currentBid = Number(bid || 1);
 
+    const safeBid = Number.isFinite(currentBid)
+      ? currentBid
+      : 1;
+
     const newBid = Number(
-      (currentBid + 0.01).toFixed(2)
+      (safeBid + 0.01).toFixed(2)
     );
 
     setBid(newBid.toFixed(2));
@@ -198,36 +207,101 @@ export default function AuctionDetailsPage() {
    */
 
   const handleBidChange = (value: string) => {
-    // Allow only digits and an optional decimal point
-    // with a maximum of 2 decimal places.
+    /*
+      Allow:
+
+      1
+      1.
+      1.1
+      1.15
+      10.50
+      100.99
+
+      Reject:
+
+      letters
+      negative numbers
+      multiple decimals
+      more than 2 decimal places
+    */
+
     if (!/^\d*\.?\d{0,2}$/.test(value)) {
       return;
     }
 
-    // Allow the user to temporarily clear the field.
+    /*
+      Allow the user to temporarily clear
+      the input while typing.
+    */
+
     if (value === "") {
       setBid("");
       return;
     }
 
-    // Allow typing the decimal point after a number.
-    if (value === ".") {
-      setBid("0.");
+    /*
+      Allow typing a decimal point.
+
+      Example:
+      1.
+      10.
+      100.
+    */
+
+    if (value.endsWith(".")) {
+      const numericValue = Number(
+        value.slice(0, -1)
+      );
+
+      if (!Number.isFinite(numericValue)) {
+        return;
+      }
+
+      /*
+        Allow 0. temporarily so the user
+        can type naturally.
+
+        It will still be rejected when
+        submitting because minimum bid is 1.
+      */
+
+      if (numericValue < 1) {
+        if (value === "0.") {
+          setBid(value);
+        }
+
+        return;
+      }
+
+      setBid(value);
       return;
     }
 
-    const number = Number(value);
+    const numericValue = Number(value);
 
-    if (!Number.isFinite(number)) {
+    if (!Number.isFinite(numericValue)) {
       return;
     }
 
-    // Minimum bid is 1.
-    if (number < 1) {
+    /*
+      Minimum bid is 1.
+
+      Allow 0.xx temporarily while typing.
+    */
+
+    if (numericValue < 1) {
+      if (value.startsWith("0.")) {
+        setBid(value);
+      }
+
       return;
     }
 
-    // Keep exactly what the user typed while editing.
+    /*
+      Keep exactly what the user typed.
+      This means 1.15 stays 1.15.
+    */
+
     setBid(value);
   };
 
@@ -300,6 +374,8 @@ export default function AuctionDetailsPage() {
   useEffect(() => {
     if (!auctionId) return;
 
+    setLoading(true);
+
     fetch(
       `/api/auctions/${encodeURIComponent(
         String(auctionId)
@@ -316,7 +392,6 @@ export default function AuctionDetailsPage() {
 
           setAuction(loadedAuction);
 
-          // Set the first image as selected
           const allImages = [
             loadedAuction.image,
             ...(Array.isArray(
@@ -453,8 +528,11 @@ export default function AuctionDetailsPage() {
       return;
     }
 
-    // Always format the bid before showing
-    // the confirmation modal.
+    /*
+      Normalize to exactly 2 decimal places
+      before opening the confirmation modal.
+    */
+
     setBid(numericBid.toFixed(2));
 
     setShowModal(true);
@@ -509,7 +587,6 @@ export default function AuctionDetailsPage() {
       if (response.ok) {
         setShowModal(false);
 
-        // Reset bid input.
         setBid("1.00");
 
         showToast(
@@ -519,11 +596,27 @@ export default function AuctionDetailsPage() {
           "success"
         );
       } else {
+        /*
+          IMPORTANT:
+          Your API returns:
+
+          data.error     -> English
+          data.errorAm   -> Amharic
+
+          Use the correct one based on the
+          currently selected language.
+        */
+
+        const errorMessage =
+          language === "am"
+            ? data.errorAm ||
+              data.error ||
+              "መጫረቻውን መላክ አልተቻለም።"
+            : data.error ||
+              "Unable to submit bid.";
+
         showToast(
-          data.error ||
-            (language === "am"
-              ? "መጫረቻውን መላክ አልተቻለም።"
-              : "Unable to submit bid."),
+          errorMessage,
           "error"
         );
       }
@@ -550,6 +643,7 @@ export default function AuctionDetailsPage() {
       <Header />
 
       {/* TOAST */}
+
       <Toast
         message={toast.message}
         type={toast.type}
@@ -616,9 +710,7 @@ export default function AuctionDetailsPage() {
                 </div>
               </div>
 
-              {/* =================================================
-                  THUMBNAILS
-              ================================================= */}
+              {/* THUMBNAILS */}
 
               {galleryImages.length > 1 && (
                 <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-5 sm:gap-3">
@@ -669,20 +761,18 @@ export default function AuctionDetailsPage() {
                 </div>
               )}
 
-              {/* =================================================
-                  SMALL INFORMATION STRIP
-              ================================================= */}
+              {/* SMALL INFORMATION STRIP */}
 
               <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
                 <SmallStat
                   icon={<Users size={16} />}
                   label={
                     language === "am"
-                      ? "ተሳታፊዎች"
-                      : "Participants"
+                      ? "ተጫራቾች"
+                      : "Bids"
                   }
                   value={String(
-                    auction.participantCount ??
+                    auction.bidCount ??
                       0
                   )}
                 />
@@ -794,19 +884,19 @@ export default function AuctionDetailsPage() {
                 </div>
               </div>
 
-              {/* PARTICIPANTS */}
+              {/* Bids */}
 
               <div className="mt-4 flex items-center justify-between rounded-xl border border-black/10 px-4 py-3">
                 <div className="flex items-center gap-2 text-sm text-black/45">
                   <Users size={16} />
 
                   {language === "am"
-                    ? "ተሳታፊዎች"
-                    : "Participants"}
+                    ? "ተጫራቾች"
+                    : "Bids"}
                 </div>
 
                 <span className="text-sm font-bold">
-                  {auction.participantCount?.toLocaleString() ??
+                  {auction.bidCount?.toLocaleString() ??
                     "0"}
                 </span>
               </div>
@@ -870,7 +960,11 @@ export default function AuctionDetailsPage() {
                         decreaseBid
                       }
                       className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-black/10 bg-black/5 text-black transition hover:border-[#F78000] hover:bg-[#F78000] hover:text-white"
-                      aria-label="Decrease bid"
+                      aria-label={
+                        language === "am"
+                          ? "መጫረቻውን ያሳንሱ"
+                          : "Decrease bid"
+                      }
                     >
                       <Minus size={16} />
                     </button>
@@ -919,7 +1013,7 @@ export default function AuctionDetailsPage() {
                         }
                       />
 
-                      <span className="absolute right-12 text-[10px] font-bold text-black/35 sm:right-12">
+                      <span className="pointer-events-none absolute right-12 text-[10px] font-bold text-black/35 sm:right-12">
                         {language === "am"
                           ? "ብር"
                           : "ETB"}
@@ -934,7 +1028,11 @@ export default function AuctionDetailsPage() {
                         increaseBid
                       }
                       className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-black/10 bg-black/5 text-black transition hover:border-[#F78000] hover:bg-[#F78000] hover:text-white"
-                      aria-label="Increase bid"
+                      aria-label={
+                        language === "am"
+                          ? "መጫረቻውን ይጨምሩ"
+                          : "Increase bid"
+                      }
                     >
                       <Plus size={16} />
                     </button>

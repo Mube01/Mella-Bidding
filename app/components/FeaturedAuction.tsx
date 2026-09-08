@@ -158,7 +158,7 @@ export default function FeaturedAuction({
             <div className="mt-4 flex items-center justify-between border-t border-white/20 pt-4 text-xs text-white/65">
 
               <span>
-                {auction.participants.toLocaleString()}{" "}
+                {auction.bidCount.toLocaleString()}{" "}
                 {t("participants")}
               </span>
 

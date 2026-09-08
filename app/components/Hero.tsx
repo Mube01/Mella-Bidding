@@ -31,6 +31,7 @@ setFeaturedAuction({
   time: "",
   endsAt: auction.endsAt,
   participants: auction.participantCount,
+  bidCount: auction.bidCount,
   entry: `${auction.entryCost} ${t("currency")}`,
 });
 })

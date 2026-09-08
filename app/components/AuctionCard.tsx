@@ -3,14 +3,13 @@
 import {
   ArrowRight,
   Clock3,
-  Users,
+  Gavel,
   Minus,
   Plus,
 } from "lucide-react";
 
 import Link from "next/link";
 import { useState } from "react";
-
 import type { Auction } from "./data";
 import AuctionCountdown from "./AuctionCountdown";
 import { useLanguage } from "../context/LanguageContext";
@@ -23,22 +22,18 @@ type AuctionCardProps = {
     bidAmount: number,
     serviceFee: number
   ) => void;
-  onToast?: (
-    message: string,
-    type?: "success" | "error"
-  ) => void;
 };
 
 export default function AuctionCard({
   auction,
   onPriceFocus,
   onBidRequest,
-  onToast,
 }: AuctionCardProps) {
   const [bid, setBid] = useState<number>(1);
-  const [bidInput, setBidInput] = useState<string>("1.00");
+  const [bidInput, setBidInput] =
+    useState<string>("1.00");
 
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
 
   /* =========================================================
      BID CONTROLS
@@ -79,65 +74,68 @@ export default function AuctionCard({
      MANUAL BID INPUT
   ========================================================= */
 
-  const handleBidChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = event.target.value;
+const handleBidChange = (
+  event: React.ChangeEvent<HTMLInputElement>
+) => {
+  const value = event.target.value;
 
-    /*
-      Allow:
+  // Allow empty input while typing
+  if (value === "") {
+    setBidInput("");
+    return;
+  }
 
-      1
-      1.
-      1.2
-      1.25
-      10.50
+  // Allow digits and up to 2 decimal places
+  if (!/^\d*\.?\d{0,2}$/.test(value)) {
+    return;
+  }
 
-      Reject:
+  setBidInput(value);
 
-      letters
-      negative numbers
-      multiple decimals
-    */
+  const numericValue = Number(value);
 
-    if (!/^\d*\.?\d{0,2}$/.test(value)) {
-      return;
-    }
-
-    // Allow the user to temporarily have an empty input.
-    if (value === "") {
-      setBidInput("");
-      return;
-    }
-
-    // Allow "." while the user is typing.
-    if (value === ".") {
-      setBidInput("0.");
-      setBid(0);
-      return;
-    }
-
-    const numericValue = Number(value);
-
-    if (Number.isNaN(numericValue)) {
-      return;
-    }
-
-    /*
-      Bid cannot be below 1.
-      We still allow the user to type decimal values naturally.
-    */
-
-    if (numericValue < 1 && !value.startsWith("0.")) {
-      return;
-    }
-
-    setBidInput(value);
+  if (Number.isFinite(numericValue)) {
     setBid(numericValue);
+  }
+};
+
+  /* =========================================================
+     SERVICE FEE
+  ========================================================= */
+
+  const getServiceFee = () => {
+    return (
+      parseFloat(
+        String(auction.entry).replace(
+          /[^\d.]/g,
+          ""
+        )
+      ) || 0
+    );
   };
 
   /* =========================================================
-     OPEN PAGE-LEVEL CONFIRMATION MODAL
+     VALIDATE BID
+  ========================================================= */
+const validateBid = () => {
+  const value = bidInput.trim();
+
+  // Allow only whole numbers or numbers with up to 2 decimals
+  if (!/^\d+(?:\.\d{1,2})?$/.test(value)) {
+    return false;
+  }
+
+  const numericBid = Number(value);
+
+  if (!Number.isFinite(numericBid) || numericBid < 1) {
+    return false;
+  }
+
+  return true;
+};
+
+  /* =========================================================
+     OPEN CONFIRMATION MODAL
   ========================================================= */
 
   const handleBid = (
@@ -146,32 +144,26 @@ export default function AuctionCard({
     event.preventDefault();
     event.stopPropagation();
 
-    const numericBid = Number(bidInput);
-
-    // Validate before submitting.
-    if (
-      bidInput === "" ||
-      Number.isNaN(numericBid) ||
-      numericBid < 1
-    ) {
-      setBidInput("1");
+    /*
+     * No toast here.
+     *
+     * Invalid input is simply reset.
+     */
+    if (!validateBid()) {
+      setBidInput("1.00");
       setBid(1);
-
-      onToast?.(
-  language === "am"
-    ? "እባክዎ ትክክለኛ የመጫረቻ መጠን ያስገቡ።"
-    : "Please enter a valid bid amount.",
-  "error"
-);
-
       return;
     }
 
-    const serviceFee =
-      parseFloat(
-        String(auction.entry).replace(/[^\d.]/g, "")
-      ) || 0;
+    const numericBid = Number(bidInput);
+    const serviceFee = getServiceFee();
 
+    /*
+     * This only opens the confirmation modal.
+     *
+     * The actual API request happens after
+     * the user confirms inside BidConfirmationModal.
+     */
     onBidRequest(
       auction,
       Number(numericBid.toFixed(2)),
@@ -183,7 +175,9 @@ export default function AuctionCard({
      CATEGORY TRANSLATION
   ========================================================= */
 
-  const getCategoryLabel = (category: string) => {
+  const getCategoryLabel = (
+    category: string
+  ) => {
     switch (category.toLowerCase()) {
       case "electronics":
         return t("electronics");
@@ -202,6 +196,10 @@ export default function AuctionCard({
     }
   };
 
+  /* =========================================================
+     RENDER
+  ========================================================= */
+
   return (
     <article className="group overflow-hidden rounded-2xl border border-[#999] bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl">
 
@@ -218,7 +216,9 @@ export default function AuctionCard({
           />
 
           <span className="absolute left-4 top-4 rounded-full bg-[#F78000] px-3 py-1.5 text-[9px] font-bold tracking-[0.16em] text-white shadow-md">
-            {getCategoryLabel(auction.category)}
+            {getCategoryLabel(
+              auction.category
+            )}
           </span>
         </div>
       </Link>
@@ -234,7 +234,9 @@ export default function AuctionCard({
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
 
-            <Link href={`/auctions/${auction.id}`}>
+            <Link
+              href={`/auctions/${auction.id}`}
+            >
               <h3 className="font-display text-xl text-black transition hover:text-[#1681C5]">
                 {auction.title}
               </h3>
@@ -264,23 +266,28 @@ export default function AuctionCard({
 
             <p className="mt-1 font-mono text-[15px] font-semibold text-red-600">
               {auction.endsAt ? (
-                <AuctionCountdown endsAt={auction.endsAt} />
+                <AuctionCountdown
+                  endsAt={auction.endsAt}
+                />
               ) : (
                 auction.time
               )}
             </p>
           </div>
 
-          {/* PARTICIPANTS */}
+          {/* BIDS */}
 
           <div>
             <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
-              <Users size={10} />
+              <Gavel size={10} />
               {t("participants")}
             </p>
 
             <p className="mt-1 text-md font-semibold text-[#1681C5]">
-              {auction.participants}
+              {String(
+                    auction.bidCount ??
+                      0
+                  )}
             </p>
           </div>
         </div>
@@ -305,7 +312,9 @@ export default function AuctionCard({
                 decreaseBid();
               }}
               className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-black/10 bg-black/5 text-black transition hover:border-[#F78000] hover:bg-[#F78000] hover:text-white"
-              aria-label={t("decreaseBid")}
+              aria-label={t(
+                "decreaseBid"
+              )}
             >
               <Minus size={16} />
             </button>
@@ -325,7 +334,10 @@ export default function AuctionCard({
                 }}
                 onKeyDown={(event) => {
 
-                  // Prevent invalid keyboard characters.
+                  /*
+                   * Prevent invalid keyboard characters.
+                   */
+
                   if (
                     event.key === "e" ||
                     event.key === "E" ||
@@ -335,43 +347,34 @@ export default function AuctionCard({
                     event.preventDefault();
                   }
 
-                  // Submit bid with Enter.
+                  /*
+                   * Submit through confirmation modal
+                   * when Enter is pressed.
+                   */
+
                   if (event.key === "Enter") {
                     event.preventDefault();
+
+                    if (!validateBid()) {
+                      setBidInput("1.00");
+                      setBid(1);
+                      event.stopPropagation();
+                      return;
+                    }
 
                     const numericBid =
                       Number(bidInput);
 
-                    if (
-                      bidInput !== "" &&
-                      !Number.isNaN(numericBid) &&
-                      numericBid >= 1
-                    ) {
-                      const serviceFee =
-                        parseFloat(
-                          String(
-                            auction.entry
-                          ).replace(
-                            /[^\d.]/g,
-                            ""
-                          )
-                        ) || 0;
+                    const serviceFee =
+                      getServiceFee();
 
-                      onBidRequest(
-                        auction,
-                        Number(
-                          numericBid.toFixed(2)
-                        ),
-                        serviceFee
-                      );
-                    } else {
-                      onToast?.(
-  language === "am"
-    ? "እባክዎ ትክክለኛ የመጫረቻ መጠን ያስገቡ።"
-    : "Please enter a valid bid amount.",
-  "error"
-);
-                    }
+                    onBidRequest(
+                      auction,
+                      Number(
+                        numericBid.toFixed(2)
+                      ),
+                      serviceFee
+                    );
                   }
 
                   event.stopPropagation();
@@ -380,15 +383,26 @@ export default function AuctionCard({
                   const numericValue =
                     Number(bidInput);
 
+                  /*
+                   * Reset invalid/empty input.
+                   */
+
                   if (
                     bidInput === "" ||
-                    Number.isNaN(numericValue) ||
+                    Number.isNaN(
+                      numericValue
+                    ) ||
                     numericValue < 1
                   ) {
                     setBid(1);
-                    setBidInput("1");
+                    setBidInput("1.00");
                     return;
                   }
+
+                  /*
+                   * Normalize to maximum
+                   * 2 decimal places.
+                   */
 
                   const normalized =
                     Number(
@@ -396,8 +410,9 @@ export default function AuctionCard({
                     );
 
                   setBid(normalized);
+
                   setBidInput(
-                    normalized.toString()
+                    normalized.toFixed(2)
                   );
                 }}
                 className="h-11 w-full bg-transparent px-4 pr-14 text-center font-mono text-md font-bold text-black outline-none"
@@ -421,7 +436,9 @@ export default function AuctionCard({
                 increaseBid();
               }}
               className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-black/10 bg-black/5 text-black transition hover:border-[#F78000] hover:bg-[#F78000] hover:text-white"
-              aria-label={t("increaseBid")}
+              aria-label={t(
+                "increaseBid"
+              )}
             >
               <Plus size={16} />
             </button>

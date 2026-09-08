@@ -25,20 +25,23 @@ export default function BidConfirmationModal({
 }: BidConfirmationModalProps) {
   const { language } = useLanguage();
 
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [agreeToTerms, setAgreeToTerms] =
+    useState(false);
 
-  /*
-   * Reset checkbox every time modal opens.
-   */
+  /* =========================================================
+     RESET TERMS WHEN MODAL OPENS
+  ========================================================= */
+
   useEffect(() => {
     if (isOpen) {
       setAgreeToTerms(false);
     }
   }, [isOpen]);
 
-  /*
-   * Lock page scrolling while modal is open.
-   */
+  /* =========================================================
+     LOCK PAGE SCROLL
+  ========================================================= */
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -55,6 +58,10 @@ export default function BidConfirmationModal({
     };
   }, [isOpen]);
 
+  /* =========================================================
+     DON'T RENDER WHEN CLOSED
+  ========================================================= */
+
   if (!isOpen) {
     return null;
   }
@@ -64,7 +71,8 @@ export default function BidConfirmationModal({
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={(event) => {
         if (
-          event.target === event.currentTarget &&
+          event.target ===
+            event.currentTarget &&
           !isLoading
         ) {
           onCancel();
@@ -77,6 +85,7 @@ export default function BidConfirmationModal({
         aria-labelledby="bid-confirmation-title"
         className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
       >
+
         {/* =================================================
             CLOSE BUTTON
         ================================================= */}
@@ -121,6 +130,7 @@ export default function BidConfirmationModal({
         ================================================= */}
 
         <div className="mb-6 space-y-3 rounded-xl border border-black/10 bg-black/[0.02] p-4">
+
           {/* ITEM */}
 
           <div className="flex items-start justify-between gap-4">
@@ -146,7 +156,10 @@ export default function BidConfirmationModal({
               </span>
 
               <span className="font-mono font-bold text-[#F78000]">
-                {language === "am" ? "ብር" : "ETB"} {bidAmount.toFixed(2)}
+                {language === "am"
+                  ? "ብር"
+                  : "ETB"}{" "}
+                {bidAmount.toFixed(2)}
               </span>
             </div>
           </div>
@@ -162,14 +175,17 @@ export default function BidConfirmationModal({
               </span>
 
               <span className="font-mono font-bold text-[#1681C5]">
-                {language === "am" ? "ብር" : "ETB"} {serviceFee.toFixed(2)}
+                {language === "am"
+                  ? "ብር"
+                  : "ETB"}{" "}
+                {serviceFee.toFixed(2)}
               </span>
             </div>
           </div>
         </div>
 
         {/* =================================================
-            NON REFUNDABLE NOTICE
+            NON-REFUNDABLE NOTICE
         ================================================= */}
 
         <div className="mb-6 space-y-2 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -192,6 +208,7 @@ export default function BidConfirmationModal({
 
         <div className="mb-6 max-h-40 overflow-y-auto rounded-xl border border-black/10 bg-black/[0.02] p-4">
           <div className="space-y-4 text-xs leading-5 text-black/70">
+
             {/* LOWEST UNIQUE BID */}
 
             <div>
@@ -239,6 +256,7 @@ export default function BidConfirmationModal({
                   : "The winner must pay the full winning bid amount."}
               </p>
             </div>
+
           </div>
         </div>
 
@@ -247,6 +265,7 @@ export default function BidConfirmationModal({
         ================================================= */}
 
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-black/10 bg-black/[0.02] p-4">
+
           <input
             type="checkbox"
             id="terms-agree"
@@ -291,6 +310,7 @@ export default function BidConfirmationModal({
               ? "መጫረቻ ያረጋግጡ"
               : "Confirm Bid"}
         </button>
+
       </div>
     </div>
   );

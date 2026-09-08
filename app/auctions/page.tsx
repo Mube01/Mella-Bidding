@@ -8,6 +8,7 @@ import Footer from "../components/Footer";
 import AuctionCard from "../components/AuctionCard";
 import BidConfirmationModal from "../components/BidConfirmationModal";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
+import Toast from "../components/ui/Toast";
 import type { Auction } from "../components/data";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -39,8 +40,37 @@ export default function AuctionsPage() {
   const [bidLoading, setBidLoading] =
     useState(false);
 
-  const [bidMessage, setBidMessage] =
-    useState("");
+  /* =========================================================
+     TOAST STATE
+  ========================================================= */
+
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+    isOpen: boolean;
+  }>({
+    message: "",
+    type: "error",
+    isOpen: false,
+  });
+
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "error"
+  ) => {
+    setToast({
+      message,
+      type,
+      isOpen: true,
+    });
+  };
+
+  const closeToast = () => {
+    setToast((current) => ({
+      ...current,
+      isOpen: false,
+    }));
+  };
 
   /* =========================================================
      SUCCESS STATE
@@ -75,6 +105,14 @@ export default function AuctionsPage() {
 
         if (!data.success) {
           setAuctions([]);
+
+          showToast(
+            language === "am"
+              ? "ጨረታዎችን መጫን አልተቻለም።"
+              : "Unable to load auctions.",
+            "error"
+          );
+
           return;
         }
 
@@ -89,12 +127,20 @@ export default function AuctionsPage() {
             time: "",
             endsAt: auction.endsAt,
             participants: auction.participantCount,
+            bidCount: auction.bidCount,
             entry: `${auction.entryCost} ${t("currency")}`,
           }))
         );
       } catch {
         if (!cancelled) {
           setAuctions([]);
+
+          showToast(
+            language === "am"
+              ? "ጨረታዎችን መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
+              : "Unable to load auctions. Please try again.",
+            "error"
+          );
         }
       } finally {
         if (!cancelled) {
@@ -172,7 +218,6 @@ export default function AuctionsPage() {
   ) => {
     setSelectedAuction(auction);
     setSelectedBidAmount(bidAmount);
-    setBidMessage("");
     setShowBidModal(true);
   };
 
@@ -188,7 +233,6 @@ export default function AuctionsPage() {
     setShowBidModal(false);
     setSelectedAuction(null);
     setSelectedBidAmount(1);
-    setBidMessage("");
   };
 
   /* =========================================================
@@ -201,20 +245,22 @@ export default function AuctionsPage() {
     }
 
     setBidLoading(true);
-    setBidMessage("");
 
     try {
-      const response = await fetch("/api/bids", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          auctionId: selectedAuction.id,
-          amount: selectedBidAmount,
-        }),
-      });
+      const response = await fetch(
+        `/api/bids?lang=${language}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            auctionId: selectedAuction.id,
+            amount: selectedBidAmount,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -227,6 +273,13 @@ export default function AuctionsPage() {
 
         setSuccessAuctionId(auctionId);
 
+        showToast(
+          language === "am"
+            ? "መጫረቻዎ በተሳካ ሁኔታ ተልኳል።"
+            : "Bid submitted successfully.",
+          "success"
+        );
+
         window.setTimeout(() => {
           setSuccessAuctionId((current) =>
             current === auctionId ? null : current
@@ -236,17 +289,38 @@ export default function AuctionsPage() {
         return;
       }
 
-      setBidMessage(
+      /* =====================================================
+         AUTHENTICATION ERROR
+      ===================================================== */
+
+      if (response.status === 401) {
+        showToast(
+          language === "am"
+            ? "እባክዎ ወደ መለያዎ ይግቡ።"
+            : "Authentication required. Please sign in.",
+          "error"
+        );
+
+        return;
+      }
+
+      /* =====================================================
+         OTHER API ERRORS
+      ===================================================== */
+
+      showToast(
         data.error ||
           (language === "am"
             ? "መጫረቻውን መላክ አልተቻለም።"
-            : "Unable to submit bid.")
+            : "Unable to submit bid."),
+        "error"
       );
     } catch {
-      setBidMessage(
+      showToast(
         language === "am"
           ? "መጫረቻውን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።"
-          : "Unable to submit bid. Please try again."
+          : "Unable to submit bid. Please try again.",
+        "error"
       );
     } finally {
       setBidLoading(false);
@@ -272,6 +346,17 @@ export default function AuctionsPage() {
       ===================================================== */}
 
       <Header />
+
+      {/* =====================================================
+          TOAST
+      ===================================================== */}
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isOpen={toast.isOpen}
+        onClose={closeToast}
+      />
 
       {/* =====================================================
           PAGE CONTENT
@@ -409,6 +494,7 @@ export default function AuctionsPage() {
                   <AuctionCard
                     auction={auction}
                     onBidRequest={handleBidRequest}
+                    onToast={showToast}
                   />
 
                   {/* =================================================
@@ -468,10 +554,6 @@ export default function AuctionsPage() {
 
       {/* =======================================================
           PAGE-LEVEL BID CONFIRMATION MODAL
-
-          IMPORTANT:
-          This is outside the auction grid and outside every
-          AuctionCard. There is only ONE modal for the page.
       ======================================================= */}
 
       <BidConfirmationModal
@@ -483,19 +565,6 @@ export default function AuctionsPage() {
         onCancel={closeBidModal}
         isLoading={bidLoading}
       />
-
-      {/* =======================================================
-          BID ERROR
-
-          This appears if the API rejects the bid while the
-          confirmation modal is open.
-      ======================================================= */}
-
-      {bidMessage && showBidModal && (
-        <div className="fixed bottom-6 left-1/2 z-[10000] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-xs font-medium text-red-600 shadow-xl">
-          {bidMessage}
-        </div>
-      )}
     </main>
   );
 }

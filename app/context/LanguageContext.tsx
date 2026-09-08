@@ -58,7 +58,7 @@ const translations = {
       "When the auction closes, the winning logic and result are published.",
 
     endsIn: "ENDS IN",
-    participants: "PARTICIPANTS",
+    participants: "BIDS",
     enterYourBid: "ENTER YOUR BID",
     submitBid: "Submit Bid",
     entryFrom: "Service Fee",
@@ -172,7 +172,7 @@ const translations = {
 
     completed: "COMPLETED",
 
-    participantsLabel: "Participants",
+    participantsLabel: "Bids",
 
     completedLabel: "Completed",
 
@@ -564,7 +564,7 @@ exploreLiveAuctions:
       "የሚያበቃበት ጊዜ",
 
     participants:
-      "ተሳታፊዎች",
+      "ተጫራቾች",
 
     enterYourBid:
       "መጫረቻዎን ያስገቡ",
