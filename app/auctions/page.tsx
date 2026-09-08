@@ -494,7 +494,6 @@ export default function AuctionsPage() {
                   <AuctionCard
                     auction={auction}
                     onBidRequest={handleBidRequest}
-                    onToast={showToast}
                   />
 
                   {/* =================================================
