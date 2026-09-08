@@ -56,12 +56,13 @@ export default function Header() {
    * Never show the main header on
    * authentication pages.
    */
-  const isAuthPage =
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname === "/admin/login" ||
-    pathname === "/admin" ||
-    pathname.startsWith("/admin/");
+const isAuthPage =
+  pathname === "/login" ||
+  pathname === "/register" ||
+  pathname === "/forgot-password" ||
+  pathname === "/admin/login" ||
+  pathname === "/admin" ||
+  pathname.startsWith("/admin/");
 
   /*
    * Check authenticated user.

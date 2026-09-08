@@ -24,6 +24,10 @@ export interface IAuction extends Document {
   endsAt: Date;
   status: AuctionStatus;
   featured: boolean;
+
+  // Admin-controlled display order
+  order: number;
+
   participantCount: number;
   bidCount: number;
   winnerUserId?: mongoose.Types.ObjectId;
@@ -137,6 +141,15 @@ const AuctionSchema = new Schema<IAuction>(
       index: true,
     },
 
+    // =====================================================
+    // ADMIN CONTROLLED AUCTION ORDER
+    // =====================================================
+    order: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
+
     participantCount: {
       type: Number,
       default: 0,
@@ -167,6 +180,9 @@ const AuctionSchema = new Schema<IAuction>(
 );
 
 AuctionSchema.index({ status: 1, endsAt: 1 });
+
+// Admin/user ordering index
+AuctionSchema.index({ order: 1, createdAt: -1 });
 
 const Auction: Model<IAuction> =
   mongoose.models.Auction ||

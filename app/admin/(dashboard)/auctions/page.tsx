@@ -6,21 +6,34 @@ import {
   Edit3,
   Eye,
   Gavel,
+  Menu,
   MoreHorizontal,
-  Plus,
   Search,
   Star,
   Trash2,
   Users,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { DragEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AdminSidebar from "../../../components/admin/AdminSidebar";
 import AdminHeader from "../../../components/admin/AdminHeader";
 import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 
-const auctions = [
+type AdminAuction = {
+  id: string;
+  title: string;
+  category: string;
+  participants: number;
+  bids: number;
+  time: string;
+  status: string;
+  entry: string;
+  featured?: boolean;
+  order: number;
+};
+
+const auctions: AdminAuction[] = [
   {
     id: "A-001",
     title: "iPhone 17 Pro Max",
@@ -30,6 +43,7 @@ const auctions = [
     time: "02:14:38",
     status: "Live",
     entry: "ETB 75",
+    order: 0,
   },
   {
     id: "A-002",
@@ -40,6 +54,7 @@ const auctions = [
     time: "18:42:11",
     status: "Live",
     entry: "ETB 350",
+    order: 1,
   },
   {
     id: "A-003",
@@ -50,6 +65,7 @@ const auctions = [
     time: "01:08:22",
     status: "Live",
     entry: "ETB 75",
+    order: 2,
   },
   {
     id: "A-004",
@@ -60,6 +76,7 @@ const auctions = [
     time: "2 days",
     status: "Upcoming",
     entry: "ETB 75",
+    order: 3,
   },
   {
     id: "A-005",
@@ -70,6 +87,7 @@ const auctions = [
     time: "4 days",
     status: "Upcoming",
     entry: "ETB 75",
+    order: 4,
   },
   {
     id: "A-006",
@@ -80,6 +98,7 @@ const auctions = [
     time: "Ended",
     status: "Completed",
     entry: "ETB 75",
+    order: 5,
   },
   {
     id: "A-007",
@@ -90,6 +109,7 @@ const auctions = [
     time: "Ended",
     status: "Completed",
     entry: "ETB 75",
+    order: 6,
   },
 ];
 
@@ -116,43 +136,112 @@ export default function AuctionsAdminPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [status, setStatus] = useState("All");
-  const [databaseAuctions, setDatabaseAuctions] = useState<typeof auctions>([]);
+
+  const [databaseAuctions, setDatabaseAuctions] =
+    useState<AdminAuction[]>([]);
+
   const [loading, setLoading] = useState(true);
+
+  // ============================================================
+  // DRAG / DROP STATE
+  // ============================================================
+
+  const [draggedAuctionId, setDraggedAuctionId] =
+    useState<string | null>(null);
+
+  const [dragOverAuctionId, setDragOverAuctionId] =
+    useState<string | null>(null);
+
+  const [savingOrder, setSavingOrder] =
+    useState(false);
+
   const router = useRouter();
 
+  // ============================================================
+  // LOAD AUCTIONS
+  // ============================================================
+
   useEffect(() => {
-    fetch("/api/admin/auctions", { cache: "no-store" })
+    fetch("/api/admin/auctions", {
+      cache: "no-store",
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          setDatabaseAuctions(data.auctions.map((auction: any) => ({
-            id: auction.publicId,
-            title: auction.title,
-            category: auction.category,
-            participants: auction.participantCount,
-            bids: auction.bidCount,
-            time: new Date(auction.endsAt).toLocaleString(),
-            status: auction.status === "live" ? "Live" : auction.status === "upcoming" ? "Upcoming" : "Completed",
-            entry: `ETB ${auction.entryCost}`,
-            featured: Boolean(auction.featured),
-          })));
+          setDatabaseAuctions(
+            data.auctions.map((auction: any) => ({
+              id: auction.publicId,
+              title: auction.title,
+              category: auction.category,
+              participants: auction.participantCount,
+              bids: auction.bidCount,
+              time: new Date(
+                auction.endsAt
+              ).toLocaleString(),
+
+              status:
+                auction.status === "live"
+                  ? "Live"
+                  : auction.status === "upcoming"
+                  ? "Upcoming"
+                  : "Completed",
+
+              entry: `ETB ${auction.entryCost}`,
+
+              featured: Boolean(
+                auction.featured
+              ),
+
+              order:
+                typeof auction.order === "number"
+                  ? auction.order
+                  : 0,
+            }))
+          );
         }
       })
-      .catch(() => setDatabaseAuctions([]))
+      .catch(() =>
+        setDatabaseAuctions([])
+      )
       .finally(() => setLoading(false));
   }, []);
 
-  const sourceAuctions = databaseAuctions.length ? databaseAuctions : auctions;
+  // ============================================================
+  // SOURCE AUCTIONS
+  // ============================================================
+
+  const sourceAuctions =
+    databaseAuctions.length
+      ? databaseAuctions
+      : auctions;
+
+  // ============================================================
+  // REORDERING IS ONLY ALLOWED WITHOUT FILTERS
+  // ============================================================
+
+  const canReorder =
+    search.trim() === "" &&
+    category === "All" &&
+    status === "All";
+
+  // ============================================================
+  // FILTERED AUCTIONS
+  // ============================================================
 
   const filteredAuctions = useMemo(() => {
     return sourceAuctions.filter((auction) => {
       const matchesSearch =
         auction.title
           .toLowerCase()
-          .includes(search.toLowerCase()) ||
+          .includes(
+            search.toLowerCase()
+          ) ||
         auction.id
           .toLowerCase()
-          .includes(search.toLowerCase());
+          .includes(
+            search.toLowerCase()
+          );
 
       const matchesCategory =
         category === "All" ||
@@ -168,56 +257,454 @@ export default function AuctionsAdminPage() {
         matchesStatus
       );
     });
-  }, [search, category, status, sourceAuctions]);
+  }, [
+    search,
+    category,
+    status,
+    sourceAuctions,
+  ]);
+
+  // ============================================================
+  // STATS
+  // ============================================================
 
   const liveCount = sourceAuctions.filter(
-    (auction) => auction.status === "Live"
+    (auction) =>
+      auction.status === "Live"
   ).length;
 
   const upcomingCount = sourceAuctions.filter(
-    (auction) => auction.status === "Upcoming"
+    (auction) =>
+      auction.status === "Upcoming"
   ).length;
 
   const completedCount = sourceAuctions.filter(
-    (auction) => auction.status === "Completed"
+    (auction) =>
+      auction.status === "Completed"
   ).length;
 
-  async function updateAuction(id: string, method: "DELETE" | "PATCH", body?: object) {
-    const response = await fetch(`/api/admin/auctions/${encodeURIComponent(id)}`, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    if (!response.ok) throw new Error("Auction update failed");
-    setDatabaseAuctions((current) => current.filter((auction) => auction.id !== id));
+  // ============================================================
+  // UPDATE AUCTION
+  // ============================================================
+
+  async function updateAuction(
+    id: string,
+    method: "DELETE" | "PATCH",
+    body?: object
+  ) {
+    const response = await fetch(
+      `/api/admin/auctions/${encodeURIComponent(
+        id
+      )}`,
+      {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: body
+          ? JSON.stringify(body)
+          : undefined,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "Auction update failed"
+      );
+    }
+
+    setDatabaseAuctions((current) =>
+      current.filter(
+        (auction) => auction.id !== id
+      )
+    );
   }
+
+  // ============================================================
+  // DELETE
+  // ============================================================
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Delete this auction? This cannot be undone.")) return;
-    try { await updateAuction(id, "DELETE"); } catch { window.alert("Unable to delete auction."); }
+    if (
+      !window.confirm(
+        "Delete this auction? This cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await updateAuction(
+        id,
+        "DELETE"
+      );
+    } catch {
+      window.alert(
+        "Unable to delete auction."
+      );
+    }
   }
 
+  // ============================================================
+  // COMPLETE
+  // ============================================================
+
   async function handleComplete(id: string) {
-    try { await updateAuction(id, "PATCH", { status: "completed" }); } catch { window.alert("Unable to complete auction."); }
+    try {
+      await updateAuction(
+        id,
+        "PATCH",
+        {
+          status: "completed",
+        }
+      );
+    } catch {
+      window.alert(
+        "Unable to complete auction."
+      );
+    }
   }
+
+  // ============================================================
+  // FEATURE
+  // ============================================================
 
   async function handleFeature(id: string) {
     try {
-      const response = await fetch(`/api/admin/auctions/${encodeURIComponent(id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ featured: true }),
-      });
-      if (!response.ok) throw new Error("Feature update failed");
-      setDatabaseAuctions((current) => current.map((auction) => ({ ...auction, featured: auction.id === id })));
-    } catch { window.alert("Unable to change featured auction."); }
+      const response = await fetch(
+        `/api/admin/auctions/${encodeURIComponent(
+          id
+        )}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            featured: true,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Feature update failed"
+        );
+      }
+
+      setDatabaseAuctions(
+        (current) =>
+          current.map((auction) => ({
+            ...auction,
+            featured:
+              auction.id === id,
+          }))
+      );
+    } catch {
+      window.alert(
+        "Unable to change featured auction."
+      );
+    }
   }
 
-  if (loading) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]"><LoadingSpinner size="lg" /></main>;
+  // ============================================================
+  // DRAG START
+  // ============================================================
+
+  function handleDragStart(
+    event: DragEvent,
+    id: string
+  ) {
+    if (!canReorder || savingOrder) {
+      event.preventDefault();
+      return;
+    }
+
+    setDraggedAuctionId(id);
+
+    event.dataTransfer.effectAllowed =
+      "move";
+
+    event.dataTransfer.setData(
+      "text/plain",
+      id
+    );
   }
+
+  // ============================================================
+  // DRAG OVER
+  // ============================================================
+
+  function handleDragOver(
+    event: DragEvent,
+    id: string
+  ) {
+    if (!canReorder || savingOrder) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (
+      !draggedAuctionId ||
+      draggedAuctionId === id
+    ) {
+      return;
+    }
+
+    event.dataTransfer.dropEffect =
+      "move";
+
+    setDragOverAuctionId(id);
+  }
+
+  // ============================================================
+  // DROP
+  // ============================================================
+
+  async function handleDrop(
+    event: DragEvent,
+    targetId: string
+  ) {
+    event.preventDefault();
+
+    if (!canReorder || savingOrder) {
+      return;
+    }
+
+    const sourceId =
+      draggedAuctionId ||
+      event.dataTransfer.getData(
+        "text/plain"
+      );
+
+    if (
+      !sourceId ||
+      sourceId === targetId
+    ) {
+      setDraggedAuctionId(null);
+      setDragOverAuctionId(null);
+      return;
+    }
+
+    const currentAuctions =
+      [...databaseAuctions];
+
+    const sourceIndex =
+      currentAuctions.findIndex(
+        (auction) =>
+          auction.id === sourceId
+      );
+
+    const targetIndex =
+      currentAuctions.findIndex(
+        (auction) =>
+          auction.id === targetId
+      );
+
+    if (
+      sourceIndex === -1 ||
+      targetIndex === -1
+    ) {
+      setDraggedAuctionId(null);
+      setDragOverAuctionId(null);
+      return;
+    }
+
+    const reordered =
+      [...currentAuctions];
+
+    const [movedAuction] =
+      reordered.splice(
+        sourceIndex,
+        1
+      );
+
+    reordered.splice(
+      targetIndex,
+      0,
+      movedAuction
+    );
+
+    const normalized =
+      reordered.map(
+        (auction, index) => ({
+          ...auction,
+          order: index,
+        })
+      );
+
+    // Immediately update UI
+    setDatabaseAuctions(
+      normalized
+    );
+
+    setDraggedAuctionId(null);
+    setDragOverAuctionId(null);
+
+    // Save to database
+    await saveAuctionOrder(
+      normalized
+    );
+  }
+
+  // ============================================================
+  // DRAG END
+  // ============================================================
+
+  function handleDragEnd() {
+    setDraggedAuctionId(null);
+    setDragOverAuctionId(null);
+  }
+
+  // ============================================================
+  // SAVE ORDER TO DATABASE
+  // ============================================================
+
+  async function saveAuctionOrder(
+    newAuctions: AdminAuction[]
+  ) {
+    try {
+      setSavingOrder(true);
+
+      const auctionIds =
+        newAuctions.map(
+          (auction) => auction.id
+        );
+
+      const response = await fetch(
+        "/api/admin/auctions/reorder",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            auctionIds,
+          }),
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !data.success
+      ) {
+        throw new Error(
+          data.message ||
+            "Unable to save auction order."
+        );
+      }
+
+      // Normalize local order
+      setDatabaseAuctions(
+        newAuctions.map(
+          (auction, index) => ({
+            ...auction,
+            order: index,
+          })
+        )
+      );
+    } catch (error) {
+      console.error(
+        "SAVE_AUCTION_ORDER_ERROR:",
+        error
+      );
+
+      window.alert(
+        "Unable to save auction order."
+      );
+
+      // Reload the original order
+      try {
+        const response =
+          await fetch(
+            "/api/admin/auctions",
+            {
+              cache: "no-store",
+              credentials:
+                "include",
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (data.success) {
+          setDatabaseAuctions(
+            data.auctions.map(
+              (auction: any) => ({
+                id: auction.publicId,
+                title: auction.title,
+                category:
+                  auction.category,
+                participants:
+                  auction.participantCount,
+                bids:
+                  auction.bidCount,
+                time: new Date(
+                  auction.endsAt
+                ).toLocaleString(),
+
+                status:
+                  auction.status ===
+                  "live"
+                    ? "Live"
+                    : auction.status ===
+                      "upcoming"
+                    ? "Upcoming"
+                    : "Completed",
+
+                entry: `ETB ${auction.entryCost}`,
+
+                featured:
+                  Boolean(
+                    auction.featured
+                  ),
+
+                order:
+                  typeof auction.order ===
+                  "number"
+                    ? auction.order
+                    : 0,
+              })
+            )
+          );
+        }
+      } catch (reloadError) {
+        console.error(
+          "AUCTION_ORDER_RELOAD_ERROR:",
+          reloadError
+        );
+      }
+    } finally {
+      setSavingOrder(false);
+      setDraggedAuctionId(null);
+      setDragOverAuctionId(null);
+    }
+  }
+
+  // ============================================================
+  // LOADING
+  // ============================================================
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]">
+        <LoadingSpinner size="lg" />
+      </main>
+    );
+  }
+
+  // ============================================================
+  // PAGE
+  // ============================================================
 
   return (
     <main className="min-h-screen bg-[#F7F8FA]">
@@ -225,16 +712,19 @@ export default function AuctionsAdminPage() {
       {/* =====================================================
           ADMIN SIDEBAR
       ===================================================== */}
+
       <AdminSidebar />
 
       {/* =====================================================
           MAIN AREA
       ===================================================== */}
+
       <div className="lg:pl-64">
 
         {/* ===================================================
             SHARED ADMIN HEADER
         =================================================== */}
+
         <AdminHeader
           title="Auction Management"
           description="Manage your auctions"
@@ -243,9 +733,11 @@ export default function AuctionsAdminPage() {
         {/* ===================================================
             CONTENT
         =================================================== */}
+
         <div className="mx-auto max-w-[1500px] px-5 py-8 lg:px-8">
 
           {/* PAGE INTRO */}
+
           <div className="mb-8">
 
             <p className="text-[10px] font-bold tracking-[0.25em] text-[#1681C5]">
@@ -264,12 +756,17 @@ export default function AuctionsAdminPage() {
           </div>
 
           {/* STATS */}
+
           <div className="grid gap-4 sm:grid-cols-3">
 
+            {/* LIVE */}
+
             <div className="rounded-2xl border border-black/10 bg-white p-5">
+
               <div className="flex items-center justify-between">
 
                 <div>
+
                   <p className="text-xs text-black/40">
                     Live Auctions
                   </p>
@@ -277,6 +774,7 @@ export default function AuctionsAdminPage() {
                   <p className="mt-2 text-3xl font-bold">
                     {liveCount}
                   </p>
+
                 </div>
 
                 <div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
@@ -284,12 +782,17 @@ export default function AuctionsAdminPage() {
                 </div>
 
               </div>
+
             </div>
 
+            {/* UPCOMING */}
+
             <div className="rounded-2xl border border-black/10 bg-white p-5">
+
               <div className="flex items-center justify-between">
 
                 <div>
+
                   <p className="text-xs text-black/40">
                     Upcoming
                   </p>
@@ -297,6 +800,7 @@ export default function AuctionsAdminPage() {
                   <p className="mt-2 text-3xl font-bold">
                     {upcomingCount}
                   </p>
+
                 </div>
 
                 <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
@@ -304,12 +808,17 @@ export default function AuctionsAdminPage() {
                 </div>
 
               </div>
+
             </div>
 
+            {/* COMPLETED */}
+
             <div className="rounded-2xl border border-black/10 bg-white p-5">
+
               <div className="flex items-center justify-between">
 
                 <div>
+
                   <p className="text-xs text-black/40">
                     Completed
                   </p>
@@ -317,6 +826,7 @@ export default function AuctionsAdminPage() {
                   <p className="mt-2 text-3xl font-bold">
                     {completedCount}
                   </p>
+
                 </div>
 
                 <div className="grid h-11 w-11 place-items-center rounded-xl bg-black/5 text-black/50">
@@ -324,19 +834,23 @@ export default function AuctionsAdminPage() {
                 </div>
 
               </div>
+
             </div>
 
           </div>
 
           {/* TABLE */}
+
           <section className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-white">
 
             {/* FILTER BAR */}
+
             <div className="border-b border-black/10 p-5">
 
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
                 {/* SEARCH */}
+
                 <div className="relative w-full lg:max-w-sm">
 
                   <Search
@@ -348,7 +862,9 @@ export default function AuctionsAdminPage() {
                     type="search"
                     value={search}
                     onChange={(event) =>
-                      setSearch(event.target.value)
+                      setSearch(
+                        event.target.value
+                      )
                     }
                     placeholder="Search auctions..."
                     className="h-11 w-full rounded-xl border border-black/10 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-black/30 focus:border-[#1681C5] focus:ring-2 focus:ring-[#1681C5]/10"
@@ -357,22 +873,31 @@ export default function AuctionsAdminPage() {
                 </div>
 
                 {/* FILTERS */}
+
                 <div className="flex flex-wrap gap-2">
+
+                  {/* CATEGORY */}
 
                   <div className="relative">
 
                     <select
                       value={category}
                       onChange={(event) =>
-                        setCategory(event.target.value)
+                        setCategory(
+                          event.target.value
+                        )
                       }
                       className="h-11 appearance-none rounded-xl border border-black/10 bg-white pl-4 pr-10 text-sm text-black/60 outline-none focus:border-[#1681C5]"
                     >
-                      {categories.map((item) => (
-                        <option key={item}>
-                          {item}
-                        </option>
-                      ))}
+                      {categories.map(
+                        (item) => (
+                          <option
+                            key={item}
+                          >
+                            {item}
+                          </option>
+                        )
+                      )}
                     </select>
 
                     <ChevronDown
@@ -382,20 +907,28 @@ export default function AuctionsAdminPage() {
 
                   </div>
 
+                  {/* STATUS */}
+
                   <div className="relative">
 
                     <select
                       value={status}
                       onChange={(event) =>
-                        setStatus(event.target.value)
+                        setStatus(
+                          event.target.value
+                        )
                       }
                       className="h-11 appearance-none rounded-xl border border-black/10 bg-white pl-4 pr-10 text-sm text-black/60 outline-none focus:border-[#1681C5]"
                     >
-                      {statuses.map((item) => (
-                        <option key={item}>
-                          {item}
-                        </option>
-                      ))}
+                      {statuses.map(
+                        (item) => (
+                          <option
+                            key={item}
+                          >
+                            {item}
+                          </option>
+                        )
+                      )}
                     </select>
 
                     <ChevronDown
@@ -409,14 +942,47 @@ export default function AuctionsAdminPage() {
 
               </div>
 
+              {/* REORDER INFO */}
+
+              {canReorder && (
+                <div className="mt-4 flex items-center gap-2 text-xs text-black/40">
+
+                  <Menu
+                    size={15}
+                    className="text-[#1681C5]"
+                  />
+
+                  <span>
+                    Drag the handle to change the order users see.
+                  </span>
+
+                  {savingOrder && (
+                    <span className="font-medium text-[#1681C5]">
+                      Saving...
+                    </span>
+                  )}
+
+                </div>
+              )}
+
+              {!canReorder && (
+                <div className="mt-4 rounded-xl bg-[#1681C5]/5 px-4 py-3 text-xs text-[#1681C5]">
+                  Clear the search and filters to reorder auctions.
+                </div>
+              )}
+
             </div>
 
-            {/* DESKTOP TABLE */}
+            {/* =================================================
+                DESKTOP TABLE
+            ================================================= */}
+
             <div className="hidden overflow-x-auto md:block">
 
-              <table className="w-full min-w-[950px]">
+              <table className="w-full min-w-[1000px]">
 
                 <thead>
+
                   <tr className="border-b border-black/10 bg-black/[0.02] text-left">
 
                     <th className="px-6 py-4 text-[9px] font-bold tracking-[0.15em] text-black/35">
@@ -448,147 +1014,315 @@ export default function AuctionsAdminPage() {
                     </th>
 
                   </tr>
+
                 </thead>
 
                 <tbody>
 
-                  {filteredAuctions.map((auction) => (
-                    <tr
-                      key={auction.id}
-                      className="border-b border-black/5 transition hover:bg-black/[0.015]"
-                    >
+                  {filteredAuctions.map(
+                    (auction) => (
+                      <tr
+                        key={auction.id}
+                        draggable={
+                          canReorder &&
+                          !savingOrder
+                        }
+                        onDragStart={(
+                          event
+                        ) =>
+                          handleDragStart(
+                            event,
+                            auction.id
+                          )
+                        }
+                        onDragOver={(
+                          event
+                        ) =>
+                          handleDragOver(
+                            event,
+                            auction.id
+                          )
+                        }
+                        onDrop={(event) =>
+                          handleDrop(
+                            event,
+                            auction.id
+                          )
+                        }
+                        onDragEnd={
+                          handleDragEnd
+                        }
+                        className={`border-b border-black/5 transition ${
+                          dragOverAuctionId ===
+                          auction.id
+                            ? "bg-[#1681C5]/5"
+                            : "hover:bg-black/[0.015]"
+                        } ${
+                          draggedAuctionId ===
+                          auction.id
+                            ? "opacity-40"
+                            : ""
+                        }`}
+                      >
 
-                      <td className="px-6 py-5">
+                        {/* AUCTION */}
 
-                        <div className="flex items-center gap-3">
+                        <td className="px-6 py-5">
 
-                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
-                            <Gavel size={17} />
+                          <div className="flex items-center gap-3">
+
+                            {/* DRAG HANDLE */}
+
+                            <button
+                              type="button"
+                              draggable={
+                                canReorder &&
+                                !savingOrder
+                              }
+                              onDragStart={(
+                                event
+                              ) =>
+                                handleDragStart(
+                                  event,
+                                  auction.id
+                                )
+                              }
+                              onDragEnd={
+                                handleDragEnd
+                              }
+                              disabled={
+                                !canReorder ||
+                                savingOrder
+                              }
+                              className={`flex h-9 w-7 shrink-0 items-center justify-center rounded-lg text-black/25 transition ${
+                                canReorder
+                                  ? "cursor-grab hover:bg-black/5 hover:text-[#1681C5] active:cursor-grabbing"
+                                  : "cursor-default opacity-40"
+                              }`}
+                              title={
+                                canReorder
+                                  ? "Drag to reorder"
+                                  : "Clear filters to reorder"
+                              }
+                              aria-label={`Reorder ${auction.title}`}
+                            >
+                              <Menu
+                                size={18}
+                                strokeWidth={
+                                  2
+                                }
+                              />
+                            </button>
+
+                            {/* AUCTION ICON */}
+
+                            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
+                              <Gavel
+                                size={17}
+                              />
+                            </div>
+
+                            {/* TITLE */}
+
+                            <div>
+
+                              <p className="text-sm font-semibold">
+                                {auction.title}
+                              </p>
+
+                              <p className="mt-1 font-mono text-[10px] text-black/30">
+                                {auction.id}
+                              </p>
+
+                            </div>
+
                           </div>
 
-                          <div>
-                            <p className="text-sm font-semibold">
-                              {auction.title}
-                            </p>
+                        </td>
 
-                            <p className="mt-1 font-mono text-[10px] text-black/30">
-                              {auction.id}
-                            </p>
+                        {/* CATEGORY */}
+
+                        <td className="px-4 py-5">
+
+                          <span className="rounded-full bg-black/5 px-3 py-1.5 text-[10px] font-medium text-black/55">
+                            {auction.category}
+                          </span>
+
+                        </td>
+
+                        {/* PARTICIPANTS */}
+
+                        <td className="px-4 py-5">
+
+                          <div className="flex items-center gap-2 text-sm">
+
+                            <Users
+                              size={14}
+                              className="text-black/30"
+                            />
+
+                            {auction.participants.toLocaleString()}
+
                           </div>
 
-                        </div>
+                        </td>
 
-                      </td>
+                        {/* BIDS */}
 
-                      <td className="px-4 py-5">
-                        <span className="rounded-full bg-black/5 px-3 py-1.5 text-[10px] font-medium text-black/55">
-                          {auction.category}
-                        </span>
-                      </td>
+                        <td className="px-4 py-5 text-sm font-semibold">
+                          {auction.bids.toLocaleString()}
+                        </td>
 
-                      <td className="px-4 py-5">
+                        {/* TIME */}
 
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users
-                            size={14}
-                            className="text-black/30"
-                          />
+                        <td className="px-4 py-5">
 
-                          {auction.participants.toLocaleString()}
-                        </div>
+                          <div className="flex items-center gap-2">
 
-                      </td>
+                            <Clock3
+                              size={14}
+                              className={
+                                auction.status ===
+                                "Live"
+                                  ? "text-red-500"
+                                  : "text-black/25"
+                              }
+                            />
 
-                      <td className="px-4 py-5 text-sm font-semibold">
-                        {auction.bids.toLocaleString()}
-                      </td>
+                            <span
+                              className={`font-mono text-xs ${
+                                auction.status ===
+                                "Live"
+                                  ? "font-semibold text-red-500"
+                                  : "text-black/40"
+                              }`}
+                            >
+                              {auction.time}
+                            </span>
 
-                      <td className="px-4 py-5">
+                          </div>
 
-                        <div className="flex items-center gap-2">
+                        </td>
 
-                          <Clock3
-                            size={14}
-                            className={
-                              auction.status === "Live"
-                                ? "text-red-500"
-                                : "text-black/25"
+                        {/* STATUS */}
+
+                        <td className="px-4 py-5">
+
+                          <StatusBadge
+                            status={
+                              auction.status
                             }
                           />
 
-                          <span
-                            className={`font-mono text-xs ${
-                              auction.status === "Live"
-                                ? "font-semibold text-red-500"
-                                : "text-black/40"
-                            }`}
-                          >
-                            {auction.time}
-                          </span>
+                        </td>
 
-                        </div>
+                        {/* ACTIONS */}
 
-                      </td>
+                        <td className="px-6 py-5">
 
-                      <td className="px-4 py-5">
-                        <StatusBadge
-                          status={auction.status}
-                        />
-                      </td>
+                          <div className="flex justify-end gap-1">
 
-                      <td className="px-6 py-5">
+                            {/* VIEW */}
 
-                        <div className="flex justify-end gap-1">
+                            <a
+                              href={`/auctions/${auction.id}`}
+                              className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-black/5 hover:text-[#1681C5]"
+                              title="View auction"
+                            >
+                              <Eye
+                                size={16}
+                              />
+                            </a>
 
-                          <a
-                            href={`/auctions/${auction.id}`}
-                            className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-black/5 hover:text-[#1681C5]"
-                            title="View auction"
-                          >
-                            <Eye size={16} />
-                          </a>
+                            {/* EDIT */}
 
-                          <a
-                            href={`/admin/auctions/${auction.id}/edit`}
-                            className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-black/5 hover:text-[#1681C5]"
-                            title="Edit auction"
-                          >
-                            <Edit3 size={16} />
-                          </a>
+                            <a
+                              href={`/admin/auctions/${auction.id}/edit`}
+                              className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-black/5 hover:text-[#1681C5]"
+                              title="Edit auction"
+                            >
+                              <Edit3
+                                size={16}
+                              />
+                            </a>
 
-                          <button
-                            type="button"
-                            onClick={() => handleFeature(auction.id)}
-                            className={`grid h-9 w-9 place-items-center rounded-lg transition ${isFeatured(auction) ? "bg-[#F78000]/10 text-[#F78000]" : "text-black/40 hover:bg-[#F78000]/10 hover:text-[#F78000]"}`}
-                            title={isFeatured(auction) ? "Featured auction" : "Make featured auction"}
-                          >
-                            <Star size={16} fill={isFeatured(auction) ? "currentColor" : "none"} />
-                          </button>
+                            {/* FEATURE */}
 
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(auction.id)}
-                            className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-red-50 hover:text-red-500"
-                            title="Delete auction"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleFeature(
+                                  auction.id
+                                )
+                              }
+                              className={`grid h-9 w-9 place-items-center rounded-lg transition ${
+                                isFeatured(
+                                  auction
+                                )
+                                  ? "bg-[#F78000]/10 text-[#F78000]"
+                                  : "text-black/40 hover:bg-[#F78000]/10 hover:text-[#F78000]"
+                              }`}
+                              title={
+                                isFeatured(
+                                  auction
+                                )
+                                  ? "Featured auction"
+                                  : "Make featured auction"
+                              }
+                            >
+                              <Star
+                                size={16}
+                                fill={
+                                  isFeatured(
+                                    auction
+                                  )
+                                    ? "currentColor"
+                                    : "none"
+                                }
+                              />
+                            </button>
 
-                          <button
-                            type="button"
-                            onClick={() => handleComplete(auction.id)}
-                            className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-black/5"
-                            title="More options"
-                          >
-                            <MoreHorizontal size={16} />
-                          </button>
+                            {/* DELETE */}
 
-                        </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDelete(
+                                  auction.id
+                                )
+                              }
+                              className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-red-50 hover:text-red-500"
+                              title="Delete auction"
+                            >
+                              <Trash2
+                                size={16}
+                              />
+                            </button>
 
-                      </td>
+                            {/* MORE */}
 
-                    </tr>
-                  ))}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleComplete(
+                                  auction.id
+                                )
+                              }
+                              className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-black/5"
+                              title="More options"
+                            >
+                              <MoreHorizontal
+                                size={16}
+                              />
+                            </button>
+
+                          </div>
+
+                        </td>
+
+                      </tr>
+                    )
+                  )}
 
                 </tbody>
 
@@ -596,128 +1330,308 @@ export default function AuctionsAdminPage() {
 
             </div>
 
-            {/* MOBILE CARDS */}
+            {/* =================================================
+                MOBILE CARDS
+            ================================================= */}
+
             <div className="divide-y divide-black/5 md:hidden">
 
-              {filteredAuctions.map((auction) => (
-                <div
-                  key={auction.id}
-                  className="p-5"
-                >
+              {filteredAuctions.map(
+                (auction) => (
+                  <div
+                    key={auction.id}
+                    draggable={
+                      canReorder &&
+                      !savingOrder
+                    }
+                    onDragStart={(
+                      event
+                    ) =>
+                      handleDragStart(
+                        event,
+                        auction.id
+                      )
+                    }
+                    onDragOver={(
+                      event
+                    ) =>
+                      handleDragOver(
+                        event,
+                        auction.id
+                      )
+                    }
+                    onDrop={(event) =>
+                      handleDrop(
+                        event,
+                        auction.id
+                      )
+                    }
+                    onDragEnd={
+                      handleDragEnd
+                    }
+                    className={`p-5 transition ${
+                      dragOverAuctionId ===
+                      auction.id
+                        ? "bg-[#1681C5]/5"
+                        : ""
+                    } ${
+                      draggedAuctionId ===
+                      auction.id
+                        ? "opacity-40"
+                        : ""
+                    }`}
+                  >
 
-                  <div className="flex items-start justify-between gap-4">
+                    {/* TOP */}
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start justify-between gap-4">
 
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
-                        <Gavel size={17} />
+                      <div className="flex items-center gap-3">
+
+                        {/* DRAG HANDLE */}
+
+                        <button
+                          type="button"
+                          draggable={
+                            canReorder &&
+                            !savingOrder
+                          }
+                          onDragStart={(
+                            event
+                          ) =>
+                            handleDragStart(
+                              event,
+                              auction.id
+                            )
+                          }
+                          onDragEnd={
+                            handleDragEnd
+                          }
+                          disabled={
+                            !canReorder ||
+                            savingOrder
+                          }
+                          className={`flex h-9 w-7 shrink-0 items-center justify-center rounded-lg text-black/25 ${
+                            canReorder
+                              ? "cursor-grab active:cursor-grabbing"
+                              : "cursor-default opacity-40"
+                          }`}
+                          title={
+                            canReorder
+                              ? "Drag to reorder"
+                              : "Clear filters to reorder"
+                          }
+                          aria-label={`Reorder ${auction.title}`}
+                        >
+                          <Menu
+                            size={18}
+                            strokeWidth={
+                              2
+                            }
+                          />
+                        </button>
+
+                        {/* ICON */}
+
+                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
+                          <Gavel
+                            size={17}
+                          />
+                        </div>
+
+                        {/* TITLE */}
+
+                        <div>
+
+                          <p className="text-sm font-semibold">
+                            {auction.title}
+                          </p>
+
+                          <p className="mt-1 font-mono text-[10px] text-black/30">
+                            {auction.id}
+                          </p>
+
+                        </div>
+
                       </div>
 
-                      <div>
-                        <p className="text-sm font-semibold">
-                          {auction.title}
-                        </p>
+                      {/* STATUS */}
 
-                        <p className="mt-1 font-mono text-[10px] text-black/30">
-                          {auction.id}
-                        </p>
-                      </div>
-
-                    </div>
-
-                    <StatusBadge
-                      status={auction.status}
-                    />
-
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-3 gap-3">
-
-                    <InfoItem
-                      label="Category"
-                      value={auction.category}
-                    />
-
-                    <InfoItem
-                      label="Participants"
-                      value={auction.participants.toLocaleString()}
-                    />
-
-                    <InfoItem
-                      label="Bids"
-                      value={auction.bids.toLocaleString()}
-                    />
-
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between">
-
-                    <div className="flex items-center gap-2">
-
-                      <Clock3
-                        size={14}
-                        className={
-                          auction.status === "Live"
-                            ? "text-red-500"
-                            : "text-black/30"
+                      <StatusBadge
+                        status={
+                          auction.status
                         }
                       />
 
-                      <span className="font-mono text-xs text-black/50">
-                        {auction.time}
-                      </span>
+                    </div>
+
+                    {/* INFO */}
+
+                    <div className="mt-5 grid grid-cols-3 gap-3">
+
+                      <InfoItem
+                        label="Category"
+                        value={
+                          auction.category
+                        }
+                      />
+
+                      <InfoItem
+                        label="Participants"
+                        value={auction.participants.toLocaleString()}
+                      />
+
+                      <InfoItem
+                        label="Bids"
+                        value={auction.bids.toLocaleString()}
+                      />
 
                     </div>
 
-                    <div className="flex gap-1">
+                    {/* BOTTOM */}
 
-                      <a
-                        href={`/auctions/${auction.id}`}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40"
-                      >
-                        <Eye size={15} />
-                      </a>
+                    <div className="mt-5 flex items-center justify-between">
 
-                      <a
-                        href={`/admin/auctions/${auction.id}/edit`}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40"
-                      >
-                        <Edit3 size={15} />
-                      </a>
+                      {/* TIME */}
 
-                      <button
-                        type="button"
-                        onClick={() => handleFeature(auction.id)}
-                        className={`grid h-9 w-9 place-items-center rounded-lg border border-black/10 ${isFeatured(auction) ? "text-[#F78000]" : "text-black/40"}`}
-                        title={isFeatured(auction) ? "Featured auction" : "Make featured auction"}
-                      >
-                        <Star size={15} fill={isFeatured(auction) ? "currentColor" : "none"} />
-                      </button>
+                      <div className="flex items-center gap-2">
 
-                      <button
-                        type="button"
-                        onClick={() => handleComplete(auction.id)}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40"
-                        title="Complete auction"
-                      >
-                        <MoreHorizontal size={15} />
-                      </button>
+                        <Clock3
+                          size={14}
+                          className={
+                            auction.status ===
+                            "Live"
+                              ? "text-red-500"
+                              : "text-black/30"
+                          }
+                        />
+
+                        <span className="font-mono text-xs text-black/50">
+                          {auction.time}
+                        </span>
+
+                      </div>
+
+                      {/* ACTIONS */}
+
+                      <div className="flex gap-1">
+
+                        {/* VIEW */}
+
+                        <a
+                          href={`/auctions/${auction.id}`}
+                          className="grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40"
+                          title="View auction"
+                        >
+                          <Eye
+                            size={15}
+                          />
+                        </a>
+
+                        {/* EDIT */}
+
+                        <a
+                          href={`/admin/auctions/${auction.id}/edit`}
+                          className="grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40"
+                          title="Edit auction"
+                        >
+                          <Edit3
+                            size={15}
+                          />
+                        </a>
+
+                        {/* FEATURE */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleFeature(
+                              auction.id
+                            )
+                          }
+                          className={`grid h-9 w-9 place-items-center rounded-lg border border-black/10 ${
+                            isFeatured(
+                              auction
+                            )
+                              ? "text-[#F78000]"
+                              : "text-black/40"
+                          }`}
+                          title={
+                            isFeatured(
+                              auction
+                            )
+                              ? "Featured auction"
+                              : "Make featured auction"
+                          }
+                        >
+                          <Star
+                            size={15}
+                            fill={
+                              isFeatured(
+                                auction
+                              )
+                                ? "currentColor"
+                                : "none"
+                            }
+                          />
+                        </button>
+
+                        {/* DELETE */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleDelete(
+                              auction.id
+                            )
+                          }
+                          className="grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40 hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                          title="Delete auction"
+                        >
+                          <Trash2
+                            size={15}
+                          />
+                        </button>
+
+                        {/* COMPLETE */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleComplete(
+                              auction.id
+                            )
+                          }
+                          className="grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40"
+                          title="Complete auction"
+                        >
+                          <MoreHorizontal
+                            size={15}
+                          />
+                        </button>
+
+                      </div>
 
                     </div>
 
                   </div>
-
-                </div>
-              ))}
+                )
+              )}
 
             </div>
 
-            {/* EMPTY */}
-            {filteredAuctions.length === 0 && (
+            {/* =================================================
+                EMPTY
+            ================================================= */}
+
+            {filteredAuctions.length ===
+              0 && (
               <div className="flex min-h-[300px] flex-col items-center justify-center px-6 text-center">
 
                 <div className="grid h-14 w-14 place-items-center rounded-full bg-[#1681C5]/10 text-[#1681C5]">
-                  <Search size={21} />
+                  <Search
+                    size={21}
+                  />
                 </div>
 
                 <h3 className="mt-5 font-display text-2xl">
@@ -751,14 +1665,18 @@ function StatusBadge({
 }) {
   const styles = {
     Live: "bg-emerald-50 text-emerald-600",
-    Upcoming: "bg-[#1681C5]/10 text-[#1681C5]",
-    Completed: "bg-black/5 text-black/45",
+    Upcoming:
+      "bg-[#1681C5]/10 text-[#1681C5]",
+    Completed:
+      "bg-black/5 text-black/45",
   };
 
   return (
     <span
       className={`rounded-full px-3 py-1.5 text-[10px] font-bold ${
-        styles[status as keyof typeof styles]
+        styles[
+          status as keyof typeof styles
+        ]
       }`}
     >
       {status}
@@ -779,6 +1697,7 @@ function InfoItem({
 }) {
   return (
     <div>
+
       <p className="text-[9px] uppercase tracking-[0.12em] text-black/30">
         {label}
       </p>
@@ -786,6 +1705,7 @@ function InfoItem({
       <p className="mt-1 truncate text-xs font-semibold text-black/70">
         {value}
       </p>
+
     </div>
   );
 }
