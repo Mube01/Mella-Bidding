@@ -11,6 +11,28 @@ const categories = [
   "Mystery Box",
 ];
 
+type AuctionStatus = "upcoming" | "live" | "completed";
+
+function getAuctionStatus(
+  startsAt: Date | string,
+  endsAt: Date | string,
+  now = new Date()
+): AuctionStatus {
+  const start = new Date(startsAt).getTime();
+  const end = new Date(endsAt).getTime();
+  const current = now.getTime();
+
+  if (current < start) {
+    return "upcoming";
+  }
+
+  if (current < end) {
+    return "live";
+  }
+
+  return "completed";
+}
+
 async function createAuctionId() {
   for (let attempt = 0; attempt < 10; attempt += 1) {
     const publicId = `M${String(randomInt(1, 1000000)).padStart(6, "0")}`;
@@ -24,68 +46,147 @@ async function createAuctionId() {
 }
 
 export async function GET() {
-  const admin = await requireAdmin();
+  try {
+    const admin = await requireAdmin();
 
-  if (!admin) {
+    if (!admin) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Admin access required.",
+        },
+        { status: 403 }
+      );
+    }
+
+    await connectDB();
+
+    const auctions = await Auction.find()
+      .sort({
+        order: 1,
+        createdAt: -1,
+      })
+      .lean();
+
+    const now = new Date();
+
+    /*
+     * Calculate the real status from startsAt / endsAt.
+     *
+     * This means:
+     *
+     * Future auction  -> upcoming
+     * Running auction -> live
+     * Expired auction -> completed
+     *
+     * We also update the database when an auction has expired.
+     */
+    const updatedAuctions = await Promise.all(
+      auctions.map(async (auction) => {
+        const calculatedStatus = getAuctionStatus(
+          auction.startsAt,
+          auction.endsAt,
+          now
+        );
+
+        /*
+         * Keep the database status synchronized.
+         *
+         * Only update when the calculated status is different.
+         */
+        if (auction.status !== calculatedStatus) {
+          const updateData: Record<string, unknown> = {
+            status: calculatedStatus,
+          };
+
+          /*
+           * Save completion time when an auction becomes completed.
+           */
+          if (
+            calculatedStatus === "completed" &&
+            !auction.completedAt
+          ) {
+            updateData.completedAt = now;
+          }
+
+          await Auction.updateOne(
+            { _id: auction._id },
+            {
+              $set: updateData,
+            }
+          );
+
+          return {
+            ...auction,
+            status: calculatedStatus,
+            completedAt:
+              calculatedStatus === "completed"
+                ? auction.completedAt || now
+                : auction.completedAt,
+          };
+        }
+
+        return auction;
+      })
+    );
+
+    return NextResponse.json({
+      success: true,
+
+      auctions: updatedAuctions.map((auction) => ({
+        id: auction.publicId,
+        publicId: auction.publicId,
+
+        title: auction.title.en,
+        subtitle: auction.subtitle.en,
+        description: auction.description.en,
+
+        titleEn: auction.title.en,
+        titleAm: auction.title.am,
+
+        subtitleEn: auction.subtitle.en,
+        subtitleAm: auction.subtitle.am,
+
+        descriptionEn: auction.description.en,
+        descriptionAm: auction.description.am,
+
+        category: auction.category,
+
+        image: auction.image,
+        images: auction.images || [],
+
+        entryCost: auction.entryCost,
+
+        startsAt: auction.startsAt,
+        endsAt: auction.endsAt,
+
+        /*
+         * This is now the calculated/synchronized status.
+         */
+        status: auction.status,
+
+        featured: auction.featured,
+
+        // Admin controlled order
+        order: auction.order ?? 0,
+
+        participantCount: auction.participantCount,
+        bidCount: auction.bidCount,
+
+        completedAt: auction.completedAt || null,
+      })),
+    });
+  } catch (error) {
+    console.error("ADMIN_AUCTIONS_GET_ERROR:", error);
+
     return NextResponse.json(
       {
         success: false,
-        message: "Admin access required.",
+        message: "Unable to load auctions.",
       },
-      { status: 403 }
+      { status: 500 }
     );
   }
-
-  await connectDB();
-
-  const auctions = await Auction.find()
-    .sort({
-      order: 1,
-      createdAt: -1,
-    })
-    .lean();
-
-  return NextResponse.json({
-    success: true,
-
-    auctions: auctions.map((auction) => ({
-      id: auction.publicId,
-      publicId: auction.publicId,
-
-      title: auction.title.en,
-      subtitle: auction.subtitle.en,
-      description: auction.description.en,
-
-      titleEn: auction.title.en,
-      titleAm: auction.title.am,
-
-      subtitleEn: auction.subtitle.en,
-      subtitleAm: auction.subtitle.am,
-
-      descriptionEn: auction.description.en,
-      descriptionAm: auction.description.am,
-
-      category: auction.category,
-
-      image: auction.image,
-      images: auction.images || [],
-
-      entryCost: auction.entryCost,
-
-      startsAt: auction.startsAt,
-      endsAt: auction.endsAt,
-
-      status: auction.status,
-
-      featured: auction.featured,
-
-      // Admin controlled order
-      order: auction.order ?? 0,
-
-      participantCount: auction.participantCount,
-      bidCount: auction.bidCount,
-    })),
-  });
 }
 
 export async function POST(request: Request) {
@@ -179,6 +280,14 @@ export async function POST(request: Request) {
 
     const publicId = await createAuctionId();
 
+    /*
+     * Determine the initial status from the dates.
+     */
+    const initialStatus = getAuctionStatus(
+      startsAt,
+      endsAt
+    );
+
     const auction = await Auction.create({
       publicId,
 
@@ -212,6 +321,11 @@ export async function POST(request: Request) {
 
       startsAt,
       endsAt,
+
+      /*
+       * Set the correct initial status.
+       */
+      status: initialStatus,
 
       // New auctions start at the bottom
       order: nextOrder,

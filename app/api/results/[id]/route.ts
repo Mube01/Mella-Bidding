@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "../../../lib/db";
 import Auction from "../../../models/auction";
 import Bid from "../../../models/bid";
+import { getAuctionStatus } from "../../../lib/auction";
 
 function maskPhone(phone: string | undefined): string | null {
   if (!phone) return null;
@@ -18,11 +19,60 @@ export async function GET(
     await connectDB();
     const { id } = await params;
     const language = new URL(request.url).searchParams.get("lang") === "am" ? "am" : "en";
-    const auction = await Auction.findOne({ publicId: id }).lean();
 
-    if (!auction || auction.status !== "completed") {
-      return NextResponse.json({ success: false, message: "Result not found." }, { status: 404 });
+    const auction =
+  await Auction.findOne({
+    publicId: id,
+  }).lean();
+
+if (!auction) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Result not found.",
+    },
+    { status: 404 }
+  );
+}
+
+/*
+ * Calculate the real status from the dates.
+ */
+const status =
+  getAuctionStatus(auction);
+
+if (status !== "completed") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Result not found.",
+    },
+    { status: 404 }
+  );
+}
+
+/*
+ * Synchronize MongoDB status.
+ */
+if (auction.status !== "completed") {
+  await Auction.updateOne(
+    {
+      _id: auction._id,
+    },
+    {
+      $set: {
+        status: "completed",
+
+        ...(auction.completedAt
+          ? {}
+          : {
+              completedAt:
+                auction.endsAt,
+            }),
+      },
     }
+  );
+}
 
     const breakdown = await Bid.aggregate<{ _id: number; submissions: number }>([
       { $match: { auctionId: auction._id } },
@@ -47,7 +97,7 @@ export async function GET(
         image: auction.image,
         category: auction.category,
         date: auction.completedAt || auction.updatedAt,
-        participants: auction.participantCount,
+        bidCount: auction.bidCount,
         winningBid: winningBid?.amount || null,
         winnerName: winner?.name || null,
         winnerPhone: maskPhone(winner?.phone),

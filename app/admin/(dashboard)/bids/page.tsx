@@ -85,56 +85,180 @@ export default function BidsAdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/admin/bids", { cache: "no-store" })
+    fetch("/api/admin/bids", {
+      cache: "no-store",
+    })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
-          setBids(data.bids.map((item: any) => ({
-            id: item._id,
-            user: item.userId?.name || "Unknown user",
-            auction: item.auctionId?.title || "Unknown auction",
-            bid: `ETB ${Number(item.amount).toLocaleString()}`,
-            package: "Direct bid",
-            status: item.status === "accepted" ? "Accepted" : "Rejected",
-            time: new Date(item.createdAt).toLocaleString(),
-          })));
+        if (data.success && Array.isArray(data.bids)) {
+          setBids(
+            data.bids.map((item: any) => {
+              /*
+               * =====================================================
+               * AUCTION TITLE
+               * =====================================================
+               *
+               * auctionId.title is now:
+               *
+               * {
+               *   en: "...",
+               *   am: "..."
+               * }
+               *
+               * We must select one language before rendering.
+               */
+
+              let auctionTitle = "Unknown auction";
+
+              if (
+                item.auctionId?.title &&
+                typeof item.auctionId.title === "object"
+              ) {
+                auctionTitle =
+                  item.auctionId.title.en ||
+                  item.auctionId.title.am ||
+                  "Unknown auction";
+              } else if (
+                typeof item.auctionId?.title === "string"
+              ) {
+                auctionTitle =
+                  item.auctionId.title;
+              }
+
+              /*
+               * =====================================================
+               * USER NAME
+               * =====================================================
+               */
+
+              const userName =
+                item.userId?.name ||
+                item.userId?.phone ||
+                "Unknown user";
+
+              /*
+               * =====================================================
+               * STATUS
+               * =====================================================
+               */
+
+              let bidStatus = "Rejected";
+
+              if (item.status === "accepted") {
+                bidStatus = "Accepted";
+              } else if (item.status === "pending") {
+                bidStatus = "Pending";
+              } else if (item.status === "rejected") {
+                bidStatus = "Rejected";
+              }
+
+              return {
+                id:
+                  item._id ||
+                  "Unknown",
+
+                user:
+                  userName,
+
+                auction:
+                  auctionTitle,
+
+                bid:
+                  `ETB ${Number(
+                    item.amount || 0
+                  ).toLocaleString()}`,
+
+                package:
+                  item.packageName ||
+                  item.package ||
+                  "Direct bid",
+
+                status:
+                  bidStatus,
+
+                time:
+                  item.createdAt
+                    ? new Date(
+                        item.createdAt
+                      ).toLocaleString()
+                    : "Unknown",
+              };
+            })
+          );
         }
       })
-      .catch(() => undefined)
-      .finally(() => setLoading(false));
+      .catch((error) => {
+        console.error(
+          "ADMIN_BIDS_FETCH_ERROR:",
+          error
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   const filteredBids = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const query =
+      search.trim().toLowerCase();
 
     return bids.filter((bid) => {
       const matchesSearch =
-        bid.id.toLowerCase().includes(query) ||
-        bid.user.toLowerCase().includes(query) ||
-        bid.auction.toLowerCase().includes(query) ||
-        bid.package.toLowerCase().includes(query);
+        bid.id
+          .toLowerCase()
+          .includes(query) ||
+        bid.user
+          .toLowerCase()
+          .includes(query) ||
+        bid.auction
+          .toLowerCase()
+          .includes(query) ||
+        bid.package
+          .toLowerCase()
+          .includes(query);
 
       const matchesStatus =
-        status === "All" || bid.status === status;
+        status === "All" ||
+        bid.status === status;
 
-      return matchesSearch && matchesStatus;
+      return (
+        matchesSearch &&
+        matchesStatus
+      );
     });
-  }, [bids, search, status]);
+  }, [
+    bids,
+    search,
+    status,
+  ]);
 
-  const acceptedCount = bids.filter(
-    (bid) => bid.status === "Accepted"
-  ).length;
+  const acceptedCount =
+    bids.filter(
+      (bid) =>
+        bid.status ===
+        "Accepted"
+    ).length;
 
-  const pendingCount = bids.filter(
-    (bid) => bid.status === "Pending"
-  ).length;
+  const pendingCount =
+    bids.filter(
+      (bid) =>
+        bid.status ===
+        "Pending"
+    ).length;
 
-  const rejectedCount = bids.filter(
-    (bid) => bid.status === "Rejected"
-  ).length;
+  const rejectedCount =
+    bids.filter(
+      (bid) =>
+        bid.status ===
+        "Rejected"
+    ).length;
 
   if (loading) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]"><LoadingSpinner size="lg" /></main>;
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]">
+        <LoadingSpinner size="lg" />
+      </main>
+    );
   }
 
   return (
@@ -199,6 +323,7 @@ export default function BidsAdminPage() {
               <div className="flex items-center justify-between">
 
                 <div>
+
                   <p className="text-xs text-black/40">
                     Accepted Bids
                   </p>
@@ -206,6 +331,7 @@ export default function BidsAdminPage() {
                   <p className="mt-2 text-3xl font-bold">
                     {acceptedCount.toLocaleString()}
                   </p>
+
                 </div>
 
                 <div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
@@ -223,6 +349,7 @@ export default function BidsAdminPage() {
               <div className="flex items-center justify-between">
 
                 <div>
+
                   <p className="text-xs text-black/40">
                     Pending Bids
                   </p>
@@ -230,6 +357,7 @@ export default function BidsAdminPage() {
                   <p className="mt-2 text-3xl font-bold">
                     {pendingCount.toLocaleString()}
                   </p>
+
                 </div>
 
                 <div className="grid h-11 w-11 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
@@ -247,6 +375,7 @@ export default function BidsAdminPage() {
               <div className="flex items-center justify-between">
 
                 <div>
+
                   <p className="text-xs text-black/40">
                     Rejected Bids
                   </p>
@@ -254,6 +383,7 @@ export default function BidsAdminPage() {
                   <p className="mt-2 text-3xl font-bold">
                     {rejectedCount.toLocaleString()}
                   </p>
+
                 </div>
 
                 <div className="grid h-11 w-11 place-items-center rounded-xl bg-red-50 text-red-500">
@@ -291,7 +421,9 @@ export default function BidsAdminPage() {
                     type="search"
                     value={search}
                     onChange={(event) =>
-                      setSearch(event.target.value)
+                      setSearch(
+                        event.target.value
+                      )
                     }
                     placeholder="Search bids..."
                     className="h-11 w-full rounded-xl border border-black/10 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-black/30 focus:border-[#1681C5] focus:ring-2 focus:ring-[#1681C5]/10"
@@ -306,19 +438,23 @@ export default function BidsAdminPage() {
                   <select
                     value={status}
                     onChange={(event) =>
-                      setStatus(event.target.value)
+                      setStatus(
+                        event.target.value
+                      )
                     }
                     className="h-11 w-full appearance-none rounded-xl border border-black/10 bg-white pl-4 pr-10 text-sm text-black/60 outline-none transition focus:border-[#1681C5] sm:w-auto"
                   >
 
-                    {statuses.map((item) => (
-                      <option
-                        key={item}
-                        value={item}
-                      >
-                        {item}
-                      </option>
-                    ))}
+                    {statuses.map(
+                      (item) => (
+                        <option
+                          key={item}
+                          value={item}
+                        >
+                          {item}
+                        </option>
+                      )
+                    )}
 
                   </select>
 
@@ -384,95 +520,99 @@ export default function BidsAdminPage() {
 
                 <tbody>
 
-                  {filteredBids.map((bid) => (
-                    <tr
-                      key={bid.id}
-                      className="border-b border-black/5 transition hover:bg-black/[0.015]"
-                    >
+                  {filteredBids.map(
+                    (bid) => (
+                      <tr
+                        key={bid.id}
+                        className="border-b border-black/5 transition hover:bg-black/[0.015]"
+                      >
 
-                      {/* BID */}
+                        {/* BID */}
 
-                      <td className="px-6 py-5">
+                        <td className="px-6 py-5">
 
-                        <p className="font-mono text-[10px] text-black/30">
-                          {bid.id}
-                        </p>
+                          <p className="font-mono text-[10px] text-black/30">
+                            {bid.id}
+                          </p>
 
-                        <p className="mt-1 text-sm font-bold">
-                          {bid.bid}
-                        </p>
+                          <p className="mt-1 text-sm font-bold">
+                            {bid.bid}
+                          </p>
 
-                      </td>
+                        </td>
 
-                      {/* USER */}
+                        {/* USER */}
 
-                      <td className="px-4 py-5">
+                        <td className="px-4 py-5">
 
-                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3">
 
-                          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#1681C5]/10 text-[#1681C5]">
-                            <User size={15} />
+                            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#1681C5]/10 text-[#1681C5]">
+                              <User size={15} />
+                            </div>
+
+                            <span className="text-sm font-medium">
+                              {bid.user}
+                            </span>
+
                           </div>
 
-                          <span className="text-sm font-medium">
-                            {bid.user}
+                        </td>
+
+                        {/* AUCTION */}
+
+                        <td className="px-4 py-5">
+
+                          <p className="text-sm font-semibold">
+                            {bid.auction}
+                          </p>
+
+                        </td>
+
+                        {/* PACKAGE */}
+
+                        <td className="px-4 py-5">
+
+                          <span className="rounded-full bg-black/5 px-3 py-1.5 text-[10px] font-medium text-black/55">
+                            {bid.package}
                           </span>
 
-                        </div>
+                        </td>
 
-                      </td>
+                        {/* TIME */}
 
-                      {/* AUCTION */}
+                        <td className="px-4 py-5">
 
-                      <td className="px-4 py-5">
+                          <div className="flex items-center gap-2">
 
-                        <p className="text-sm font-semibold">
-                          {bid.auction}
-                        </p>
+                            <Clock3
+                              size={14}
+                              className="text-black/25"
+                            />
 
-                      </td>
+                            <span className="text-xs text-black/40">
+                              {bid.time}
+                            </span>
 
-                      {/* PACKAGE */}
+                          </div>
 
-                      <td className="px-4 py-5">
+                        </td>
 
-                        <span className="rounded-full bg-black/5 px-3 py-1.5 text-[10px] font-medium text-black/55">
-                          {bid.package}
-                        </span>
+                        {/* STATUS */}
 
-                      </td>
+                        <td className="px-4 py-5">
 
-                      {/* TIME */}
-
-                      <td className="px-4 py-5">
-
-                        <div className="flex items-center gap-2">
-
-                          <Clock3
-                            size={14}
-                            className="text-black/25"
+                          <StatusBadge
+                            status={
+                              bid.status
+                            }
                           />
 
-                          <span className="text-xs text-black/40">
-                            {bid.time}
-                          </span>
+                        </td>
 
-                        </div>
-
-                      </td>
-
-                      {/* STATUS */}
-
-                      <td className="px-4 py-5">
-
-                        <StatusBadge
-                          status={bid.status}
-                        />
-
-                      </td>
-
-                    </tr>
-                  ))}
+                      </tr>
+                    )
+                  )}
 
                 </tbody>
 
@@ -486,70 +626,82 @@ export default function BidsAdminPage() {
 
             <div className="divide-y divide-black/5 md:hidden">
 
-              {filteredBids.map((bid) => (
-                <div
-                  key={bid.id}
-                  className="p-5"
-                >
+              {filteredBids.map(
+                (bid) => (
+                  <div
+                    key={bid.id}
+                    className="p-5"
+                  >
 
-                  {/* TOP */}
+                    {/* TOP */}
 
-                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start justify-between gap-4">
 
-                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
 
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
-                        <Gavel size={17} />
+                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#1681C5]/10 text-[#1681C5]">
+                          <Gavel size={17} />
+                        </div>
+
+                        <div className="min-w-0">
+
+                          <p className="truncate text-sm font-semibold">
+                            {bid.user}
+                          </p>
+
+                          <p className="mt-1 font-mono text-[10px] text-black/30">
+                            {bid.id}
+                          </p>
+
+                        </div>
+
                       </div>
 
-                      <div className="min-w-0">
-
-                        <p className="truncate text-sm font-semibold">
-                          {bid.user}
-                        </p>
-
-                        <p className="mt-1 font-mono text-[10px] text-black/30">
-                          {bid.id}
-                        </p>
-
-                      </div>
+                      <StatusBadge
+                        status={
+                          bid.status
+                        }
+                      />
 
                     </div>
 
-                    <StatusBadge
-                      status={bid.status}
-                    />
+                    {/* INFO */}
+
+                    <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-5">
+
+                      <InfoItem
+                        label="Auction"
+                        value={
+                          bid.auction
+                        }
+                      />
+
+                      <InfoItem
+                        label="Bid"
+                        value={
+                          bid.bid
+                        }
+                      />
+
+                      <InfoItem
+                        label="Package"
+                        value={
+                          bid.package
+                        }
+                      />
+
+                      <InfoItem
+                        label="Time"
+                        value={
+                          bid.time
+                        }
+                      />
+
+                    </div>
 
                   </div>
-
-                  {/* INFO */}
-
-                  <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-5">
-
-                    <InfoItem
-                      label="Auction"
-                      value={bid.auction}
-                    />
-
-                    <InfoItem
-                      label="Bid"
-                      value={bid.bid}
-                    />
-
-                    <InfoItem
-                      label="Package"
-                      value={bid.package}
-                    />
-
-                    <InfoItem
-                      label="Time"
-                      value={bid.time}
-                    />
-
-                  </div>
-
-                </div>
-              ))}
+                )
+              )}
 
             </div>
 
@@ -557,38 +709,45 @@ export default function BidsAdminPage() {
                 EMPTY STATE
             ================================================= */}
 
-            {filteredBids.length === 0 && (
-              <div className="flex min-h-[300px] flex-col items-center justify-center px-6 text-center">
+            {filteredBids.length ===
+              0 && (
+                <div className="flex min-h-[300px] flex-col items-center justify-center px-6 text-center">
 
-                <div className="grid h-14 w-14 place-items-center rounded-full bg-[#1681C5]/10 text-[#1681C5]">
-                  <Gavel size={21} />
+                  <div className="grid h-14 w-14 place-items-center rounded-full bg-[#1681C5]/10 text-[#1681C5]">
+                    <Gavel size={21} />
+                  </div>
+
+                  <h3 className="mt-5 font-display text-2xl">
+                    No bids found
+                  </h3>
+
+                  <p className="mt-2 text-sm text-black/40">
+                    Try changing your search or filter.
+                  </p>
+
                 </div>
-
-                <h3 className="mt-5 font-display text-2xl">
-                  No bids found
-                </h3>
-
-                <p className="mt-2 text-sm text-black/40">
-                  Try changing your search or filter.
-                </p>
-
-              </div>
-            )}
+              )}
 
           </section>
 
           {/* RESULT COUNT */}
 
-          {filteredBids.length > 0 && (
-            <div className="mt-4 flex justify-end">
+          {filteredBids.length >
+            0 && (
+              <div className="mt-4 flex justify-end">
 
-              <p className="text-xs text-black/35">
-                Showing {filteredBids.length} of{" "}
-                {bids.length} bids
-              </p>
+                <p className="text-xs text-black/35">
+                  Showing{" "}
+                  {
+                    filteredBids.length
+                  }{" "}
+                  of{" "}
+                  {bids.length}{" "}
+                  bids
+                </p>
 
-            </div>
-          )}
+              </div>
+            )}
 
         </div>
 
@@ -608,15 +767,22 @@ function StatusBadge({
   status: string;
 }) {
   const styles = {
-    Accepted: "bg-emerald-50 text-emerald-600",
-    Pending: "bg-[#1681C5]/10 text-[#1681C5]",
-    Rejected: "bg-red-50 text-red-500",
+    Accepted:
+      "bg-emerald-50 text-emerald-600",
+
+    Pending:
+      "bg-[#1681C5]/10 text-[#1681C5]",
+
+    Rejected:
+      "bg-red-50 text-red-500",
   };
 
   return (
     <span
       className={`inline-flex rounded-full px-3 py-1.5 text-[10px] font-bold ${
-        styles[status as keyof typeof styles]
+        styles[
+          status as keyof typeof styles
+        ]
       }`}
     >
       {status}

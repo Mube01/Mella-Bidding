@@ -916,8 +916,10 @@ export default function AuctionDetailsPage() {
                   {language === "am"
                     ? "ብር"
                     : "ETB"}{" "}
-                  {auction.entryCost?.toFixed(2) ??
-                    "0.00"}
+                  {Number(auction.entryCost ?? 0).toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
               </div>
 

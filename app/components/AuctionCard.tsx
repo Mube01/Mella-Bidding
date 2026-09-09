@@ -466,7 +466,10 @@ const validateBid = () => {
           {t("entryFrom")}{" "}
 
           <span className="font-bold text-black/90">
-            {auction.entry}
+            {Number.parseFloat(String(auction.entry ?? "0")).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
           </span>
         </p>
       </div>

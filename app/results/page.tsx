@@ -19,126 +19,210 @@ import { useLanguage } from "../context/LanguageContext";
 type Result = {
   id: string;
   title: string;
-  subtitleKey:
-    | "brandNewSubtitle"
-    | "smartTvSubtitle"
-    | "premiumTechnologyBoxSubtitle"
-    | "playstationSubtitle"
-    | "refrigeratorSubtitle"
-    | "macbookSubtitle";
+  subtitle: string;
   image: string;
   categoryKey:
     | "electronicsCategory"
     | "mysteryBoxCategory"
     | "homeCategory";
   winner: string;
+  winnerPhone: string;
   winningBid: string;
   date: string;
   amDate: string;
-  participants: number;
+  bidCount: number;
 };
 
-const results: Result[] = [
-  {
-    id: "M0009",
-    title: "iPhone 16 Pro Max",
-    subtitleKey: "brandNewSubtitle",
-    image: "/images/iphone.avif",
-    categoryKey: "electronicsCategory",
-    winner: "Samuel T.",
-    winningBid: "ETB 1,250",
-    date: "Aug 23, 2026",
-    amDate: "ኦገስት 23፣ 2026",
-    participants: 764,
-  },
-  {
-    id: "M0008",
-    title: "Samsung 55″ OLED TV",
-    subtitleKey: "smartTvSubtitle",
-    image: "/images/tv.jpg",
-    categoryKey: "electronicsCategory",
-    winner: "Mimi A.",
-    winningBid: "ETB 875",
-    date: "Aug 21, 2026",
-    amDate: "ኦገስት 21፣ 2026",
-    participants: 528,
-  },
-  {
-    id: "M0007",
-    title: "Mystery Tech Box",
-    subtitleKey: "premiumTechnologyBoxSubtitle",
-    image: "/images/box.jpg",
-    categoryKey: "mysteryBoxCategory",
-    winner: "Daniel K.",
-    winningBid: "ETB 420",
-    date: "Aug 19, 2026",
-    amDate: "ኦገስት 19፣ 2026",
-    participants: 936,
-  },
-  {
-    id: "M0006",
-    title: "PlayStation 5",
-    subtitleKey: "playstationSubtitle",
-    image: "/images/ps5.jpg",
-    categoryKey: "electronicsCategory",
-    winner: "Abel M.",
-    winningBid: "ETB 680",
-    date: "Aug 17, 2026",
-    amDate: "ኦገስት 17፣ 2026",
-    participants: 692,
-  },
-  {
-    id: "M0005",
-    title: "LG Smart Refrigerator",
-    subtitleKey: "refrigeratorSubtitle",
-    image: "/images/refrigerator.avif",
-    categoryKey: "homeCategory",
-    winner: "Hana B.",
-    winningBid: "ETB 510",
-    date: "Aug 15, 2026",
-    amDate: "ኦገስት 15፣ 2026",
-    participants: 401,
-  },
-  {
-    id: "M0004",
-    title: "MacBook Air",
-    subtitleKey: "macbookSubtitle",
-    image: "/images/macbook.jpg",
-    categoryKey: "electronicsCategory",
-    winner: "Yonas G.",
-    winningBid: "ETB 1,100",
-    date: "Aug 12, 2026",
-    amDate: "ኦገስት 12፣ 2026",
-    participants: 613,
-  },
-];
+/*
+ * =============================================================
+ * ETHIOPIAN CALENDAR
+ * =============================================================
+ *
+ * Converts a JavaScript Gregorian Date into the Ethiopian
+ * calendar and displays it using the Amharic locale.
+ *
+ * Example:
+ * Gregorian:
+ * Sep 9, 2026
+ *
+ * Ethiopian:
+ * ጳጉሜን 4, 2018
+ */
+
+function formatEthiopianDate(date: Date): string {
+  return new Intl.DateTimeFormat("am-ET-u-ca-ethiopic", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
 
 export default function ResultsPage() {
   const { t, language } = useLanguage();
+
   const [search, setSearch] = useState("");
-  const [databaseResults, setDatabaseResults] = useState<Result[] | null>(null);
+  const [databaseResults, setDatabaseResults] =
+    useState<Result[] | null>(null);
+
+  /*
+   * =========================================================
+   * LOAD RESULTS
+   * =========================================================
+   */
 
   useEffect(() => {
-    fetch(`/api/results?lang=${language}`, { cache: "no-store" })
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.success) return;
-        setDatabaseResults(data.results.map((result: any) => ({
-          ...result,
-          winningBid: `ETB ${Number(result.winningBid).toLocaleString()}`,
-          date: new Date(result.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-          amDate: new Date(result.date).toLocaleDateString(),
-          subtitleKey: "brandNewSubtitle",
-          categoryKey: result.category === "Home" ? "homeCategory" : result.category === "Mystery Box" ? "mysteryBoxCategory" : "electronicsCategory",
-        })));
+    let cancelled = false;
+
+    setDatabaseResults(null);
+
+    fetch(`/api/results?lang=${language}`, {
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Failed to load results");
+        }
+
+        return response.json();
       })
-      .catch(() => setDatabaseResults([]));
+      .then((data) => {
+        if (cancelled) return;
+
+        if (!data?.success || !Array.isArray(data.results)) {
+          setDatabaseResults([]);
+          return;
+        }
+
+        const formattedResults: Result[] = data.results.map(
+          (result: any) => {
+            /*
+             * =================================================
+             * CATEGORY TRANSLATION KEY
+             * =================================================
+             */
+
+            const categoryKey =
+              result.category === "Home"
+                ? "homeCategory"
+                : result.category === "Mystery Box"
+                ? "mysteryBoxCategory"
+                : "electronicsCategory";
+
+            /*
+             * =================================================
+             * DATE
+             * =================================================
+             */
+
+            const resultDate = result.date
+              ? new Date(result.date)
+              : null;
+
+            const validDate =
+              resultDate &&
+              !Number.isNaN(resultDate.getTime())
+                ? resultDate
+                : null;
+
+            const date = validDate
+              ? validDate.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "";
+
+            const amDate = validDate
+              ? formatEthiopianDate(validDate)
+              : "";
+
+            /*
+             * =================================================
+             * WINNING BID
+             * =================================================
+             */
+
+            const winningBidAmount = Number(
+              result.winningBid ?? 0
+            );
+
+            const winningBid = `ETB ${
+              Number.isFinite(winningBidAmount)
+                ? winningBidAmount.toLocaleString("en-US")
+                : "0"
+            }`;
+
+            /*
+             * =================================================
+             * RETURN RESULT
+             * =================================================
+             */
+
+            return {
+              id: String(result.id ?? ""),
+
+              title: result.title || "",
+
+              subtitle: result.subtitle || "",
+
+              image: result.image || "",
+
+              categoryKey,
+
+              winnerPhone:
+                result.winnerPhone || "",
+
+              winner:
+                result.winner || "",
+
+              winningBid,
+
+              date,
+
+              amDate,
+
+              bidCount:
+                Number(result.bidCount ?? 0),
+            };
+          }
+        );
+
+        setDatabaseResults(formattedResults);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+
+        console.error(
+          "RESULTS_PAGE_ERROR:",
+          error
+        );
+
+        setDatabaseResults([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [language]);
 
-  const sourceResults = databaseResults ?? results;
+  /*
+   * =========================================================
+   * SOURCE RESULTS
+   * =========================================================
+   */
+
+  const sourceResults = databaseResults ?? [];
+
+  /*
+   * =========================================================
+   * SEARCH / FILTER
+   * =========================================================
+   */
 
   const filteredResults = useMemo(() => {
-    const query = search.toLowerCase().trim();
+    const query = search
+      .toLowerCase()
+      .trim();
 
     if (!query) {
       return sourceResults;
@@ -146,21 +230,33 @@ export default function ResultsPage() {
 
     return sourceResults.filter(
       (result) =>
-        result.title.toLowerCase().includes(query) ||
-        result.winner.toLowerCase().includes(query) ||
-        result.id.toLowerCase().includes(query)
+        result.title
+          .toLowerCase()
+          .includes(query) ||
+        result.subtitle
+          .toLowerCase()
+          .includes(query) ||
+        result.winner
+          .toLowerCase()
+          .includes(query) ||
+        result.id
+          .toLowerCase()
+          .includes(query)
     );
   }, [search, sourceResults]);
 
   return (
     <main
       className={`min-h-screen bg-white ${
-        language === "am" ? "font-sans" : ""
+        language === "am"
+          ? "font-sans"
+          : ""
       }`}
     >
       <Header />
 
       <div className="pt-[120px]">
+
         {/* =====================================================
             HERO
         ===================================================== */}
@@ -172,6 +268,7 @@ export default function ResultsPage() {
 
           <div className="relative mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-28">
             <div className="max-w-4xl">
+
               <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.28em] text-[#F78000]">
                 <span className="h-px w-8 bg-[#F78000]" />
 
@@ -191,6 +288,7 @@ export default function ResultsPage() {
               <p className="mt-7 max-w-2xl text-base leading-7 text-black/50 sm:text-lg">
                 {t("resultsPageDescription")}
               </p>
+
             </div>
           </div>
         </section>
@@ -200,18 +298,22 @@ export default function ResultsPage() {
         ===================================================== */}
 
         <section className="mx-auto max-w-7xl px-6 py-12 lg:px-10">
+
           <div className="flex flex-col justify-between gap-5 border-b border-black/10 pb-6 sm:flex-row sm:items-center">
+
             <div>
               <p className="text-[10px] font-bold tracking-[0.2em] text-black/30">
                 {t("completedAuctions")}
               </p>
 
               <p className="mt-2 text-sm text-black/45">
-                {filteredResults.length} {t("publishedResults")}
+                {filteredResults.length}{" "}
+                {t("publishedResults")}
               </p>
             </div>
 
             <div className="relative w-full sm:w-[300px]">
+
               <Search
                 size={17}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-black/30"
@@ -220,10 +322,13 @@ export default function ResultsPage() {
               <input
                 type="search"
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
                 placeholder={t("searchResults")}
                 className="h-11 w-full rounded-full border border-black/10 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-black/30 focus:border-[#1681C5] focus:ring-2 focus:ring-[#1681C5]/10"
               />
+
             </div>
           </div>
 
@@ -232,20 +337,36 @@ export default function ResultsPage() {
           =================================================== */}
 
           {databaseResults === null ? (
+
             <div className="flex min-h-[420px] items-center justify-center">
               <LoadingSpinner size="lg" />
             </div>
+
           ) : filteredResults.length > 0 ? (
-            <div className="mt-8 space-y-4">
+
+            /*
+             * =================================================
+             * AUCTION CARD STYLE GRID
+             * =================================================
+             */
+
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
               {filteredResults.map((result) => (
+
                 <article
                   key={result.id}
-                  className="group overflow-hidden rounded-2xl border border-black/10 bg-white transition duration-300 hover:border-[#1681C5]/30 hover:shadow-lg"
+                  className="group overflow-hidden rounded-2xl border border-[#999] bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
                 >
-                  <Link href={`/results/${result.id}`} className="sm:flex">
-                    {/* IMAGE */}
 
-                    <div className="relative aspect-[1.4/1] shrink-0 overflow-hidden border-b border-black/10 sm:aspect-auto sm:min-h-[230px] sm:w-56 sm:border-b-0">
+                  {/* =================================================
+                      IMAGE
+                  ================================================= */}
+
+                  <Link href={`/results/${result.id}`}>
+
+                    <div className="relative aspect-[1.05/1] overflow-hidden border-b border-black/10">
+
                       <img
                         src={result.image}
                         alt={result.title}
@@ -263,17 +384,29 @@ export default function ResultsPage() {
                       <div className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/95 text-[#F78000] shadow-md backdrop-blur">
                         <Trophy size={17} />
                       </div>
+
                     </div>
 
-                    {/* CONTENT */}
+                  </Link>
 
-                    <div className="min-h-[230px] flex-1 p-5 sm:p-6">
-                      {/* TITLE */}
+                  {/* =================================================
+                      CONTENT
+                  ================================================= */}
 
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
+                  <div className="p-5">
+
+                    {/* =================================================
+                        TITLE
+                    ================================================= */}
+
+                    <div className="flex items-start justify-between gap-4">
+
+                      <div className="min-w-0">
+
+                        <Link href={`/results/${result.id}`}>
+
                           <h3
-                            className={`text-2xl text-black ${
+                            className={`text-xl text-black transition hover:text-[#1681C5] ${
                               language === "am"
                                 ? "font-sans"
                                 : "font-display"
@@ -282,113 +415,164 @@ export default function ResultsPage() {
                             {result.title}
                           </h3>
 
-                          <p className="mt-1 text-sm text-black/50">
-                            {t(result.subtitleKey)}
-                          </p>
-                        </div>
+                        </Link>
 
-                        {/* AUCTION ID */}
+                        <p className="mt-1 text-sm text-black/50">
+                          {result.subtitle}
+                        </p>
 
-                        <span className="shrink-0 rounded-md bg-black/5 px-2 py-1 font-mono text-[9px] text-black/40">
-                          #{result.id}
-                        </span>
                       </div>
 
-                      {/* WINNER / WINNING BID */}
+                      {/* AUCTION ID */}
 
-                      <div className="mt-5 grid grid-cols-2 gap-4 border-y border-black/10 py-4 sm:max-w-xl">
-                        {/* WINNER */}
-
-                        <div>
-                          <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
-                            <Crown size={10} />
-
-                            {t("winnerLabel")}
-                          </p>
-
-                          <p className="mt-1 truncate text-sm font-semibold text-[#1681C5]">
-                            {result.winner}
-                          </p>
-                        </div>
-
-                        {/* WINNING BID */}
-
-                        <div>
-                          <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
-                            <Trophy size={10} />
-
-                            {t("winningBidLabel")}
-                          </p>
-
-                          <p className="mt-1 text-sm font-semibold text-[#F78000]">
-                            {result.winningBid}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* COMPLETION INFORMATION */}
-
-                      <div className="mt-4 grid grid-cols-2 gap-2">
-                        {/* COMPLETED */}
-
-                        <div>
-                          <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
-                            <CalendarDays size={10} />
-
-                            {t("completedStatus")}
-                          </p>
-
-                          <p className="mt-1 text-xs font-semibold text-black/70">
-                            {language === "am"
-                              ? result.amDate
-                              : result.date}
-                          </p>
-                        </div>
-
-                        {/* PARTICIPANTS */}
-
-                        <div>
-                          <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
-                            <Users size={10} />
-
-                            {t("participantsLabel")}
-                          </p>
-
-                          <p className="mt-1 text-xs font-semibold text-black/70">
-                            {result.participants.toLocaleString(
-                              language === "am" ? "am-ET" : "en-US"
-                            )}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* VIEW RESULT */}
-
-                      <span className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#F78000] px-4 text-sm font-bold text-white shadow-md shadow-[#F78000]/20 transition hover:bg-[#D96E00] hover:shadow-lg">
-                        {t("viewResult")}
-
-                        <ArrowRight
-                          size={16}
-                          className="transition-transform group-hover:translate-x-1"
-                        />
+                      <span className="shrink-0 rounded-md bg-black/5 px-2 py-1 font-mono text-[9px] text-black/40">
+                        #{result.id}
                       </span>
 
-                      {/* STATUS */}
-
-                      <p className="mt-3 text-center text-[12px] text-black/40">
-                        {t("auctionCompletedStatus")}
-                      </p>
                     </div>
-                  </Link>
+
+                    {/* =================================================
+                        INFO
+                    ================================================= */}
+
+                    <div className="mt-5 grid grid-cols-2 gap-2 border-y border-black/10 py-4">
+
+                      {/* WINNER */}
+
+                      <div className="min-w-0">
+
+                        <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
+                          <Crown size={10} />
+
+                          {t("winnerLabel")}
+                        </p>
+
+                        <p className="mt-1 truncate text-sm font-semibold text-[#1681C5]">
+                          {result.winner}
+                        </p>
+
+                        {result.winnerPhone && (
+                          <p className="mt-1 truncate text-xs text-gray-500">
+                            {result.winnerPhone}
+                          </p>
+                        )}
+
+                      </div>
+
+                      {/* WINNING BID */}
+
+                      <div>
+
+                        <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
+                          <Trophy size={10} />
+
+                          {t("winningBidLabel")}
+                        </p>
+
+                        <p className="mt-1 text-sm font-semibold text-[#F78000]">
+                          {result.winningBid}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    {/* =================================================
+                        COMPLETION INFORMATION
+                    ================================================= */}
+
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+
+                      {/* COMPLETED */}
+
+                      <div>
+
+                        <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
+                          <CalendarDays size={10} />
+
+                          {t("completedStatus")}
+                        </p>
+
+                        {/* GREGORIAN DATE */}
+
+                        {language === "am" ? (
+                          <p
+                            className="mt-1 text-[11px] font-medium text-[#1681C5]"
+                            dir="ltr"
+                          >
+                            {result.amDate}
+                          </p>
+                        ) : (
+                          <p className="mt-1 text-xs font-semibold text-black/70">
+                            {result.date}
+                          </p>
+                        )}
+
+                      </div>
+
+                      {/* PARTICIPANTS */}
+
+                      <div>
+
+                        <p className="flex items-center gap-1 text-[8px] tracking-[0.18em] text-black/40">
+                          <Users size={10} />
+
+                          {t("participantsLabel")}
+                        </p>
+
+                        <p className="mt-1 text-xs font-semibold text-black/70">
+                          {Number(
+                            result.bidCount ?? 0
+                          ).toLocaleString(
+                            language === "am"
+                              ? "am-ET"
+                              : "en-US"
+                          )}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    {/* =================================================
+                        VIEW RESULT
+                    ================================================= */}
+
+                    <Link
+                      href={`/results/${result.id}`}
+                      className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#F78000] px-4 text-sm font-bold text-white shadow-md shadow-[#F78000]/20 transition hover:bg-[#D96E00] hover:shadow-lg"
+                    >
+                      {t("viewResult")}
+
+                      <ArrowRight
+                        size={16}
+                        className="transition-transform group-hover:translate-x-1"
+                      />
+                    </Link>
+
+                    {/* =================================================
+                        STATUS
+                    ================================================= */}
+
+                    <p className="mt-3 text-center text-[12px] text-black/40">
+                      {t("auctionCompletedStatus")}
+                    </p>
+
+                  </div>
                 </article>
+
               ))}
+
             </div>
+
           ) : (
+
             /* =================================================
                NO RESULTS
-            ================================================= */
+            */
 
             <div className="flex min-h-[350px] flex-col items-center justify-center text-center">
+
               <div className="grid h-16 w-16 place-items-center rounded-full bg-[#F78000]/10 text-[#F78000]">
                 <Search size={24} />
               </div>
@@ -414,8 +598,11 @@ export default function ResultsPage() {
               >
                 {t("clearSearch")}
               </button>
+
             </div>
+
           )}
+
         </section>
 
         {/* =====================================================
@@ -423,9 +610,13 @@ export default function ResultsPage() {
         ===================================================== */}
 
         <section className="border-y border-black/10 bg-black/[0.02]">
+
           <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-24">
+
             <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+
               <div>
+
                 <p className="text-[10px] font-bold tracking-[0.25em] text-[#1681C5]">
                   {t("transparent")}
                 </p>
@@ -443,28 +634,44 @@ export default function ResultsPage() {
                 <p className="mt-5 max-w-xl text-sm leading-7 text-black/45">
                   {t("resultsVisibleDescription")}
                 </p>
+
               </div>
 
               <div className="rounded-3xl border border-black/10 bg-white p-7">
+
                 <div className="space-y-5">
+
                   <ResultPoint
                     title={t("publishedWinnerPoint")}
-                    description={t("publishedWinnerPointDescription")}
+                    description={t(
+                      "publishedWinnerPointDescription"
+                    )}
                   />
 
                   <ResultPoint
                     title={t("auctionRecordPoint")}
-                    description={t("auctionRecordPointDescription")}
+                    description={t(
+                      "auctionRecordPointDescription"
+                    )}
                   />
 
                   <ResultPoint
-                    title={t("participantVisibilityPoint")}
-                    description={t("participantVisibilityPointDescription")}
+                    title={t(
+                      "participantVisibilityPoint"
+                    )}
+                    description={t(
+                      "participantVisibilityPointDescription"
+                    )}
                   />
+
                 </div>
+
               </div>
+
             </div>
+
           </div>
+
         </section>
 
         {/* =====================================================
@@ -472,7 +679,9 @@ export default function ResultsPage() {
         ===================================================== */}
 
         <section className="mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-28">
+
           <div className="rounded-[2rem] bg-[#1681C5] p-8 text-white sm:p-12 lg:p-16">
+
             <h2
               className={`text-4xl sm:text-5xl ${
                 language === "am"
@@ -495,10 +704,13 @@ export default function ResultsPage() {
 
               <ArrowRight size={16} />
             </Link>
+
           </div>
+
         </section>
 
         <Footer />
+
       </div>
     </main>
   );
@@ -517,15 +729,21 @@ function ResultPoint({
 }) {
   return (
     <div className="flex gap-4">
+
       <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#F78000]" />
 
       <div>
-        <h3 className="text-sm font-bold">{title}</h3>
+
+        <h3 className="text-sm font-bold">
+          {title}
+        </h3>
 
         <p className="mt-1 text-xs leading-5 text-black/40">
           {description}
         </p>
+
       </div>
+
     </div>
   );
 }

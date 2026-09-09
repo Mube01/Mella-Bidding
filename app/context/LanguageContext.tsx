@@ -485,7 +485,31 @@ exploreLiveAuctions:
     auctionNotFoundDescription: "The auction you're looking for doesn't exist or is no longer available.",
     backToAuctions: "Back to auctions",
     serviceFee: "Service Fee",
-    currency: "ETB"
+    currency: "ETB",
+    
+transparentBidBreakdown:
+  "TRANSPARENT BID BREAKDOWN",
+
+everySubmittedAmount:
+  "Every submitted amount",
+
+bidderIdentitiesPrivate:
+  "Bidder identities are private. Counts show exactly how the winner was determined.",
+
+submissions:
+  "Submissions",
+
+result:
+  "Result",
+
+winnerLowestUniqueBid:
+  "Winner: lowest unique bid",
+
+unique:
+  "Unique",
+
+notUnique:
+  "Not unique",
   },
 
   am: {
@@ -724,7 +748,7 @@ exploreLiveAuctions:
       "ተጠናቋል",
 
     participantsLabel:
-      "ተሳታፊዎች",
+      "ተጫራቾች",
 
     completedLabel:
       "የተጠናቀቀ",
@@ -769,7 +793,7 @@ exploreLiveAuctions:
       "የአሸናፊው መጫረቻ እና የጨረታው መረጃ ታትሟል።",
 
     participationRecord:
-      "የተሳታፊዎች መረጃ",
+      "የተጫራቾች መረጃ",
 
     participationRecordDescription:
       "የጨረታው ተሳታፊዎች ቁጥር በውጤቱ ውስጥ ይታያል።",
@@ -1057,6 +1081,31 @@ exploreLiveAuctions:
     backToAuctions: "ወደ ጨረታዎች ተመለስ",
     serviceFee: "የአገልግሎት ክፍያ",
     currency: "ብር",
+
+transparentBidBreakdown:
+  "ግልጽ የጨረታ ዝርዝር",
+
+everySubmittedAmount:
+  "የቀረቡ ሁሉም የጨረታ መጠኖች",
+
+bidderIdentitiesPrivate:
+  "የተሳታፊዎች ማንነት ሚስጥራዊ ነው። ብዛቱ አሸናፊው እንዴት እንደተመረጠ በግልጽ ያሳያል።",
+
+submissions:
+  "የቀረቡት ብዛት",
+
+result:
+  "ውጤት",
+
+winnerLowestUniqueBid:
+  "አሸናፊ፡ ዝቅተኛው ልዩ ጨረታ",
+
+unique:
+  "ልዩ",
+
+notUnique:
+  "ልዩ አይደለም",
+
   },
 };
 
