@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import { useLanguage } from "../../context/LanguageContext";
+import Image from "next/image";
 
 interface AuthShellProps {
   children: ReactNode;
@@ -51,7 +52,13 @@ export default function AuthShell({
               href="/"
               className="font-brand text-4xl text-white transition hover:text-[#F78000]"
             >
-              MELLA
+                <Image
+  src="/images/mella.png"
+  alt="Mella"
+  width={140}
+  height={50}
+  className="h-auto w-[140px] object-contain"
+/>
             </Link>
 
             {/* =================================================

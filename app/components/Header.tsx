@@ -17,6 +17,7 @@ import {
   useState,
 } from "react";
 
+import Image from "next/image";
 import PartnerBar from "./PartnerBar";
 import { useLanguage } from "../context/LanguageContext";
 
@@ -214,9 +215,13 @@ const isAuthPage =
             setAccountOpen(false);
           }}
         >
-          <span className="font-brand text-4xl text-white">
-            MELLA
-          </span>
+          <Image
+  src="/images/mella.png"
+  alt="Mella"
+  width={140}
+  height={50}
+  className="h-auto w-[140px] object-contain"
+/>
         </Link>
 
         {/* =====================================================

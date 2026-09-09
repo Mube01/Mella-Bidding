@@ -2,6 +2,7 @@
 
 import PaymentPartners from "./PaymentPartners";
 import { useLanguage } from "../context/LanguageContext";
+import Image from "next/image";
 
 export default function Footer() {
   const { t } = useLanguage();
@@ -17,9 +18,13 @@ export default function Footer() {
           {/* BRAND */}
           <div>
             <div className="flex items-center gap-3">
-              <p className="font-brand text-4xl">
-                MELLA
-              </p>
+                <Image
+                src="/images/mella2.png"
+                alt="Mella"
+                width={140}
+                height={50}
+                className="h-auto w-[140px] object-contain"
+              />
             </div>
 
             <p className="mt-2 text-sm text-black/35">
