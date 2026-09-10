@@ -20,8 +20,9 @@ type Result = {
   category: string;
   winner: string;
   winningBid: number;
+  winnerPhone: string;
   date: string;
-  participants: number;
+  bidCount: number;
 };
 
 export default function Results() {
@@ -86,12 +87,15 @@ export default function Results() {
             winningBid:
               Number(result.winningBid ?? 0),
 
+              winnerPhone:
+                result.winnerPhone || "",
+
             date:
               result.date ||
               "",
 
-            participants:
-              Number(result.participants ?? 0),
+            bidCount:
+              Number(result.bidCount ?? 0),
           }));
 
         setResults(formattedResults);
@@ -381,6 +385,12 @@ const formatDate = (date: string) => {
                         {result.winner}
                       </p>
 
+                      {result.winnerPhone && (
+                          <p className="mt-1 truncate text-xs text-gray-500">
+                            {result.winnerPhone}
+                          </p>
+                        )}
+
                     </div>
 
                     {/* WINNING BID */}
@@ -439,7 +449,7 @@ const formatDate = (date: string) => {
                       </p>
 
                       <p className="mt-1 text-xs font-semibold text-black/70">
-                        {result.participants.toLocaleString(
+                        {result.bidCount.toLocaleString(
                           language === "am"
                             ? "am-ET"
                             : "en-US"

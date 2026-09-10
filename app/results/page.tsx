@@ -40,13 +40,7 @@ type Result = {
  *
  * Converts a JavaScript Gregorian Date into the Ethiopian
  * calendar and displays it using the Amharic locale.
- *
- * Example:
- * Gregorian:
- * Sep 9, 2026
- *
- * Ethiopian:
- * ጳጉሜን 4, 2018
+
  */
 
 function formatEthiopianDate(date: Date): string {
@@ -493,7 +487,7 @@ export default function ResultsPage() {
 
                         {language === "am" ? (
                           <p
-                            className="mt-1 text-[11px] font-medium text-[#1681C5]"
+                            className="mt-1 text-xs font-semibold text-black/70"
                             dir="ltr"
                           >
                             {result.amDate}
