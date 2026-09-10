@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "../../../lib/db";
-import { getAuctionStatus } from "../../../lib/auction";
+import {
+   getAuctionStatus,
+  calculateWinner,
+} from "../../../lib/auction";
 import Auction from "../../../models/auction";
 import Bid from "../../../models/bid";
 
@@ -20,22 +23,19 @@ export async function GET(
     const { id } = await params;
 
     const language =
-      new URL(request.url)
-        .searchParams.get("lang") === "am"
+      new URL(request.url).searchParams.get("lang") === "am"
         ? "am"
         : "en";
 
-    const auction =
-      await Auction.findOne({
-        publicId: id,
-      }).lean();
+    const auction = await Auction.findOne({
+      publicId: id,
+    }).lean();
 
     if (!auction) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Auction not found.",
+          message: "Auction not found.",
         },
         {
           status: 404,
@@ -49,14 +49,65 @@ export async function GET(
      * =========================================================
      */
 
-    const status =
-      getAuctionStatus(auction);
+    const status = getAuctionStatus(auction);
 
     /*
-     * Keep database status synchronized.
+     * =========================================================
+     * COMPLETE AUCTION + DETERMINE WINNER
+     * =========================================================
      */
 
-    if (auction.status !== status) {
+    if (status === "completed") {
+      const needsWinner =
+        !auction.winningBidId ||
+        !auction.winnerUserId;
+
+      const winner = needsWinner
+        ? await calculateWinner(auction._id.toString())
+        : null;
+
+      const updateData: Record<string, unknown> = {
+        status: "completed",
+      };
+
+      if (!auction.completedAt) {
+        updateData.completedAt = auction.endsAt;
+      }
+
+      if (winner) {
+        updateData.winningBidId =
+          winner._id;
+
+        updateData.winnerUserId =
+          winner.userId;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await Auction.updateOne(
+          {
+            _id: auction._id,
+          },
+          {
+            $set: updateData,
+          }
+        );
+      }
+
+      /*
+       * Update local object so this response immediately
+       * contains the winner without requiring another request.
+       */
+      if (winner) {
+        auction.winningBidId =
+          winner._id;
+
+        auction.winnerUserId =
+          winner.userId;
+      }
+    } else if (auction.status !== status) {
+      /*
+       * Keep status synchronized for upcoming/live auctions.
+       */
       await Auction.updateOne(
         {
           _id: auction._id,
@@ -75,17 +126,14 @@ export async function GET(
      * =========================================================
      */
 
-    const bids =
-      await Bid.find({
-        auctionId: auction._id,
+    const bids = await Bid.find({
+      auctionId: auction._id,
+    })
+      .sort({
+        createdAt: -1,
       })
-        .sort({
-          createdAt: -1,
-        })
-        .select(
-          "amount userId createdAt"
-        )
-        .lean();
+      .select("amount userId createdAt")
+      .lean();
 
     /*
      * =========================================================
@@ -102,58 +150,53 @@ export async function GET(
         id: auction.publicId,
 
         title:
-          auction.title[
-            language
-          ],
+          auction.title?.[language] ||
+          auction.title?.en ||
+          "",
 
         subtitle:
-          auction.subtitle[
-            language
-          ],
+          auction.subtitle?.[language] ||
+          auction.subtitle?.en ||
+          "",
 
         description:
-          auction.description[
-            language
-          ],
+          auction.description?.[language] ||
+          auction.description?.en ||
+          "",
 
         titleEn:
-          auction.title.en,
+          auction.title?.en || "",
 
         titleAm:
-          auction.title.am,
+          auction.title?.am || "",
 
         subtitleEn:
-          auction.subtitle.en,
+          auction.subtitle?.en || "",
 
         subtitleAm:
-          auction.subtitle.am,
+          auction.subtitle?.am || "",
 
         descriptionEn:
-          auction.description.en,
+          auction.description?.en || "",
 
         descriptionAm:
-          auction.description.am,
+          auction.description?.am || "",
 
         images:
           auction.images || [],
 
         /*
-         * Always return the real status.
+         * Always return calculated status.
          */
         status,
 
         _id: undefined,
       },
 
-      bids: bids.map(
-        (bid) => ({
-          amount:
-            bid.amount,
-
-          createdAt:
-            bid.createdAt,
-        })
-      ),
+      bids: bids.map((bid) => ({
+        amount: bid.amount,
+        createdAt: bid.createdAt,
+      })),
     });
   } catch (error) {
     console.error(
@@ -164,8 +207,7 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Unable to load auction.",
+        message: "Unable to load auction.",
       },
       {
         status: 500,

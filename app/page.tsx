@@ -1,6 +1,7 @@
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import Auctions from "./components/Auctions";
+import Results from "./components/Results"
 import HowItWorks from "./components/HowItWorks";
 import TrustSection from "./components/TrustSection";
 import Footer from "./components/Footer";
@@ -13,6 +14,8 @@ export default function Home() {
       <Hero />
 
       <Auctions />
+
+      <Results />
 
       <HowItWorks />
 

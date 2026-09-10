@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
 type AdminSidebarProps = {
@@ -111,9 +112,13 @@ export default function AdminSidebar({
             onClick={onClose}
             className="flex items-center"
           >
-            <span className="font-brand text-4xl text-[#1681C5]">
-              MELLA
-            </span>
+          <Image
+            src="/images/mella2.png"
+            alt="Mella"
+            width={140}
+            height={50}
+            className="h-auto w-[140px] object-contain"
+          />
           </Link>
 
           <button

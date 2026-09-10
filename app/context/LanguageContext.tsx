@@ -510,6 +510,8 @@ unique:
 
 notUnique:
   "Not unique",
+
+  bidder: "Bidder",
   },
 
   am: {
@@ -1105,6 +1107,8 @@ unique:
 
 notUnique:
   "ልዩ አይደለም",
+
+  bidder: "ተወዳዳሪ",
 
   },
 };

@@ -2,152 +2,289 @@
 
 import {
   Activity,
-  BarChart3,
   Clock3,
-  CreditCard,
   Gavel,
   ShieldCheck,
   Trophy,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminHeader from "../../components/admin/AdminHeader";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 
-const stats = [
-  {
-    label: "Active Auctions",
-    value: "12",
-    icon: Gavel,
-    detail: "+3 this week",
-  },
-  {
-    label: "Total Users",
-    value: "4,281",
-    icon: Users,
-    detail: "+184 this month",
-  },
-  {
-    label: "Total Bids",
-    value: "18,420",
-    icon: Activity,
-    detail: "+12.4%",
-  },
-  {
-    label: "Revenue",
-    value: "ETB 482,500",
-    icon: CreditCard,
-    detail: "+8.2%",
-  },
-];
+type Stat = {
+  label: string;
+  value: string;
+  icon: typeof Gavel;
+  detail: string;
+};
 
-const activeAuctions = [
-  {
-    id: "A-001",
-    title: "iPhone 17 Pro Max",
-    category: "Electronics",
-    participants: 842,
-    time: "02:14:38",
-    status: "Live",
-  },
-  {
-    id: "A-002",
-    title: "BYD Seagull",
-    category: "Automotive",
-    participants: 1284,
-    time: "18:42:11",
-    status: "Live",
-  },
-  {
-    id: "A-003",
-    title: "Mystery Box #12",
-    category: "Mystery Box",
-    participants: 426,
-    time: "01:08:22",
-    status: "Live",
-  },
-];
+type ActiveAuction = {
+  id: string;
+  title: string;
+  category: string;
+  participants: number;
+  bidCount: number;
+  endsAt: string;
+  status: string;
+};
 
-const activities = [
-  {
-    title: "New auction created",
-    description: "Mystery Box #13 was added",
-    time: "5 min ago",
-  },
-  {
-    title: "Auction completed",
-    description: "iPhone 16 Pro Max auction closed",
-    time: "24 min ago",
-  },
-  {
-    title: "Payment received",
-    description: "ETB 650 bid package purchase",
-    time: "41 min ago",
-  },
-  {
-    title: "New user registered",
-    description: "A new Mella account was created",
-    time: "1 hr ago",
-  },
-];
+type ActivityItem = {
+  type: string;
+  title: string;
+  description: string;
+  time: string;
+  timestamp: number;
+};
+
+type DashboardData = {
+  stats: {
+    live: number;
+    users: number;
+    bids: number;
+    completed: number;
+  };
+  activeAuctions: ActiveAuction[];
+  activities: ActivityItem[];
+};
 
 export default function AdminPage() {
-  const [databaseStats, setDatabaseStats] = useState<typeof stats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [dashboard, setDashboard] =
+    useState<DashboardData | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState(false);
+
+  /*
+   * =========================================================
+   * LOAD DASHBOARD DATA
+   * =========================================================
+   */
 
   useEffect(() => {
-    fetch("/api/admin/stats", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.success) return;
-        setDatabaseStats([
-          { ...stats[0], value: String(data.stats.live), detail: "Live now" },
-          { ...stats[1], value: Number(data.stats.users).toLocaleString(), detail: "Registered" },
-          { ...stats[2], value: Number(data.stats.bids).toLocaleString(), detail: "Submitted" },
-          { ...stats[3], value: "—", detail: "Payments pending" },
-        ]);
-      })
-      .catch(() => setDatabaseStats(null))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+
+    const loadDashboard = async () => {
+      try {
+        setLoading(true);
+        setError(false);
+
+        const response = await fetch(
+          "/api/admin/stats",
+          {
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to load dashboard"
+          );
+        }
+
+        const data =
+          await response.json();
+
+        if (
+          cancelled ||
+          !data?.success
+        ) {
+          return;
+        }
+
+        setDashboard({
+          stats: {
+            live:
+              Number(
+                data.stats?.live
+              ) || 0,
+
+            users:
+              Number(
+                data.stats?.users
+              ) || 0,
+
+            bids:
+              Number(
+                data.stats?.bids
+              ) || 0,
+
+            completed:
+              Number(
+                data.stats?.completed
+              ) || 0,
+          },
+
+          activeAuctions:
+            Array.isArray(
+              data.activeAuctions
+            )
+              ? data.activeAuctions
+              : [],
+
+          activities:
+            Array.isArray(
+              data.activities
+            )
+              ? data.activities
+              : [],
+        });
+      } catch (error) {
+        console.error(
+          "ADMIN_DASHBOARD_ERROR:",
+          error
+        );
+
+        if (!cancelled) {
+          setError(true);
+          setDashboard(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadDashboard();
+
+    /*
+     * Refresh dashboard every 30 seconds.
+     */
+
+    const interval = setInterval(
+      loadDashboard,
+      30000
+    );
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
-  const visibleStats = databaseStats || stats;
+  /*
+   * =========================================================
+   * STATS
+   * =========================================================
+   */
+
+  const stats: Stat[] = useMemo(() => {
+    if (!dashboard) return [];
+
+    return [
+      {
+        label: "Active Auctions",
+        value:
+          dashboard.stats.live.toLocaleString(),
+        icon: Gavel,
+        detail: "Live now",
+      },
+      {
+        label: "Total Users",
+        value:
+          dashboard.stats.users.toLocaleString(),
+        icon: Users,
+        detail: "Registered",
+      },
+      {
+        label: "Total Bids",
+        value:
+          dashboard.stats.bids.toLocaleString(),
+        icon: Activity,
+        detail: "Submitted",
+      },
+      {
+        label: "Completed Auctions",
+        value:
+          dashboard.stats.completed.toLocaleString(),
+        icon: Trophy,
+        detail: "Completed",
+      },
+    ];
+  }, [dashboard]);
+
+  /*
+   * =========================================================
+   * LOADING
+   * =========================================================
+   */
 
   if (loading) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]"><LoadingSpinner size="lg" /></main>;
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]">
+        <LoadingSpinner size="lg" />
+      </main>
+    );
+  }
+
+  /*
+   * =========================================================
+   * ERROR
+   * =========================================================
+   */
+
+  if (error || !dashboard) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#F7F8FA]">
+        <div className="text-center">
+          <p className="text-sm font-semibold text-red-500">
+            Unable to load dashboard data.
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              window.location.reload()
+            }
+            className="mt-4 rounded-xl bg-[#1681C5] px-5 py-2.5 text-sm font-bold text-white"
+          >
+            Try again
+          </button>
+        </div>
+      </main>
+    );
   }
 
   return (
     <main className="min-h-screen bg-[#F7F8FA] text-black">
 
       {/* =====================================================
-          SHARED SIDEBAR
+          SIDEBAR
       ===================================================== */}
+
       <AdminSidebar />
 
       {/* =====================================================
           MAIN CONTENT
       ===================================================== */}
+
       <div className="lg:pl-[260px]">
 
         {/* ===================================================
-            SHARED HEADER
+            HEADER
         =================================================== */}
+
         <AdminHeader
           title="Dashboard"
           description="MELLA ADMIN"
         />
 
         {/* ===================================================
-            PAGE CONTENT
+            CONTENT
         =================================================== */}
+
         <div className="mx-auto max-w-[1500px] px-5 py-8 lg:px-8">
 
           {/* =================================================
               INTRO
           ================================================= */}
+
           <div className="mb-8">
 
             <h2 className="font-display text-4xl tracking-[-0.03em] sm:text-5xl">
@@ -163,9 +300,10 @@ export default function AdminPage() {
           {/* =================================================
               STATS
           ================================================= */}
+
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-            {visibleStats.map((stat) => {
+            {stats.map((stat) => {
               const Icon = stat.icon;
 
               return (
@@ -205,11 +343,13 @@ export default function AdminPage() {
           {/* =================================================
               MAIN GRID
           ================================================= */}
+
           <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
 
             {/* ===============================================
                 ACTIVE AUCTIONS
             =============================================== */}
+
             <section className="rounded-2xl border border-black/10 bg-white">
 
               <div className="flex items-center justify-between border-b border-black/10 px-6 py-5">
@@ -235,79 +375,48 @@ export default function AdminPage() {
 
               </div>
 
-              <div className="divide-y divide-black/5">
+              {dashboard.activeAuctions.length > 0 ? (
 
-                {activeAuctions.map((auction) => (
-                  <div
-                    key={auction.id}
-                    className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between"
-                  >
+                <div className="divide-y divide-black/5">
 
-                    {/* AUCTION INFO */}
-                    <div className="flex items-center gap-4">
+                  {dashboard.activeAuctions.map(
+                    (auction) => (
+                      <ActiveAuctionRow
+                        key={auction.id}
+                        auction={auction}
+                      />
+                    )
+                  )}
 
-                      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#F78000]/10 text-[#F78000]">
-                        <Gavel size={18} />
-                      </div>
+                </div>
 
-                      <div>
+              ) : (
 
-                        <h4 className="text-sm font-semibold">
-                          {auction.title}
-                        </h4>
+                <div className="px-6 py-12 text-center">
 
-                        <p className="mt-1 text-[11px] text-black/40">
-                          {auction.id} · {auction.category}
-                        </p>
+                  <Gavel
+                    size={24}
+                    className="mx-auto text-black/20"
+                  />
 
-                      </div>
+                  <p className="mt-3 text-sm font-semibold">
+                    No active auctions
+                  </p>
 
-                    </div>
+                  <p className="mt-1 text-xs text-black/40">
+                    There are currently no live auctions.
+                  </p>
 
-                    {/* AUCTION STATS */}
-                    <div className="flex items-center gap-6">
+                </div>
 
-                      <div>
-
-                        <p className="text-[10px] text-black/35">
-                          Participants
-                        </p>
-
-                        <p className="mt-1 text-sm font-semibold">
-                          {auction.participants.toLocaleString()}
-                        </p>
-
-                      </div>
-
-                      <div>
-
-                        <p className="flex items-center gap-1 text-[10px] text-black/35">
-                          <Clock3 size={11} />
-                          Ends
-                        </p>
-
-                        <p className="mt-1 font-mono text-xs font-semibold text-red-500">
-                          {auction.time}
-                        </p>
-
-                      </div>
-
-                      <span className="hidden rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold text-emerald-600 sm:block">
-                        {auction.status}
-                      </span>
-
-                    </div>
-
-                  </div>
-                ))}
-
-              </div>
+              )}
 
             </section>
 
             {/* ===============================================
                 RECENT ACTIVITY
             =============================================== */}
+
             <section className="rounded-2xl border border-black/10 bg-white">
 
               <div className="border-b border-black/10 px-6 py-5">
@@ -322,36 +431,63 @@ export default function AdminPage() {
 
               </div>
 
-              <div className="divide-y divide-black/5">
+              {dashboard.activities.length > 0 ? (
 
-                {activities.map((activity) => (
-                  <div
-                    key={`${activity.title}-${activity.time}`}
-                    className="flex gap-4 px-6 py-5"
-                  >
+                <div className="divide-y divide-black/5">
 
-                    <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#1681C5]" />
+                  {dashboard.activities.map(
+                    (activity, index) => (
+                      <div
+                        key={`${activity.timestamp}-${index}`}
+                        className="flex gap-4 px-6 py-5"
+                      >
 
-                    <div className="min-w-0">
+                        <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#1681C5]" />
 
-                      <p className="text-sm font-semibold">
-                        {activity.title}
-                      </p>
+                        <div className="min-w-0">
 
-                      <p className="mt-1 text-xs text-black/40">
-                        {activity.description}
-                      </p>
+                          <p className="text-sm font-semibold">
+                            {activity.title}
+                          </p>
 
-                      <p className="mt-2 text-[10px] text-black/25">
-                        {activity.time}
-                      </p>
+                          <p className="mt-1 text-xs text-black/40">
+                            {activity.description}
+                          </p>
 
-                    </div>
+                          <p className="mt-2 text-[10px] text-black/25">
+                            {formatRelativeTime(
+                              activity.time
+                            )}
+                          </p>
 
-                  </div>
-                ))}
+                        </div>
 
-              </div>
+                      </div>
+                    )
+                  )}
+
+                </div>
+
+              ) : (
+
+                <div className="px-6 py-12 text-center">
+
+                  <Activity
+                    size={24}
+                    className="mx-auto text-black/20"
+                  />
+
+                  <p className="mt-3 text-sm font-semibold">
+                    No recent activity
+                  </p>
+
+                  <p className="mt-1 text-xs text-black/40">
+                    Platform activity will appear here.
+                  </p>
+
+                </div>
+
+              )}
 
             </section>
 
@@ -360,6 +496,7 @@ export default function AdminPage() {
           {/* =================================================
               QUICK ACTIONS
           ================================================= */}
+
           <section className="mt-6">
 
             <div className="mb-4">
@@ -377,6 +514,7 @@ export default function AdminPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
               {/* CREATE AUCTION */}
+
               <a
                 href="/admin/auctions/new"
                 className="group rounded-2xl border border-black/10 bg-white p-5 transition hover:-translate-y-1 hover:border-[#1681C5]/30 hover:shadow-lg"
@@ -398,8 +536,9 @@ export default function AdminPage() {
               </a>
 
               {/* VERIFY RESULTS */}
+
               <a
-                  href="/results"
+                href="/results"
                 className="group rounded-2xl border border-black/10 bg-white p-5 transition hover:-translate-y-1 hover:border-[#1681C5]/30 hover:shadow-lg"
               >
 
@@ -427,5 +566,198 @@ export default function AdminPage() {
       </div>
 
     </main>
+  );
+}
+
+/* =============================================================
+   ACTIVE AUCTION ROW
+============================================================= */
+
+function ActiveAuctionRow({
+  auction,
+}: {
+  auction: ActiveAuction;
+}) {
+  const [timeLeft, setTimeLeft] =
+    useState(
+      getTimeLeft(auction.endsAt)
+    );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft(
+        getTimeLeft(auction.endsAt)
+      );
+    }, 1000);
+
+    return () =>
+      clearInterval(interval);
+  }, [auction.endsAt]);
+
+  return (
+    <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+
+      {/* AUCTION INFO */}
+
+      <div className="flex items-center gap-4">
+
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#F78000]/10 text-[#F78000]">
+          <Gavel size={18} />
+        </div>
+
+        <div>
+
+          <h4 className="text-sm font-semibold">
+            {auction.title}
+          </h4>
+
+          <p className="mt-1 text-[11px] text-black/40">
+            {auction.id} · {auction.category}
+          </p>
+
+        </div>
+
+      </div>
+
+      {/* AUCTION STATS */}
+
+      <div className="flex items-center gap-6">
+
+        <div>
+
+          <p className="text-[10px] text-black/35">
+            Participants
+          </p>
+
+          <p className="mt-1 text-sm font-semibold">
+            {auction.participants.toLocaleString()}
+          </p>
+
+        </div>
+
+        <div>
+
+          <p className="flex items-center gap-1 text-[10px] text-black/35">
+            <Activity size={11} />
+            Bids
+          </p>
+
+          <p className="mt-1 text-sm font-semibold">
+            {auction.bidCount.toLocaleString()}
+          </p>
+
+        </div>
+
+        <div>
+
+          <p className="flex items-center gap-1 text-[10px] text-black/35">
+            <Clock3 size={11} />
+            Ends
+          </p>
+
+          <p className="mt-1 font-mono text-xs font-semibold text-red-500">
+            {timeLeft}
+          </p>
+
+        </div>
+
+        <span className="hidden rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold text-emerald-600 sm:block">
+          {auction.status}
+        </span>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* =============================================================
+   TIME HELPERS
+============================================================= */
+
+function getTimeLeft(
+  endsAt: string
+) {
+  const difference =
+    new Date(endsAt).getTime() -
+    Date.now();
+
+  if (difference <= 0) {
+    return "Ended";
+  }
+
+  const totalSeconds =
+    Math.floor(difference / 1000);
+
+  const hours = Math.floor(
+    totalSeconds / 3600
+  );
+
+  const minutes = Math.floor(
+    (totalSeconds % 3600) / 60
+  );
+
+  const seconds =
+    totalSeconds % 60;
+
+  return [
+    hours.toString().padStart(2, "0"),
+    minutes.toString().padStart(2, "0"),
+    seconds.toString().padStart(2, "0"),
+  ].join(":");
+}
+
+/* =============================================================
+   RELATIVE TIME
+============================================================= */
+
+function formatRelativeTime(
+  dateString: string
+) {
+  const date =
+    new Date(dateString);
+
+  const seconds = Math.floor(
+    (Date.now() - date.getTime()) /
+      1000
+  );
+
+  if (seconds < 60) {
+    return "Just now";
+  }
+
+  const minutes = Math.floor(
+    seconds / 60
+  );
+
+  if (minutes < 60) {
+    return `${minutes} min ago`;
+  }
+
+  const hours = Math.floor(
+    minutes / 60
+  );
+
+  if (hours < 24) {
+    return `${hours} hr ago`;
+  }
+
+  const days = Math.floor(
+    hours / 24
+  );
+
+  if (days < 7) {
+    return `${days} day${
+      days === 1 ? "" : "s"
+    } ago`;
+  }
+
+  return date.toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }
   );
 }

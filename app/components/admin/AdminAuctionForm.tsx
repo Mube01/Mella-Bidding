@@ -77,7 +77,7 @@ export default function AdminAuctionForm({ id }: { id?: string }) {
     setSaving(true);
     try {
       const response = await fetch(id ? `/api/admin/auctions/${encodeURIComponent(id)}` : "/api/admin/auctions", {
-        method: id ? "PATCH" : "POST",
+        method: id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ ...values, entryCost: Number(values.entryCost) }),

@@ -406,11 +406,7 @@ export default function ResultsPage() {
                         <Link href={`/results/${result.id}`}>
 
                           <h3
-                            className={`text-xl text-black transition hover:text-[#1681C5] ${
-                              language === "am"
-                                ? "font-sans"
-                                : "font-display"
-                            }`}
+                            className={`text-xl text-black transition hover:text-[#1681C5] font-display`}
                           >
                             {result.title}
                           </h3>

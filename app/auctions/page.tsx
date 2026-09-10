@@ -490,27 +490,13 @@ export default function AuctionsPage() {
           ) : filteredAuctions.length > 0 ? (
             <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredAuctions.map((auction) => (
-                <div key={auction.id}>
-                  <AuctionCard
-                    auction={auction}
-                    onBidRequest={handleBidRequest}
-                  />
-
-                  {/* =================================================
-                      SUCCESS MESSAGE
-                  ================================================= */}
-
-                  {successAuctionId === auction.id && (
-                    <div className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-green-50 px-4 text-sm font-bold text-green-700 shadow-md">
-                      <span>✓</span>
-
-                      {language === "am"
-                        ? "መጫረቻ በተሳካ ሁኔታ ተልኳል"
-                        : "Bid submitted successfully"}
-                    </div>
-                  )}
-                </div>
-              ))}
+  <div key={auction.id}>
+    <AuctionCard
+      auction={auction}
+      onBidRequest={handleBidRequest}
+    />
+  </div>
+))}
             </div>
           ) : (
             /* =================================================

@@ -5,7 +5,10 @@ import {
   ArrowRight,
   CalendarDays,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Crown,
+  Gavel,
   Trophy,
   Users,
 } from "lucide-react";
@@ -19,9 +22,14 @@ import Footer from "../../components/Footer";
 import { useLanguage } from "../../context/LanguageContext";
 import LoadingSpinner from "../../components/ui/LoadingSpinner";
 
+/* =============================================================
+   TYPES
+============================================================= */
+
 type BidBreakdown = {
   amount: number;
   submissions: number;
+  phoneNumbers: string[];
   unique: boolean;
   winner: boolean;
 };
@@ -45,10 +53,15 @@ type DatabaseResult = ResultItem & {
   winnerPhone: string | null;
 };
 
+function formatAmount(amount: number) {
+  return new Intl.NumberFormat("en-US").format(amount);
+}
+
 /* =============================================================
    DATE FORMAT
-   Amharic  → Ethiopian Calendar
-   English  → Gregorian Calendar
+
+   Amharic → Ethiopian Calendar
+   English → Gregorian Calendar
 ============================================================= */
 
 function formatResultDate(
@@ -104,7 +117,17 @@ export default function IndividualResultPage() {
   const [databaseResult, setDatabaseResult] =
     useState<DatabaseResult | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
+
+  /* ===========================================================
+     TRANSPARENT BID BREAKDOWN PAGINATION
+  =========================================================== */
+
+  const [breakdownPage, setBreakdownPage] =
+    useState(1);
+
+  const BREAKDOWN_PER_PAGE = 10;
 
   /* ===========================================================
      FETCH RESULT
@@ -117,6 +140,12 @@ export default function IndividualResultPage() {
     }
 
     setLoading(true);
+
+    /*
+     * Reset pagination whenever
+     * result or language changes.
+     */
+    setBreakdownPage(1);
 
     fetch(
       `/api/results/${encodeURIComponent(
@@ -149,13 +178,6 @@ export default function IndividualResultPage() {
               match.winningBid
             ).toLocaleString()}`,
 
-            /*
-             * English:
-             * Gregorian calendar
-             *
-             * Amharic:
-             * Ethiopian calendar
-             */
             date: formatResultDate(
               match.date,
               language
@@ -172,10 +194,12 @@ export default function IndividualResultPage() {
                 : [],
 
             winnerName:
-              match.winnerName ?? null,
+              match.winnerName ??
+              null,
 
             winnerPhone:
-              match.winnerPhone ?? null,
+              match.winnerPhone ??
+              null,
           });
         } else {
           setDatabaseResult(null);
@@ -201,6 +225,39 @@ export default function IndividualResultPage() {
   const result = databaseResult;
 
   /* ===========================================================
+     BREAKDOWN PAGINATION
+  =========================================================== */
+
+  const breakdown =
+    result?.breakdown ?? [];
+
+  const breakdownTotalPages =
+    Math.max(
+      1,
+      Math.ceil(
+        breakdown.length /
+          BREAKDOWN_PER_PAGE
+      )
+    );
+
+  const safeBreakdownPage =
+    Math.min(
+      breakdownPage,
+      breakdownTotalPages
+    );
+
+  const breakdownStartIndex =
+    (safeBreakdownPage - 1) *
+    BREAKDOWN_PER_PAGE;
+
+  const paginatedBreakdown =
+    breakdown.slice(
+      breakdownStartIndex,
+      breakdownStartIndex +
+        BREAKDOWN_PER_PAGE
+    );
+
+  /* ===========================================================
      LOADING
   =========================================================== */
 
@@ -224,7 +281,6 @@ export default function IndividualResultPage() {
         <div className="pt-[100px] sm:pt-[120px]">
           <div className="flex min-h-[75vh] items-center justify-center px-5 sm:px-6">
             <div className="max-w-md text-center">
-
               <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#F78000]/10 text-[#F78000]">
                 <Trophy size={25} />
               </div>
@@ -244,10 +300,8 @@ export default function IndividualResultPage() {
                 className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#1681C5] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#116d9f]"
               >
                 <ArrowLeft size={16} />
-
                 {t("backToResults")}
               </Link>
-
             </div>
           </div>
         </div>
@@ -272,16 +326,13 @@ export default function IndividualResultPage() {
         ===================================================== */}
 
         <div className="mx-auto max-w-7xl px-5 pt-6 sm:px-6 sm:pt-8 lg:px-10">
-
           <Link
             href="/results"
             className="inline-flex items-center gap-2 text-xs font-semibold text-black/40 transition hover:text-[#1681C5]"
           >
             <ArrowLeft size={14} />
-
             {t("allResults")}
           </Link>
-
         </div>
 
         {/* =====================================================
@@ -335,9 +386,7 @@ export default function IndividualResultPage() {
 
               </div>
 
-              {/* =================================================
-                  SMALL INFORMATION STRIP
-              ================================================= */}
+              {/* SMALL INFORMATION STRIP */}
 
               <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-4 sm:gap-3">
 
@@ -487,7 +536,7 @@ export default function IndividualResultPage() {
                       </p>
 
                       {databaseResult.winnerPhone && (
-                        <p className="mt-1 text-xs text-black/45">
+                        <p className="mt-1 font-mono text-xs tracking-wide text-black/45">
                           {databaseResult.winnerPhone}
                         </p>
                       )}
@@ -520,6 +569,8 @@ export default function IndividualResultPage() {
 
               <div className="mt-5 overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm sm:mt-6">
 
+                {/* HEADER */}
+
                 <div className="border-b border-black/10 p-4 sm:p-5">
 
                   <p className="text-[9px] font-bold tracking-[0.12em] text-[#1681C5] sm:text-[10px] sm:tracking-[0.15em]">
@@ -542,30 +593,40 @@ export default function IndividualResultPage() {
 
                 </div>
 
-                <div className="overflow-x-auto">
+                {/* =================================================
+                    BID BREAKDOWN TABLE
+                ================================================= */}
 
-                  <table className="w-full min-w-[460px] text-left text-xs sm:min-w-[500px] sm:text-sm">
+                <div className="w-full overflow-hidden">
 
-                    <thead className="bg-black/[0.02] text-[10px] uppercase tracking-wider text-black/40 sm:text-xs">
+                  <table className="w-full table-fixed text-left text-[9px] sm:text-sm">
+
+                    <thead className="bg-neutral-50">
 
                       <tr>
 
-                        <th className="px-4 py-3 sm:px-5">
-                          {t(
-                            "bidAmount"
-                          )}
+                        <th className="w-[24%] px-2 py-3 font-bold text-neutral-400 sm:px-5 sm:py-3.5">
+                          {language === "am"
+                            ? "የጨረታ መጠን"
+                            : "Bid Amount"}
                         </th>
 
-                        <th className="px-4 py-3 sm:px-5">
-                          {t(
-                            "submissions"
-                          )}
+                        <th className="w-[17%] px-2 py-3 font-bold text-neutral-400 sm:px-5 sm:py-3.5">
+                          {language === "am"
+                            ? "ብዛት"
+                            : "Submissions"}
                         </th>
 
-                        <th className="px-4 py-3 sm:px-5">
-                          {t(
-                            "result"
-                          )}
+                        <th className="w-[31%] px-2 py-3 font-bold text-neutral-400 sm:px-5 sm:py-3.5">
+                          {language === "am"
+                            ? "ተወዳዳሪ"
+                            : "Bidder"}
+                        </th>
+
+                        <th className="w-[28%] px-2 py-3 font-bold text-neutral-400 sm:px-5 sm:py-3.5">
+                          {language === "am"
+                            ? "ውጤት"
+                            : "Result"}
                         </th>
 
                       </tr>
@@ -574,51 +635,167 @@ export default function IndividualResultPage() {
 
                     <tbody>
 
-                      {databaseResult.breakdown.map(
-                        (bid) => (
-                          <tr
-                            key={`${bid.amount}-${bid.submissions}`}
-                            className="border-t border-black/5"
-                          >
-
-                            <td className="whitespace-nowrap px-4 py-3 font-mono font-semibold sm:px-5 sm:py-4">
-                              {language ===
-                              "am"
-                                ? "ብር"
-                                : "ETB"}{" "}
-                              {bid.amount.toFixed(
-                                2
-                              )}
-                            </td>
-
-                            <td className="px-4 py-3 sm:px-5 sm:py-4">
-                              {bid.submissions}
-                            </td>
-
-                            <td
-                              className={`whitespace-nowrap px-4 py-3 font-semibold sm:px-5 sm:py-4 ${
+                      {paginatedBreakdown.length > 0 ? (
+                        paginatedBreakdown.map(
+                          (bid, index) => (
+                            <tr
+                              key={`${bid.amount}-${bid.submissions}-${index}`}
+                              className={`border-t transition ${
                                 bid.winner
-                                  ? "text-[#F78000]"
-                                  : bid.unique
-                                  ? "text-[#1681C5]"
-                                  : "text-black/45"
+                                  ? "border-mella-green/30 bg-gradient-to-r from-mella-green/10 via-[#F78000]/10 to-yellow-400/10"
+                                  : "border-black/5 hover:bg-black/[0.02]"
                               }`}
                             >
-                              {bid.winner
-                                ? t(
-                                    "winnerLowestUniqueBid"
-                                  )
-                                : bid.unique
-                                ? t(
-                                    "unique"
-                                  )
-                                : t(
-                                    "notUnique"
-                                  )}
-                            </td>
 
-                          </tr>
+                              {/* BID AMOUNT */}
+
+                              <td className="px-2 py-3 sm:px-5 sm:py-4">
+
+                                <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+
+                                  {bid.winner && (
+                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#F78000] to-yellow-400 text-white shadow-sm sm:h-7 sm:w-7">
+
+                                      <Trophy
+                                        size={11}
+                                        className="sm:h-[13px] sm:w-[13px]"
+                                      />
+
+                                    </div>
+                                  )}
+
+                                  <span
+                                    className={`min-w-0 break-words font-semibold ${
+                                      bid.winner
+                                        ? "font-bold text-mella-green"
+                                        : "text-neutral-900"
+                                    }`}
+                                  >
+                                    {formatAmount(
+                                      bid.amount
+                                    )}{" "}
+
+                                    <span className="text-[8px] font-medium text-neutral-400 sm:text-xs">
+                                      {language === "am"
+                                        ? "ብር"
+                                        : "ETB"}
+                                    </span>
+                                  </span>
+
+                                </div>
+
+                              </td>
+
+                              {/* SUBMISSIONS */}
+
+                              <td className="px-2 py-3 sm:px-5 sm:py-4">
+
+                                <span
+                                  className={
+                                    bid.winner
+                                      ? "font-bold text-[#F78000]"
+                                      : "font-medium text-neutral-700"
+                                  }
+                                >
+                                  {bid.submissions}
+                                </span>
+
+                              </td>
+
+                              {/* BIDDER */}
+
+                              <td className="px-2 py-3 sm:px-5 sm:py-4">
+
+                                <div className="flex min-w-0 flex-col gap-1">
+
+                                  {bid.phoneNumbers?.length > 0 ? (
+                                    bid.phoneNumbers.map(
+                                      (
+                                        phone,
+                                        index
+                                      ) => (
+                                        <span
+                                          key={`${phone}-${index}`}
+                                          className={`break-all font-mono text-[8px] tracking-wide sm:text-xs ${
+                                            bid.winner
+                                              ? "font-semibold text-mella-green"
+                                              : "text-black/55"
+                                          }`}
+                                        >
+                                          {phone}
+                                        </span>
+                                      )
+                                    )
+                                  ) : (
+                                    <span className="text-black/30">
+                                      —
+                                    </span>
+                                  )}
+
+                                </div>
+
+                              </td>
+
+                              {/* RESULT */}
+
+                              <td className="px-2 py-3 sm:px-5 sm:py-4">
+
+                                {bid.winner ? (
+                                  <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-gradient-to-r from-mella-green to-[#F78000] px-2 py-1 text-[8px] font-bold leading-tight text-white shadow-sm sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs">
+
+                                    <Trophy
+                                      size={10}
+                                      className="shrink-0 sm:h-[14px] sm:w-[14px]"
+                                    />
+
+                                    <span className="break-words">
+                                      {language === "am"
+                                        ? "የአሸናፊ ጨረታ"
+                                        : "Winning Bid"}
+                                    </span>
+
+                                  </span>
+                                ) : bid.unique ? (
+                                  <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-mella-green/10 px-2 py-1 text-[8px] font-semibold leading-tight text-mella-green sm:gap-1.5 sm:px-3 sm:py-1.5 sm:text-xs">
+
+                                    <CheckCircle2
+                                      size={10}
+                                      className="shrink-0 sm:h-[14px] sm:w-[14px]"
+                                    />
+
+                                    <span>
+                                      {language === "am"
+                                        ? "ልዩ"
+                                        : "Unique"}
+                                    </span>
+
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex max-w-full rounded-full bg-neutral-100 px-2 py-1 text-[8px] font-semibold leading-tight text-neutral-400 sm:px-3 sm:py-1.5 sm:text-xs">
+
+                                    {language === "am"
+                                      ? "የተደገመ"
+                                      : "Repeated"}
+
+                                  </span>
+                                )}
+
+                              </td>
+
+                            </tr>
+                          )
                         )
+                      ) : (
+                        <tr>
+
+                          <td
+                            colSpan={4}
+                            className="px-5 py-8 text-center text-xs text-black/35"
+                          >
+                            —
+                          </td>
+
+                        </tr>
                       )}
 
                     </tbody>
@@ -626,6 +803,88 @@ export default function IndividualResultPage() {
                   </table>
 
                 </div>
+
+                {/* =================================================
+                    ARROW-ONLY PAGINATION
+                ================================================= */}
+
+                {breakdownTotalPages > 1 && (
+                  <div className="flex items-center justify-between border-t border-black/10 px-4 py-3 sm:px-5 sm:py-4">
+
+                    <button
+                      type="button"
+                      disabled={
+                        safeBreakdownPage === 1
+                      }
+                      onClick={() =>
+                        setBreakdownPage(
+                          (page) =>
+                            Math.max(
+                              1,
+                              page - 1
+                            )
+                        )
+                      }
+                      className="flex h-9 items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 text-xs font-semibold text-neutral-600 transition hover:border-[#1681C5] hover:text-[#1681C5] disabled:pointer-events-none disabled:opacity-30 sm:h-10 sm:px-4"
+                      aria-label={
+                        language === "am"
+                          ? "የቀድሞ ገጽ"
+                          : "Previous page"
+                      }
+                    >
+                      <ChevronLeft
+                        size={15}
+                      />
+
+                      <span>
+                        {language === "am"
+                          ? "ቀዳሚ"
+                          : "Previous"}
+                      </span>
+                    </button>
+
+                    <p className="text-[10px] font-medium text-black/35 sm:text-xs">
+                      {language === "am"
+                        ? `${safeBreakdownPage} / ${breakdownTotalPages}`
+                        : `Page ${safeBreakdownPage} of ${breakdownTotalPages}`}
+                    </p>
+
+                    <button
+                      type="button"
+                      disabled={
+                        safeBreakdownPage ===
+                        breakdownTotalPages
+                      }
+                      onClick={() =>
+                        setBreakdownPage(
+                          (page) =>
+                            Math.min(
+                              breakdownTotalPages,
+                              page + 1
+                            )
+                        )
+                      }
+                      className="flex h-9 items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 text-xs font-semibold text-neutral-600 transition hover:border-[#1681C5] hover:text-[#1681C5] disabled:pointer-events-none disabled:opacity-30 sm:h-10 sm:px-4"
+                      aria-label={
+                        language === "am"
+                          ? "ቀጣይ ገጽ"
+                          : "Next page"
+                      }
+                    >
+                      <span>
+                        {language === "am"
+                          ? "ቀጣይ"
+                          : "Next"}
+                      </span>
+
+                      <ChevronRight
+                        size={15}
+                      />
+
+                    </button>
+
+                  </div>
+                )}
 
               </div>
 
@@ -671,14 +930,12 @@ export default function IndividualResultPage() {
                 href="/results"
                 className="group mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-black/10 bg-white text-xs font-bold transition hover:border-[#1681C5] hover:text-[#1681C5] sm:mt-5 sm:text-sm"
               >
-
                 {t("viewAllResults")}
 
                 <ArrowRight
                   size={14}
                   className="transition-transform group-hover:translate-x-1"
                 />
-
               </Link>
 
             </div>
