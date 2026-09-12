@@ -163,7 +163,13 @@ export default function AuthShell({
                 href="/"
                 className="font-brand text-4xl text-black transition hover:text-[#1681C5]"
               >
-                MELLA
+              <Image
+                src="/images/mella2.png"
+                alt="Mella"
+                width={140}
+                height={50}
+                className="h-auto w-[140px] object-contain"
+              />
               </Link>
 
               <div className="mt-3 h-1 w-10 rounded-full bg-[#F78000]" />
