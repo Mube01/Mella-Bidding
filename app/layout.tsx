@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "./components/Header";
 import { LanguageProvider } from "./context/LanguageContext";
 import { AuthProvider } from "./context/AuthContext";
+import TelegramSupport from "./components/TelegramSupport";
 
 export const metadata: Metadata = {
   title: "Mella",
@@ -20,6 +21,8 @@ export default function RootLayout({
     <html lang="am">
       <body>
         <LanguageProvider>
+  <TelegramSupport />
+
           <AuthProvider>
             <Header />
             {children}

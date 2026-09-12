@@ -6,6 +6,10 @@ export interface IBid extends Document {
   auctionId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   amount: number;
+  paymentMethod: "direct" | "package";
+  packageSize?: number;
+  packageName?: string;
+  packageCreditsRemainingAfter?: number;
   status: BidStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -16,6 +20,10 @@ const BidSchema = new Schema<IBid>(
     auctionId: { type: Schema.Types.ObjectId, ref: "Auction", required: true, index: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     amount: { type: Number, required: true, min: 0.01, max: 100000000 },
+    paymentMethod: { type: String, enum: ["direct", "package"], default: "direct", index: true },
+    packageSize: { type: Number, min: 1 },
+    packageName: { type: String, trim: true, maxlength: 80 },
+    packageCreditsRemainingAfter: { type: Number, min: 0 },
     status: { type: String, enum: ["accepted", "rejected"], default: "accepted" },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
@@ -23,6 +31,11 @@ const BidSchema = new Schema<IBid>(
 
 BidSchema.index({ auctionId: 1, createdAt: 1 });
 BidSchema.index({ userId: 1, createdAt: 1 });
+BidSchema.index({
+  auctionId: 1,
+  userId: 1,
+  createdAt: -1,
+});
 
 const Bid: Model<IBid> =
   mongoose.models.Bid || mongoose.model<IBid>("Bid", BidSchema);

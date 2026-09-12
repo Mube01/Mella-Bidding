@@ -3,8 +3,13 @@ import { NextResponse } from "next/server";
 import { connectDB } from "../../../lib/db";
 import {
   createSession,
+  isSameOriginRequest,
   verifyPassword,
 } from "../../../lib/auth";
+import {
+  checkRateLimit,
+  getClientIp,
+} from "../../../lib/rateLimit";
 import User from "../../../models/user";
 
 function normalizePhone(phone: string): string {
@@ -30,6 +35,54 @@ function normalizeEmail(email: string): string {
 
 export async function POST(request: Request) {
   try {
+    if (!isSameOriginRequest(request)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid request origin.",
+        },
+        { status: 403 }
+      );
+    }
+
+    const contentLength = Number(
+      request.headers.get("content-length") || 0
+    );
+
+    if (contentLength > 2048) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Request is too large.",
+        },
+        { status: 413 }
+      );
+    }
+
+    const rateLimit = checkRateLimit({
+      key: `login:${getClientIp(request)}`,
+      limit: 10,
+      windowMs: 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Too many login attempts. Please try again shortly.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(
+              rateLimit.retryAfter
+            ),
+          },
+        }
+      );
+    }
+
     const body = await request.json();
 
     const phone =
@@ -68,7 +121,9 @@ export async function POST(request: Request) {
 
     const user = await User.findOne(
       email ? { email } : { phone }
-    ).select("+password");
+    ).select(
+      "name phone role bidCredits +password"
+    );
 
     if (!user) {
       return NextResponse.json(
@@ -122,6 +177,7 @@ export async function POST(request: Request) {
         id: user._id.toString(),
         name: user.name,
         phone: user.phone,
+        bidCredits: user.bidCredits || 0,
         role: user.role,
       },
     });

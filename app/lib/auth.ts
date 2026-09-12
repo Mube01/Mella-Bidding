@@ -183,7 +183,7 @@ export async function getCurrentUser() {
   await connectDB();
 
   const user = await User.findById(session.userId)
-    .select("name phone email role createdAt")
+    .select("name phone email role bidCredits createdAt")
     .lean();
 
   return user;

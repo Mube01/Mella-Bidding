@@ -6,6 +6,10 @@ import {
   hashPassword,
   isSameOriginRequest,
 } from "../../../lib/auth";
+import {
+  checkRateLimit,
+  getClientIp,
+} from "../../../lib/rateLimit";
 import User from "../../../models/user";
 
 function normalizePhone(phone: string): string {
@@ -36,6 +40,44 @@ export async function POST(request: Request) {
           message: "Invalid request origin.",
         },
         { status: 403 }
+      );
+    }
+
+    const contentLength = Number(
+      request.headers.get("content-length") || 0
+    );
+
+    if (contentLength > 4096) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Request is too large.",
+        },
+        { status: 413 }
+      );
+    }
+
+    const rateLimit = checkRateLimit({
+      key: `register:${getClientIp(request)}`,
+      limit: 5,
+      windowMs: 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Too many account creation attempts. Please try again shortly.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(
+              rateLimit.retryAfter
+            ),
+          },
+        }
       );
     }
 
@@ -146,6 +188,7 @@ export async function POST(request: Request) {
       name,
       phone,
       password: hashedPassword,
+      bidCredits: 0,
       role: "user",
     });
 

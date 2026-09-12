@@ -486,6 +486,7 @@ exploreLiveAuctions:
     backToAuctions: "Back to auctions",
     serviceFee: "Service Fee",
     currency: "ETB",
+    followUs: "Follow us",
     
 transparentBidBreakdown:
   "TRANSPARENT BID BREAKDOWN",
@@ -1108,7 +1109,8 @@ unique:
 notUnique:
   "ልዩ አይደለም",
 
-  bidder: "ተወዳዳሪ",
+  bidder: "ተጫራች",
+  followUs: "እኛን ይከተሉ",
 
   },
 };

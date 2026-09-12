@@ -20,6 +20,7 @@ type User = {
   id: string;
   name: string;
   phone: string;
+  bidCredits: number;
   role: "user" | "admin";
   createdAt?: string;
 };
@@ -204,6 +205,17 @@ export default function AccountPage() {
                 </p>
 
               </div>
+            </div>
+
+            {/* BID CREDITS */}
+            <div>
+              <p className="text-xs font-bold tracking-wider text-neutral-400">
+                BID CREDITS
+              </p>
+
+              <p className="mt-2 text-sm font-medium text-neutral-900">
+                {(user.bidCredits || 0).toLocaleString("en-US")} available
+              </p>
             </div>
 
           </div>

@@ -22,7 +22,7 @@ export async function GET() {
 
     const user = await User.findById(
       session.userId
-    ).select("name phone role createdAt");
+    ).select("name phone role bidCredits createdAt");
 
     if (!user) {
       return NextResponse.json(
@@ -41,6 +41,7 @@ export async function GET() {
         name: user.name,
         phone: user.phone,
         role: user.role,
+        bidCredits: user.bidCredits || 0,
         createdAt: user.createdAt,
       },
     });

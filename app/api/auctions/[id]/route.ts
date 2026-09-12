@@ -22,6 +22,18 @@ export async function GET(
 
     const { id } = await params;
 
+    if (!/^[A-Za-z0-9_-]{1,80}$/.test(id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid auction id.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
     const language =
       new URL(request.url).searchParams.get("lang") === "am"
         ? "am"
@@ -132,7 +144,8 @@ export async function GET(
       .sort({
         createdAt: -1,
       })
-      .select("amount userId createdAt")
+      .select("amount createdAt")
+      .limit(100)
       .lean();
 
     /*

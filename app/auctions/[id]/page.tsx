@@ -5,6 +5,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock3,
+  CreditCard,
   Gavel,
   Minus,
   Plus,
@@ -24,6 +25,7 @@ import LoadingSpinner from "../../components/ui/LoadingSpinner";
 import Toast from "../../components/ui/Toast";
 import BidConfirmationModal from "../../components/BidConfirmationModal";
 import { useLanguage } from "../../context/LanguageContext";
+import { useAuth } from "../../context/AuthContext";
 
 type AuctionDetails = {
   id: string;
@@ -92,6 +94,11 @@ function getLocalizedContent(
 export default function AuctionDetailsPage() {
   const params = useParams();
   const { language } = useLanguage();
+  const {
+    user,
+    loading: authLoading,
+    refreshUser,
+  } = useAuth();
 
   const auctionId = Array.isArray(params.id)
     ? params.id[0]
@@ -121,6 +128,12 @@ export default function AuctionDetailsPage() {
 
   const [selectedPackage, setSelectedPackage] =
     useState<5 | 10>(5);
+
+  const [usePackageCredit, setUsePackageCredit] =
+    useState(false);
+
+  const [packageLoading, setPackageLoading] =
+    useState(false);
 
   const [packageMessage, setPackageMessage] =
     useState("");
@@ -357,12 +370,59 @@ export default function AuctionDetailsPage() {
         option.bids === selectedPackage
     ) || packageOptions[0];
 
-  function handlePackagePurchase() {
-    setPackageMessage(
-      language === "am"
-        ? "የክፍያ አገልግሎቱ ሲዘጋጅ ይህ ጥቅል ይገኛል።"
-        : "Payment is not connected yet. This package is ready for checkout."
-    );
+  const availableBidCredits =
+    user?.bidCredits || 0;
+
+  const hasPackageCredits =
+    availableBidCredits > 0;
+
+  async function handlePackagePurchase() {
+    if (packageLoading) {
+      return;
+    }
+
+    setPackageLoading(true);
+    setPackageMessage("");
+
+    try {
+      const response = await fetch(
+        "/api/bid-packages",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            packageSize:
+              selectedPackageDetails.bids,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setPackageMessage(
+          data.error ||
+            "Unable to add bid package."
+        );
+        return;
+      }
+
+      await refreshUser();
+      setUsePackageCredit(true);
+
+      setPackageMessage(
+        `${selectedPackageDetails.bids} bid credits added.`
+      );
+    } catch {
+      setPackageMessage(
+        "Unable to add bid package. Please try again."
+      );
+    } finally {
+      setPackageLoading(false);
+    }
   }
 
   /*
@@ -578,6 +638,7 @@ export default function AuctionDetailsPage() {
           body: JSON.stringify({
             auctionId: auction.id,
             amount: numericBid,
+            usePackageCredit,
           }),
         }
       );
@@ -588,6 +649,15 @@ export default function AuctionDetailsPage() {
         setShowModal(false);
 
         setBid("1.00");
+
+        await refreshUser();
+
+        if (
+          usePackageCredit &&
+          Number(data.bidCredits || 0) <= 0
+        ) {
+          setUsePackageCredit(false);
+        }
 
         showToast(
           language === "am"
@@ -608,12 +678,17 @@ export default function AuctionDetailsPage() {
         */
 
         const errorMessage =
-          language === "am"
-            ? data.errorAm ||
-              data.error ||
-              "መጫረቻውን መላክ አልተቻለም።"
-            : data.error ||
-              "Unable to submit bid.";
+          data.code === "BID_LIMIT_REACHED"
+            ? language === "am"
+              ? data.errorAm ||
+                "You have reached the 100 bid limit for this auction."
+              : "You have reached the 100 bid limit for this auction."
+            : language === "am"
+              ? data.errorAm ||
+                data.error ||
+                "መጫረቻውን መላክ አልተቻለም።"
+              : data.error ||
+                "Unable to submit bid.";
 
         showToast(
           errorMessage,
@@ -1041,6 +1116,83 @@ export default function AuctionDetailsPage() {
                   </div>
                 </div>
 
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setUsePackageCredit(true)
+                    }
+                    disabled={
+                      authLoading ||
+                      !hasPackageCredits
+                    }
+                    className={`flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-55 ${
+                      usePackageCredit
+                        ? "border-[#1681C5] bg-[#1681C5]/[0.04] ring-2 ring-[#1681C5]/10"
+                        : "border-black/10 hover:border-[#1681C5]/40"
+                    }`}
+                    aria-pressed={
+                      usePackageCredit
+                    }
+                  >
+                    <Gavel
+                      size={17}
+                      className="shrink-0 text-[#1681C5]"
+                    />
+
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold">
+                        {language === "am"
+                          ? "የጥቅል ክሬዲት"
+                          : "Package credit"}
+                      </span>
+
+                      <span className="block text-xs text-black/45">
+                        {availableBidCredits.toLocaleString(
+                          "en-US"
+                        )}{" "}
+                        {language === "am"
+                          ? "ቀሪ"
+                          : "available"}
+                      </span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setUsePackageCredit(false)
+                    }
+                    className={`flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${
+                      !usePackageCredit
+                        ? "border-[#F78000] bg-[#F78000]/[0.05] ring-2 ring-[#F78000]/10"
+                        : "border-black/10 hover:border-[#F78000]/40"
+                    }`}
+                    aria-pressed={
+                      !usePackageCredit
+                    }
+                  >
+                    <CreditCard
+                      size={17}
+                      className="shrink-0 text-[#F78000]"
+                    />
+
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold">
+                        {language === "am"
+                          ? "ቀጥታ መጫረቻ"
+                          : "Normal bid"}
+                      </span>
+
+                      <span className="block text-xs text-black/45">
+                        {language === "am"
+                          ? "የአገልግሎት ክፍያን ይጠቀማል"
+                          : "Uses the service fee"}
+                      </span>
+                    </span>
+                  </button>
+                </div>
+
                 {/* SUBMIT */}
 
                 <button
@@ -1198,7 +1350,8 @@ export default function AuctionDetailsPage() {
                   onClick={
                     handlePackagePurchase
                   }
-                  className="mt-4 flex h-11 w-full items-center justify-center rounded-xl bg-[#1681C5] px-4 text-sm font-bold text-white transition hover:bg-[#116d9f]"
+                  disabled={packageLoading}
+                  className="mt-4 flex h-11 w-full items-center justify-center rounded-xl bg-[#1681C5] px-4 text-sm font-bold text-white transition hover:bg-[#116d9f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {language === "am"
                     ? `${selectedPackageDetails.bids} መጫረቻዎችን ይግዙ`
@@ -1363,7 +1516,9 @@ export default function AuctionDetailsPage() {
           }
           bidAmount={Number(bid)}
           serviceFee={
-            auction?.entryCost || 0
+            usePackageCredit
+              ? 0
+              : auction?.entryCost || 0
           }
           onConfirm={confirmBid}
           onCancel={() =>

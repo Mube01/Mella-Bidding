@@ -120,9 +120,34 @@ export async function middleware(
 ) {
   const pathname = request.nextUrl.pathname;
 
+  const withSecurityHeaders = (
+    response: NextResponse
+  ) => {
+    response.headers.set(
+      "X-Content-Type-Options",
+      "nosniff"
+    );
+    response.headers.set(
+      "X-Frame-Options",
+      "DENY"
+    );
+    response.headers.set(
+      "Referrer-Policy",
+      "strict-origin-when-cross-origin"
+    );
+    response.headers.set(
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=()"
+    );
+
+    return response;
+  };
+
   // Allow the admin login page.
   if (pathname === "/admin/login") {
-    return NextResponse.next();
+    return withSecurityHeaders(
+      NextResponse.next()
+    );
   }
 
   // Check if this is an admin route.
@@ -130,13 +155,36 @@ export async function middleware(
     pathname === "/admin" ||
     pathname.startsWith("/admin/");
 
-  // Allow all non-admin routes.
-  if (!isAdminRoute) {
-    return NextResponse.next();
-  }
+  const isAuthenticatedRoute =
+    pathname === "/account" ||
+    pathname.startsWith("/account/") ||
+    pathname === "/my-auctions" ||
+    pathname.startsWith("/my-auctions/");
 
   // Verify the session.
   const session = await verifySession(request);
+
+  if (!isAdminRoute && !isAuthenticatedRoute) {
+    return withSecurityHeaders(
+      NextResponse.next()
+    );
+  }
+
+  if (!session && isAuthenticatedRoute) {
+    const loginUrl = new URL(
+      "/login",
+      request.url
+    );
+
+    loginUrl.searchParams.set(
+      "next",
+      pathname
+    );
+
+    return withSecurityHeaders(
+      NextResponse.redirect(loginUrl)
+    );
+  }
 
   // Redirect unauthenticated users to admin login.
   if (!session) {
@@ -150,7 +198,9 @@ export async function middleware(
       pathname
     );
 
-    return NextResponse.redirect(loginUrl);
+    return withSecurityHeaders(
+      NextResponse.redirect(loginUrl)
+    );
   }
 
   // Only admins can access admin routes.
@@ -165,15 +215,20 @@ export async function middleware(
       pathname
     );
 
-    return NextResponse.redirect(loginUrl);
+    return withSecurityHeaders(
+      NextResponse.redirect(loginUrl)
+    );
   }
 
   // Valid admin session.
-  return NextResponse.next();
+  return withSecurityHeaders(
+    NextResponse.next()
+  );
 }
 
 export const config = {
   matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icon.png|images).*)",
     "/account/:path*",
     "/my-auctions/:path*",
     "/admin/:path*",

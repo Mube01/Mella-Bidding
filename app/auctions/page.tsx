@@ -308,6 +308,18 @@ export default function AuctionsPage() {
          OTHER API ERRORS
       ===================================================== */
 
+      if (data.code === "BID_LIMIT_REACHED") {
+        showToast(
+          language === "am"
+            ? data.errorAm ||
+                "You have reached the 100 bid limit for this auction."
+            : "You have reached the 100 bid limit for this auction.",
+          "error"
+        );
+
+        return;
+      }
+
       showToast(
         data.error ||
           (language === "am"

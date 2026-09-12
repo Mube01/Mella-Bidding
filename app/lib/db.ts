@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+mongoose.set("bufferCommands", false);
+
 function getMongoDBUri(): string {
   const uri = process.env.MONGODB_URI;
 
@@ -37,7 +39,11 @@ export async function connectDB() {
 
   if (!cached.promise) {
     cached.promise = mongoose.connect(
-      getMongoDBUri()
+      getMongoDBUri(),
+      {
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 5000,
+      }
     );
   }
 

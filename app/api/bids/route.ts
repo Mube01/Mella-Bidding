@@ -8,6 +8,13 @@ import { connectDB } from "../../lib/db";
 import { getAuctionStatus } from "../../lib/auction";
 import Auction from "../../models/auction";
 import Bid from "../../models/bid";
+import User from "../../models/user";
+import {
+  checkRateLimit,
+  getClientIp,
+} from "../../lib/rateLimit";
+
+const MAX_BIDS_PER_USER_PER_AUCTION = 100;
 
 export async function POST(request: Request) {
   if (!isSameOriginRequest(request)) {
@@ -52,6 +59,32 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
+    const rateLimit = checkRateLimit({
+      key: `bid:${user._id}:${getClientIp(request)}`,
+      limit: 60,
+      windowMs: 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "You are bidding too quickly. Please try again shortly.",
+          errorAm:
+            "በጣም በፍጥነት እየተጫረቱ ነው። እባክዎ ትንሽ ቆይተው ይሞክሩ።",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(
+              rateLimit.retryAfter
+            ),
+          },
+        }
+      );
+    }
+
     const auctionId =
       typeof body.auctionId === "string"
         ? body.auctionId.trim()
@@ -63,7 +96,9 @@ const validAmountFormat = /^\d+(?:\.\d{1,2})?$/.test(
   amountString
 );
 
-const amount = Number(amountString);
+    const amount = Number(amountString);
+    const usePackageCredit =
+      body.usePackageCredit === true;
 
     if (
   !auctionId ||
@@ -110,17 +145,99 @@ const amount = Number(amountString);
       );
     }
 
-    const existingParticipation = await Bid.exists({
-      auctionId: auction._id,
-      userId: user._id,
-    });
+    const userAuctionBidCount =
+      await Bid.countDocuments({
+        auctionId: auction._id,
+        userId: user._id,
+      });
 
-    const bid = await Bid.create({
-      auctionId: auction._id,
-      userId: user._id,
-      amount,
-      status: "accepted",
-    });
+    if (
+      userAuctionBidCount >=
+      MAX_BIDS_PER_USER_PER_AUCTION
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          code: "BID_LIMIT_REACHED",
+          error:
+            "You have reached the 100 bid limit for this auction",
+          errorAm:
+            "áˆˆá‹šáˆ… áŒ¨áˆ¨á‰³ 100 áˆ˜áŒ«áˆ¨á‰»á‹Žá‰½ áˆ‹á‹­ á‹°áˆ­áˆ°á‹‹áˆ",
+        },
+        { status: 409 }
+      );
+    }
+
+    const existingParticipation = userAuctionBidCount > 0;
+
+    let remainingCredits: number | undefined;
+    let creditReserved = false;
+
+    if (usePackageCredit) {
+      const updatedUser =
+        await User.findOneAndUpdate(
+          {
+            _id: user._id,
+            bidCredits: { $gte: 1 },
+          },
+          {
+            $inc: { bidCredits: -1 },
+          },
+          {
+            new: true,
+            projection: {
+              bidCredits: 1,
+            },
+          }
+        );
+
+      if (!updatedUser) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "You do not have enough package bid credits",
+            errorAm:
+              "á‰ á‰‚ á‹¨áŒ¥á‰…áˆ áˆ˜áŒ«áˆ¨á‰» áŠ­áˆ¬á‹²á‰µ á‹¨áˆŽá‰µáˆ",
+          },
+          { status: 409 }
+        );
+      }
+
+      creditReserved = true;
+      remainingCredits =
+        updatedUser.bidCredits || 0;
+    }
+
+    let bid;
+
+    try {
+      bid = await Bid.create({
+        auctionId: auction._id,
+        userId: user._id,
+        amount,
+        paymentMethod: usePackageCredit
+          ? "package"
+          : "direct",
+        packageName: usePackageCredit
+          ? "Bid package"
+          : "Direct bid",
+        packageCreditsRemainingAfter:
+          usePackageCredit
+            ? remainingCredits
+            : undefined,
+        status: "accepted",
+      });
+    } catch (error) {
+      if (creditReserved) {
+        await User.updateOne(
+          { _id: user._id },
+          { $inc: { bidCredits: 1 } }
+        );
+      }
+
+      throw error;
+    }
 
     await Auction.updateOne(
       { _id: auction._id },
@@ -140,7 +257,9 @@ const amount = Number(amountString);
         bid: {
           id: bid._id.toString(),
           amount: bid.amount,
+          paymentMethod: bid.paymentMethod,
         },
+        bidCredits: remainingCredits,
       },
       { status: 201 }
     );

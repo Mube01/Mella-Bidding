@@ -9,6 +9,7 @@ export interface IUser extends Document {
   phone: string;
   email?: string;
   password: string;
+  bidCredits: number;
   role: "user" | "admin";
   createdAt: Date;
   updatedAt: Date;
@@ -45,6 +46,12 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: true,
       select: false,
+    },
+
+    bidCredits: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
 
     role: {
