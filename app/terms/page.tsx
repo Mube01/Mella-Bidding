@@ -19,7 +19,6 @@ import Footer from "../components/Footer";
 import { useLanguage } from "../context/LanguageContext";
 
 type Language = "en" | "am";
-
 type TermSection = {
   id: string;
   number: number;
@@ -65,16 +64,13 @@ const englishSections: TermSection[] = [
     title: "WHO MAY USE MELLA",
     content: [
       `To open an Account and take part in an Auction, you confirm that:`,
+      `We may ask you to confirm your identity at registration, before releasing a prize, or at any other point, and we may pause your access while we do so. If we cannot confirm you meet the conditions above, we may refuse, suspend, or end your access to Mella.`,
     ],
     bullets: [
       `you are at least 18 years old;`,
       `you are able to lawfully hold and use a telebirr account or another payment method Mella accepts;`,
       `nothing in Ethiopian law bars you personally from using an auction or gaming-adjacent digital service; and`,
       `the details you give us at registration are your own, true, and current.`,
-    ],
-    content: [
-      `To open an Account and take part in an Auction, you confirm that:`,
-      `We may ask you to confirm your identity at registration, before releasing a prize, or at any other point, and we may pause your access while we do so. If we cannot confirm you meet the conditions above, we may refuse, suspend, or end your access to Mella.`,
     ],
   },
   {
@@ -106,15 +102,13 @@ const englishSections: TermSection[] = [
     content: [
       `Placing a Bid costs a fee, shown to you before you confirm the Bid. Paying this fee buys you the chance to have that Bid counted in the Auction — it is not a partial payment toward the Item and is not refunded if you do not win, regardless of the reason.`,
       `Rather than buying single Bids, you may buy a Bid Package covering several Bids at once, at a lower combined price than buying them one at a time. At launch, two Package sizes are offered:`,
+      `We may introduce other Package sizes, retire existing ones, or change the discount attached to a Package. Any such change takes effect only for Packages bought after the change and does not touch Bids you already hold.`,
+      `No participant may place more than 100 Bids in a single Auction, whether those Bids come from single purchases, a Package, or a mix of both.`,
+      `All payments for Bids and Bid Packages are handled through telebirr or another payment channel we make available. If money leaves your account but the Bid does not appear against the Auction, tell us and we will investigate and put it right.`,
     ],
     bullets: [
       `a 5-Bid Package, priced 5% below the cost of five single Bids; and`,
       `a 10-Bid Package, priced 12% below the cost of ten single Bids.`,
-    ],
-    content: [
-      `We may introduce other Package sizes, retire existing ones, or change the discount attached to a Package. Any such change takes effect only for Packages bought after the change and does not touch Bids you already hold.`,
-      `No participant may place more than 100 Bids in a single Auction, whether those Bids come from single purchases, a Package, or a mix of both.`,
-      `All payments for Bids and Bid Packages are handled through telebirr or another payment channel we make available. If money leaves your account but the Bid does not appear against the Auction, tell us and we will investigate and put it right.`,
     ],
   },
   {
@@ -181,6 +175,7 @@ const englishSections: TermSection[] = [
     title: "RULES OF CONDUCT",
     content: [
       `When using Mella, you agree that you will not:`,
+      `Breaking any of these rules can lead to the Bids in question being disregarded, your Account being suspended or closed, forfeiture of a prize you would otherwise have won, and, where the law requires it, a report to the relevant authorities.`,
     ],
     bullets: [
       `operate or benefit from more than one Account;`,
@@ -188,10 +183,6 @@ const englishSections: TermSection[] = [
       `try to access, alter, or disrupt any part of Mella's systems beyond normal use of the service;`,
       `give us false information at registration or during identity checks; or`,
       `arrange with other participants to place or withhold Bids in a way designed to control an Auction's outcome.`,
-    ],
-    content: [
-      `When using Mella, you agree that you will not:`,
-      `Breaking any of these rules can lead to the Bids in question being disregarded, your Account being suspended or closed, forfeiture of a prize you would otherwise have won, and, where the law requires it, a report to the relevant authorities.`,
     ],
   },
   {
@@ -304,6 +295,7 @@ const amharicSections: TermSection[] = [
       `የእነዚህ ውሎች ማንኛውም ክፍል ለእርስዎ ተቀባይነት ከሌለው፣ ብቸኛው አማራጭዎ Mellaን መጠቀም ማቆም ነው። የተሻሻለ የእነዚህ ውሎች ቅጂ ከታተመ በኋላ መለያ መያዙን ወይም በጨረታ መሳተፉን መቀጠል የተሻሻለውን ቅጂ እንደመቀበል ይቆጠራል።`,
     ],
   },
+
   {
     id: "definitions",
     number: 2,
@@ -324,12 +316,14 @@ const amharicSections: TermSection[] = [
       `ቴሌብር — Mella ሊደረስበት የሚችልበት፣ በኢትዮ ቴሌኮም የሚንቀሳቀሰው የሞባይል ገንዘብና ሱፐር አፕ አገልግሎት ነው።`,
     ],
   },
+
   {
     id: "eligibility",
     number: 3,
     title: "MELLAን ማን መጠቀም ይችላል",
     content: [
       `መለያ ለመክፈትና በጨረታ ለመሳተፍ፣ እርስዎ የሚከተሉትን እንደሚያሟሉ ያረጋግጣሉ፦`,
+      `መለያ ሲመዘገቡ፣ ሽልማት ከመልቀቃችን በፊት ወይም በማንኛውም ሌላ ጊዜ ማንነትዎን እንዲያረጋግጡ ልንጠይቅዎት እንችላለን፤ ይህን ስናደርግም መዳረሻዎን ለጊዜው ልናቆም እንችላለን። ከላይ ያሉትን ሁኔታዎች እንደሚያሟሉ ማረጋገጥ ካልቻልን፣ ወደ Mella ያለዎትን መዳረሻ ልንከለክል፣ ልናግድ ወይም ልንዘጋ እንችላለን።`,
     ],
     bullets: [
       `ቢያንስ 18 ዓመት ዕድሜ አለዎት፤`,
@@ -337,10 +331,8 @@ const amharicSections: TermSection[] = [
       `በኢትዮጵያ ህግ እርስዎ በግልዎ ጨረታ ወይም ከጨዋታ ጋር የተያያዘ ዲጂታል አገልግሎት እንዳይጠቀሙ የሚከለክል ነገር የለም፤ እና`,
       `በምዝገባ ወቅት የሰጡን ዝርዝሮች የእርስዎ፣ እውነተኛና ወቅታዊ ናቸው።`,
     ],
-    content: [
-      `መለያ ሲመዘገቡ፣ ሽልማት ከመልቀቃችን በፊት ወይም በማንኛውም ሌላ ጊዜ ማንነትዎን እንዲያረጋግጡ ልንጠይቅዎት እንችላለን፤ ይህን ስናደርግም መዳረሻዎን ለጊዜው ልናቆም እንችላለን። ከላይ ያሉትን ሁኔታዎች እንደሚያሟሉ ማረጋገጥ ካልቻልን፣ ወደ Mella ያለዎትን መዳረሻ ልንከለክል፣ ልናግድ ወይም ልንዘጋ እንችላለን።`,
-    ],
   },
+
   {
     id: "account",
     number: 4,
@@ -351,6 +343,7 @@ const amharicSections: TermSection[] = [
       `መለያዎን በማንኛውም ጊዜ በማነጋገር መዝጋት ይችላሉ። ቀድሞ በተከፈተ ጨረታ ውስጥ ያቀረቧቸው ዋጋዎች መለያዎን በመዝጋት አይነኩም፤ እነሱም በክፍል 6 መሠረት ይተናገዳሉ።`,
     ],
   },
+
   {
     id: "lowest-unique-bid",
     number: 5,
@@ -363,6 +356,7 @@ const amharicSections: TermSection[] = [
       `ከተዘጋ በኋላ ጨረታ እንደገና ሊከፈት አይችልም፣ ዋጋዎችም ሊነሱ፣ ሊስተካከሉ ወይም ወደ ሌላ ጨረታ ሊዘዋወሩ አይችሉም።`,
     ],
   },
+
   {
     id: "bids",
     number: 6,
@@ -370,22 +364,16 @@ const amharicSections: TermSection[] = [
     content: [
       `ዋጋ ማቅረብ ክፍያ ያስከፍላል፤ ይህም ዋጋውን ከማረጋገጥዎ በፊት ይታይዎታል። ይህን ክፍያ በመክፈል ያ ዋጋ በጨረታው ውስጥ የመቆጠር ዕድል ይገዛሉ - ይህ ለዕቃው ከፊል ክፍያ ሳይሆን፣ ካላሸነፉም ምንም ይሁን ምን ተመላሽ አይደረግም።`,
       `ነጠላ ዋጋዎችን ከመግዛት ይልቅ፣ በአንድ ጊዜ በርካታ ዋጋዎችን የሚሸፍን የዋጋ ጥቅል መግዛት ይችላሉ፤ ይህም ከነጠላ ዋጋዎች ግዢ ያነሰ ጠቅላላ ዋጋ አለው። በመጀመሪያ ማስጀመሪያ፣ ሁለት የጥቅል መጠኖች ይቀርባሉ፦`,
+      `ሌሎች የጥቅል መጠኖችን ልናስተዋውቅ፣ ነባሮቹን ልናቋርጥ ወይም ከጥቅል ጋር የተያያዘውን ቅናሽ ልንቀይር እንችላለን። እንዲህ ዓይነት ለውጥ ተፈጻሚ የሚሆነው ከለውጡ በኋላ ለተገዙ ጥቅሎች ብቻ ሲሆን፣ ቀድሞ የያዙዋቸውን ዋጋዎች አይነካም።`,
+      `ማንም ተሳታፊ ከነጠላ ግዢዎች፣ ከጥቅል ወይም ከሁለቱ ቅንብር ቢሆኑም፣ በአንድ ጨረታ ውስጥ ከ100 ዋጋዎች በላይ ማቅረብ አይችልም።`,
+      `ለዋጋዎችና ለዋጋ ጥቅሎች የሚደረጉ ሁሉም ክፍያዎች በቴሌብር ወይም እኛ በምናቀርበው በሌላ የክፍያ ቻናል ይስተናገዳሉ። ገንዘብ ከመለያዎ ከወጣ ነገር ግን ዋጋው በጨረታው ላይ ካልታየ፣ ያሳውቁን፤ እንመረምርና ችግሩን እናስተካክላለን።`,
     ],
     bullets: [
       `የ5-ዋጋ ጥቅል፣ ከአምስት ነጠላ ዋጋዎች ወጪ በ5% ያነሰ ዋጋ የሚያስከፍል፤ እና`,
       `የ10-ዋጋ ጥቅል፣ ከአስር ነጠላ ዋጋዎች ወጪ በ12% ያነሰ ዋጋ የሚያስከፍል።`,
     ],
   },
-  {
-    id: "bids-more",
-    number: 6,
-    title: "የዋጋ ጥቅሎች — ቀጣይ",
-    content: [
-      `ሌሎች የጥቅል መጠኖችን ልናስተዋውቅ፣ ነባሮቹን ልናቋርጥ ወይም ከጥቅል ጋር የተያያዘውን ቅናሽ ልንቀይር እንችላለን። እንዲህ ዓይነት ለውጥ ተፈጻሚ የሚሆነው ከለውጡ በኋላ ለተገዙ ጥቅሎች ብቻ ሲሆን፣ ቀድሞ የያዙዋቸውን ዋጋዎች አይነካም።`,
-      `ማንም ተሳታፊ ከነጠላ ግዢዎች፣ ከጥቅል ወይም ከሁለቱ ቅንብር ቢሆኑም፣ በአንድ ጨረታ ውስጥ ከ100 ዋጋዎች በላይ ማቅረብ አይችልም።`,
-      `ለዋጋዎችና ለዋጋ ጥቅሎች የሚደረጉ ሁሉም ክፍያዎች በቴሌብር ወይም እኛ በምናቀርበው በሌላ የክፍያ ቻናል ይስተናገዳሉ። ገንዘብ ከመለያዎ ከወጣ ነገር ግን ዋጋው በጨረታው ላይ ካልታየ፣ ያሳውቁን፤ እንመረምርና ችግሩን እናስተካክላለን።`,
-    ],
-  },
+
   {
     id: "mystery-box",
     number: 7,
@@ -396,6 +384,7 @@ const amharicSections: TermSection[] = [
       `ሽልማቱ አስቀድሞ ካለመገለጹ በስተቀር፣ የሚስጥራዊ ሳጥን ጨረታ በ Mella ላይ እንዳለ ማንኛውም ጨረታ በተመሳሳይ የዝቅተኛ ብቸኛ ዋጋ ደንብ፣ የዋጋ ገደቦችና የመዝጊያ አሰራር ይካሄዳል።`,
     ],
   },
+
   {
     id: "payments",
     number: 8,
@@ -405,6 +394,7 @@ const amharicSections: TermSection[] = [
       `ክፍያዎትን በትክክል ለማስኬድ በቴሌብርና በሌሎች የክፍያ አቅራቢዎች ላይ እንመካለን። ክፍያ ካልተሳካ፣ ከተዘገየ ወይም በክፍያ አቅራቢው ስህተት ምክንያት ሁለት ጊዜ ከተፈጸመ፣ ከዚያ አቅራቢ ጋር እርማት እንዲያገኙ እናግዝዎታለን፣ ነገር ግን የስርዓቶቻቸው ዋስትና ሰጪ አይደለንም።`,
     ],
   },
+
   {
     id: "claiming-prize",
     number: 9,
@@ -415,6 +405,7 @@ const amharicSections: TermSection[] = [
       `ለአብዛኞቹ ዕቃዎች፣ የይገባኛል ጥያቄዎ ከተረጋገጠ በኋላ፣ ከተሰየመ ቦታ ርክክብ ወይም እርስዎ ወደ ሰጡት አድራሻ ማድረስ እናዘጋጃለን፣ በአጠቃላይ በ10 የስራ ቀናት ውስጥ።`,
     ],
   },
+
   {
     id: "vehicles",
     number: 10,
@@ -425,6 +416,7 @@ const amharicSections: TermSection[] = [
       `የምዝገባ ክፍያዎች፣ የማስተላለፊያ ታክሶች፣ የኢንሹራንስ ክፍያዎችና ተሽከርካሪውን በስምዎ ለማስመዝገብ ሶስተኛ ወገን የሚያስከፍለው ማንኛውም ወጪ የአሸናፊው ኃላፊነት ነው፣ ለዚያ ተሽከርካሪ የጨረታ ደንቦች ሌላ ካልሉ።`,
     ],
   },
+
   {
     id: "faulty-prizes",
     number: 11,
@@ -435,6 +427,7 @@ const amharicSections: TermSection[] = [
       `ከዚህ ውጪ፣ ዕቃ የያዘው አምራቹ የሚሰጠውን ዋስትና ብቻ ነው።`,
     ],
   },
+
   {
     id: "nature",
     number: 12,
@@ -444,12 +437,14 @@ const amharicSections: TermSection[] = [
       `Mella የሚሸልመው አካላዊ ዕቃዎችን ብቻ ነው። የገንዘብ-ሽልማት ዕጣ አናካሂድም፤ በ Mella ላይ ያለ ማንኛውም ነገር እንደ ሎተሪ ትኬት፣ ውርርድ ወይም የፋይናንስ ኢንቨስትመንት ተደርጎ መታየት ወይም መቆጠር የለበትም።`,
     ],
   },
+
   {
     id: "conduct",
     number: 13,
     title: "የባህሪ ደንቦች",
     content: [
       `Mellaን ሲጠቀሙ የሚከተሉትን እንደማያደርጉ ተስማምተዋል፦`,
+      `ከእነዚህ ደንቦች የትኛውንም መጣስ የተጠየቁት ዋጋዎች እንዳይቆጠሩ ሊያደርግ፣ መለያዎ ሊታገድ ወይም ሊዘጋ፣ እንዲያሸንፉ የሚገባዎትን ሽልማት ሊያሳጣዎት እና ህግ በሚጠይቅበት ጊዜ ለሚመለከታቸው ባለሥልጣናት ሪፖርት ሊደረግ ይችላል።`,
     ],
     bullets: [
       `ከአንድ በላይ መለያ መስራት ወይም መጠቀም፤`,
@@ -458,10 +453,8 @@ const amharicSections: TermSection[] = [
       `በምዝገባ ወይም በማንነት ማረጋገጫ ወቅት የሐሰት መረጃ መስጠት፤ ወይም`,
       `የጨረታን ውጤት ለመቆጣጠር በማሰብ ከሌሎች ተሳታፊዎች ጋር ዋጋ ለማቅረብ ወይም ላለማቅረብ መስማማት።`,
     ],
-    content: [
-      `ከእነዚህ ደንቦች የትኛውንም መጣስ የተጠየቁት ዋጋዎች እንዳይቆጠሩ ሊያደርግ፣ መለያዎ ሊታገድ ወይም ሊዘጋ፣ እንዲያሸንፉ የሚገባዎትን ሽልማት ሊያሳጣዎት እና ህግ በሚጠይቅበት ጊዜ ለሚመለከታቸው ባለሥልጣናት ሪፖርት ሊደረግ ይችላል።`,
-    ],
   },
+
   {
     id: "monitoring",
     number: 14,
@@ -471,6 +464,7 @@ const amharicSections: TermSection[] = [
       `ግምገማችን የተቀናጀ፣ አውቶማቲክ ወይም ከመደበኛ ተሳትፎ ጋር የማይጣጣም የሚመስል ንድፍ ካገኘ፣ የተነካውን የጨረታ ውጤት ልንይዝ፣ ለተካተቱት ተሳታፊዎች ማብራሪያ ልንጠይቅ እንችላለን፤ ማብራሪያውም የማያረካን ከሆነ በክፍል 13 መሠረት እርምጃ እንወስዳለን።`,
     ],
   },
+
   {
     id: "privacy",
     number: 15,
@@ -481,6 +475,7 @@ const amharicSections: TermSection[] = [
       `የአሸናፊውን የግል መረጃ እንደ ጨረታ ውጤት አካል አናትም። አሸናፊን በይፋ ስንጠቅስ የዚያን ሰው የተለየ ፈቃድ ካገኘን ብቻ ነው።`,
     ],
   },
+
   {
     id: "intellectual-property",
     number: 16,
@@ -489,6 +484,7 @@ const amharicSections: TermSection[] = [
       `የMella ስም፣ አርማ፣ እና ከጨረታ አገልግሎቱ በስተጀርባ ያለው ሶፍትዌርና ንድፍ የ Mella ወይም የፈቃድ ሰጪዎቹ ንብረት ናቸው። እነሱን መጠቀም የሚችሉት በመደበኛ መንገድ በጨረታዎች ለመሳተፍ በሚያስፈልግ መጠን ብቻ ሲሆን፣ ለመቅዳት፣ ለማስማማት ወይም ተወዳዳሪ አገልግሎት ለመገንባት አይደለም።`,
     ],
   },
+
   {
     id: "liability",
     number: 17,
@@ -499,6 +495,7 @@ const amharicSections: TermSection[] = [
       `በእነዚህ ውሎች ውስጥ ያለ ምንም ነገር በስምምነት በህጋዊ መንገድ ሊገደብ የማይችል የኢትዮጵያ ህግ ለእርስዎ እንደ ሸማች የሚሰጠውን ጥበቃ አይቀንስም።`,
     ],
   },
+
   {
     id: "suspending",
     number: 18,
@@ -508,6 +505,7 @@ const amharicSections: TermSection[] = [
       `መለያዎን መዝጋት ገና ባልተዘጉ ጨረታዎች ላይ ቀድሞ ለወጡ የዋጋ ክፍያዎች፣ ክፍል 11 ተፈጻሚ ካልሆነ በስተቀር፣ ተመላሽ የማግኘት መብት አይሰጥዎትም።`,
     ],
   },
+
   {
     id: "changes",
     number: 19,
@@ -517,6 +515,7 @@ const amharicSections: TermSection[] = [
       `ለውጥ በቀድሞው የእነዚህ ውሎች ቅጂ ስር አስቀድሞ የተዘጋን ጨረታ ወደኋላ ተመልሶ አይነካም።`,
     ],
   },
+
   {
     id: "events",
     number: 20,
@@ -525,6 +524,7 @@ const amharicSections: TermSection[] = [
       `ብሔራዊ የኔትወርክ ወይም የቴሌብር መቆራረጥ፣ የተፈጥሮ አደጋ፣ የመንግስት እርምጃ ወይም ተመሳሳይ መስተጓጎልን የመሳሰሉ በምክንያታዊነት ከቁጥጥራችን ውጪ በሆነ ነገር ለሚከሰት የጨረታ መዘግየት፣ መስተጓጎል ወይም ስረዛ ኃላፊነት አንወስድም። ይህ ሲከሰት፣ ምክንያታዊ በሆነ ጊዜ ውስጥ የተነኩ ጨረታዎችን እናስጀምራለን ወይም እንደገና እናስተካክላለን።`,
     ],
   },
+
   {
     id: "disagreement",
     number: 21,
@@ -534,6 +534,7 @@ const amharicSections: TermSection[] = [
       `ጉዳዩን ከመዝገቦቻችንና ለዚያ ጨረታ ከታተሙት ደንቦች ጋር እናመሳክራለን፣ ተጨባጭ ምላሽም እንሰጥዎታለን። ከዚያ በኋላ ጉዳዩ ገና እንዳልተፈታ ካሰቡ፣ በክፍል 22 መሠረት ሊቀጥሉበት ይችላሉ።`,
     ],
   },
+
   {
     id: "governing-law",
     number: 22,
@@ -542,6 +543,7 @@ const amharicSections: TermSection[] = [
       `እነዚህ ውሎች በኢትዮጵያ ፌዴራላዊ ዲሞክራሲያዊ ሪፐብሊክ ህግ የሚመሩ ሲሆኑ፣ ከእነዚህ ውሎች ወይም ከ Mella አጠቃቀምዎ የሚነሳ በቀጥታ ሊፈታ የማይችል ማንኛውም የይገባኛል ጥያቄ በብቁ የኢትዮጵያ ፍርድ ቤቶች ስልጣን ስር ይወድቃል።`,
     ],
   },
+
   {
     id: "general",
     number: 23,
@@ -551,6 +553,7 @@ const amharicSections: TermSection[] = [
       `እነዚህ ውሎች፣ ለእያንዳንዱ ጨረታ ከሚታተሙት ልዩ ደንቦችና ከግላዊነት ማስታወቂያችን ጋር፣ አገልግሎቱን ስለመጠቀም በእርስዎና በMella መካከል ያለው ሙሉ ስምምነት ሲሆኑ፣ ቀድሞ የተወያየበትን ማንኛውንም ነገር ይተካሉ።`,
     ],
   },
+
   {
     id: "contact",
     number: 24,
