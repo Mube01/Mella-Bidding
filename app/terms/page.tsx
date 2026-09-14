@@ -700,10 +700,6 @@ export default function TermsPage() {
                 {isAmharic ? "መስከረም 2026" : "Effective September 2026"}
               </div>
 
-              <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-black/70 shadow-sm">
-                <ShieldCheck className="h-4 w-4 text-[#1681C5]" />
-                {isAmharic ? "ለግምገማ" : "For Review"}
-              </div>
             </div>
           </div>
         </div>
