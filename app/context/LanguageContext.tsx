@@ -31,7 +31,7 @@ const translations = {
     winMore: "Win more.",
 
     heroDescription:
-      "Mella brings a fresh, transparent auction experience to Ethiopia. Discover exceptional products, place your bids, and let the smartest strategy win.",
+      "Mella a lowest unique bidding service. Discover exceptional products, place your bids, and let the smartest strategy win.",
 
     transparent: "TRANSPARENT",
     localPayments: "LOCAL PAYMENTS",
@@ -554,7 +554,7 @@ notUnique:
       "የበለጠ ያሸንፉ",
 
     heroDescription:
-      "Mella አዲስና ግልጽ የጨረታ ልምድን አምጥቷል። ልዩ ምርቶችን ያግኙ፣ መጫረቻዎን ያስገቡ እና ብልህ ስትራቴጂዎ እንዲያሸንፍ ያድርጉ።",
+      "Mella  ዝቅተኛ ብቸኛ ዋጋ ጨረታ አገልግሎት። ልዩ ምርቶችን ያግኙ፣ መጫረቻዎን ያስገቡ እና ብልህ ስትራቴጂዎ እንዲያሸንፍ ያድርጉ።",
 
     transparent:
       "ሙሉ ግልጽነት",
