@@ -8,7 +8,6 @@ import {
   ChevronRight,
   FileText,
   Gavel,
-  ShieldCheck,
   Scale,
 } from "lucide-react";
 import Link from "next/link";
@@ -675,7 +674,7 @@ export default function TermsPage() {
 
             <h1 className="font-display text-4xl font-bold tracking-tight text-[#111827] sm:text-5xl lg:text-6xl">
               {isAmharic
-                ? "የውል ውሎችና ሁኔታዎች"
+                ? "ውሎች እና ሁኔታዎች"
                 : "Terms & Conditions"}
             </h1>
 
@@ -685,8 +684,8 @@ export default function TermsPage() {
               }`}
             >
               {isAmharic
-                ? "በቴሌብር ሱፐር አፕ በኩል መድረሱን ጨምሮ የ Mella ዝቅተኛ ብቸኛ ዋጋ ጨረታ አገልግሎት አጠቃቀምን የሚመራ።"
-                : "Governing the use of the Mella Lowest Unique Bid Auction service, including where accessed through the telebirr Super App."}
+                ? "የ Mella ዝቅተኛ ብቸኛ ዋጋ ጨረታ አገልግሎት አጠቃቀምን የሚመራ።"
+                : "Governing the use of the Mella Lowest Unique Bid Auction service."}
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
