@@ -206,6 +206,22 @@ export default function AuctionsPage() {
       key: "mystery box",
       label: t("mysteryBox"),
     },
+    {
+      key: "smartphones",
+      label: t("smartphones"),
+    },
+    {
+      key: "laptops",
+      label: t("laptops"),
+    },
+    {
+      key: "watches",
+      label: t("watches"),
+    },
+    {
+      key: "tickets",
+      label: t("tickets"),
+    },
   ];
 
   /* =========================================================

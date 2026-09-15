@@ -159,7 +159,25 @@ export default function AdminAuctionForm({ id }: { id?: string }) {
           <Field label="Title (Amharic)" value={values.titleAm} onChange={(value) => update("titleAm", value)} required />
           <Field label="Subtitle (English)" value={values.subtitleEn} onChange={(value) => update("subtitleEn", value)} required />
           <Field label="Subtitle (Amharic)" value={values.subtitleAm} onChange={(value) => update("subtitleAm", value)} required />
-          <label className="block"><span className="mb-2 block text-sm font-semibold">Category</span><select value={values.category} onChange={(event) => update("category", event.target.value)} required className="h-11 w-full rounded-xl border border-black/10 bg-white px-3 text-sm outline-none focus:border-[#1681C5]"><option>Electronics</option><option>Automotive</option><option>Home</option><option>Mystery Box</option></select></label>
+<label className="block">
+  <span className="mb-2 block text-sm font-semibold">Category</span>
+
+  <select
+    value={values.category}
+    onChange={(event) => update("category", event.target.value)}
+    required
+    className="h-11 w-full rounded-xl border border-black/10 bg-white px-3 text-sm outline-none focus:border-[#1681C5]"
+  >
+    <option value="Electronics">Electronics</option>
+    <option value="Automotive">Automotive</option>
+    <option value="Home">Home Appliances</option>
+    <option value="Smartphones">Smartphones</option>
+    <option value="Laptops">Laptops</option>
+    <option value="Watches">Watches</option>
+    <option value="Tickets">Tickets</option>
+    <option value="Mystery Box">Mystery Box</option>
+  </select>
+</label>
         </div>
       <div className="mt-6 grid gap-5 border-t border-black/10 pt-6 sm:grid-cols-2"><label className="block"><span className="mb-2 block text-sm font-semibold">Description (English)</span><textarea value={values.descriptionEn} onChange={(event) => update("descriptionEn", event.target.value)} required rows={5} className="w-full rounded-xl border border-black/10 p-3 text-sm outline-none focus:border-[#1681C5]" /></label><label className="block"><span className="mb-2 block text-sm font-semibold">Description (Amharic)</span><textarea value={values.descriptionAm} onChange={(event) => update("descriptionAm", event.target.value)} required rows={5} className="w-full rounded-xl border border-black/10 p-3 text-sm outline-none focus:border-[#1681C5]" /></label></div>
       </section>

@@ -121,7 +121,7 @@ const translations = {
 
     automotive: "Vehicle",
 
-    home: "Home",
+    home: "Home Appliances",
 
     searchAuctions: "Search auctions...",
 
@@ -513,6 +513,11 @@ notUnique:
   "Not unique",
 
   bidder: "Bidder",
+
+  smartphones: "Smartphones",
+  laptops: "Laptops",
+  watches: "Watches",
+  tickets:"Tickets",
   },
 
   am: {
@@ -1111,7 +1116,10 @@ notUnique:
 
   bidder: "ተጫራች",
   followUs: "እኛን ይከተሉ",
-
+  smartphones: "ስማርትፎኖች",
+  laptops: "ላፕቶፖች",
+  watches: "ሰዓቶች",
+  tickets:"ቲኬቶች",
   },
 };
 

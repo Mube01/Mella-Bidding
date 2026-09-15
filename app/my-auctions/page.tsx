@@ -33,60 +33,9 @@ type MyAuction = {
   endDate: string;
 };
 
-const sampleAuctions: MyAuction[] = [
-  {
-    id: "iphone-17-pro-max",
-    title: "iPhone 17 Pro Max",
-    image: "/images/iphone.avif",
-    category: "Electronics",
-    status: "active",
-    myBid: 75,
-    totalBids: 3,
-    endDate: "August 30, 2026",
-  },
-  {
-    id: "byd-seagull",
-    title: "BYD Seagull",
-    image: "/images/byd.jpg",
-    category: "Automotive",
-    status: "won",
-    myBid: 350,
-    totalBids: 8,
-    endDate: "August 18, 2026",
-  },
-  {
-    id: "samsung-neo-qled",
-    title: "Samsung Neo QLED TV",
-    image: "/images/tv.jpg",
-    category: "Electronics",
-    status: "ended",
-    myBid: 150,
-    totalBids: 5,
-    endDate: "August 12, 2026",
-  },
-];
-
-/* =============================================================
-   LOADING
-============================================================= */
-
-function LoadingCircle() {
-  return <LoadingSpinner size="lg" />;
-}
-
-/* =============================================================
-   AMOUNT
-============================================================= */
-
 function formatAmount(amount: number) {
-  return new Intl.NumberFormat("en-US").format(
-    amount
-  );
+  return new Intl.NumberFormat("en-US").format(amount);
 }
-
-/* =============================================================
-   DATE FORMAT
-============================================================= */
 
 function formatEndDate(
   date: string,
@@ -124,10 +73,6 @@ function formatEndDate(
     }
   ).format(parsedDate);
 }
-
-/* =============================================================
-   STATUS BADGE
-============================================================= */
 
 function StatusBadge({
   status,
@@ -177,115 +122,63 @@ function StatusBadge({
   );
 }
 
-/* =============================================================
-   PAGE
-============================================================= */
-
 export default function MyAuctionsPage() {
-  const { t, language } =
-    useLanguage();
+  const { t, language } = useLanguage();
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [myAuctions, setMyAuctions] =
-    useState<MyAuction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [myAuctions, setMyAuctions] = useState<MyAuction[]>([]);
 
   const [activeFilter, setActiveFilter] =
-    useState<
-      "all" | AuctionStatus
-    >("all");
-
-  /* ===========================================================
-     FETCH MY AUCTIONS
-  =========================================================== */
+    useState<"all" | AuctionStatus>("all");
 
   useEffect(() => {
-    fetch(
-      `/api/my-auctions?lang=${language}`,
-      {
-        cache: "no-store",
-      }
-    )
-      .then((response) =>
-        response.json()
-      )
+    fetch(`/api/my-auctions?lang=${language}`, {
+      cache: "no-store",
+    })
+      .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          setMyAuctions(
-            data.auctions
-          );
+          setMyAuctions(data.auctions);
         }
       })
-      .catch(() =>
-        setMyAuctions([])
-      )
-      .finally(() =>
-        setLoading(false)
-      );
+      .catch(() => setMyAuctions([]))
+      .finally(() => setLoading(false));
   }, [language]);
-
-  /* ===========================================================
-     FILTER
-  =========================================================== */
 
   const filteredAuctions =
     activeFilter === "all"
       ? myAuctions
       : myAuctions.filter(
-          (auction) =>
-            auction.status ===
-            activeFilter
+          (auction) => auction.status === activeFilter
         );
 
-  /* ===========================================================
-     STATS
-  =========================================================== */
+  const activeCount = myAuctions.filter(
+    (auction) => auction.status === "active"
+  ).length;
 
-  const activeCount =
-    myAuctions.filter(
-      (auction) =>
-        auction.status === "active"
-    ).length;
+  const wonCount = myAuctions.filter(
+    (auction) => auction.status === "won"
+  ).length;
 
-  const wonCount =
-    myAuctions.filter(
-      (auction) =>
-        auction.status === "won"
-    ).length;
-
-  const endedCount =
-    myAuctions.filter(
-      (auction) =>
-        auction.status === "ended" ||
-        auction.status === "lost"
-    ).length;
-
-  /* ===========================================================
-     LOADING
-  =========================================================== */
+  const endedCount = myAuctions.filter(
+    (auction) =>
+      auction.status === "ended" ||
+      auction.status === "lost"
+  ).length;
 
   if (loading) {
     return (
       <main className="min-h-screen bg-neutral-50 px-6 pb-20 pt-40 sm:pt-44">
         <div className="flex min-h-[50vh] items-center justify-center">
-          <LoadingCircle />
+          <LoadingSpinner size="lg" />
         </div>
       </main>
     );
   }
 
-  /* ===========================================================
-     MAIN
-  =========================================================== */
-
   return (
     <main className="min-h-screen bg-neutral-50 px-6 pb-20 pt-40 sm:pt-44">
       <div className="mx-auto max-w-6xl">
-
-        {/* =====================================================
-            PAGE HEADER
-        ===================================================== */}
 
         <div>
           <p className="text-xs font-bold tracking-[0.2em] text-mella-green">
@@ -297,23 +190,14 @@ export default function MyAuctionsPage() {
           </h1>
 
           <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-500">
-            {t(
-              "myAuctionsDescription"
-            )}
+            {t("myAuctionsDescription")}
           </p>
         </div>
 
-        {/* =====================================================
-            STATS
-        ===================================================== */}
-
         <div className="mt-10 grid gap-4 sm:grid-cols-3">
-
-          {/* ACTIVE */}
 
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
-
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F78000]/10 text-[#F78000]">
                 <Clock3 size={19} />
               </div>
@@ -327,15 +211,11 @@ export default function MyAuctionsPage() {
                   {activeCount}
                 </p>
               </div>
-
             </div>
           </div>
 
-          {/* WON */}
-
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
-
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-mella-green/10 text-mella-green">
                 <Trophy size={19} />
               </div>
@@ -349,15 +229,11 @@ export default function MyAuctionsPage() {
                   {wonCount}
                 </p>
               </div>
-
             </div>
           </div>
 
-          {/* ENDED */}
-
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
-
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500">
                 <Gavel size={19} />
               </div>
@@ -371,24 +247,16 @@ export default function MyAuctionsPage() {
                   {endedCount}
                 </p>
               </div>
-
             </div>
           </div>
 
         </div>
 
-        {/* =====================================================
-            FILTERS
-        ===================================================== */}
-
         <div className="mt-10 flex flex-wrap items-center gap-2">
-
           {[
             {
               value: "all" as const,
-              label: t(
-                "allAuctions"
-              ),
+              label: t("allAuctions"),
             },
             {
               value: "active" as const,
@@ -407,13 +275,10 @@ export default function MyAuctionsPage() {
               key={filter.value}
               type="button"
               onClick={() =>
-                setActiveFilter(
-                  filter.value
-                )
+                setActiveFilter(filter.value)
               }
               className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${
-                activeFilter ===
-                filter.value
+                activeFilter === filter.value
                   ? "bg-mella-green text-white shadow-sm"
                   : "border border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:text-neutral-900"
               }`}
@@ -421,374 +286,209 @@ export default function MyAuctionsPage() {
               {filter.label}
             </button>
           ))}
-
         </div>
 
-        {/* =====================================================
-            AUCTIONS
-        ===================================================== */}
-
         <div className="mt-6">
-
-          {filteredAuctions.length ===
-          0 ? (
+          {filteredAuctions.length === 0 ? (
             <div className="rounded-3xl border border-neutral-200 bg-white px-6 py-16 text-center shadow-sm">
-
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-neutral-100 text-neutral-400">
                 <Gavel size={24} />
               </div>
 
               <h2 className="mt-5 text-xl font-semibold text-neutral-900">
-                {t(
-                  "noAuctionsFound"
-                )}
+                {t("noAuctionsFound")}
               </h2>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-neutral-500">
-                {t(
-                  "noAuctionsDescription"
-                )}
+                {t("noAuctionsDescription")}
               </p>
 
               <Link
                 href="/auctions"
                 className="mt-6 inline-flex items-center gap-2 rounded-full bg-mella-green px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:shadow-lg"
               >
-                {t(
-                  "exploreAuctions"
-                )}
-
+                {t("exploreAuctions")}
                 <ArrowRight size={16} />
               </Link>
-
             </div>
           ) : (
             <div className="grid gap-5">
+              {filteredAuctions.map((auction) => {
+                const isCompleted =
+                  auction.status === "won" ||
+                  auction.status === "ended" ||
+                  auction.status === "lost";
 
-              {filteredAuctions.map(
-                (auction) => {
+                const destination = isCompleted
+                  ? `/results/${encodeURIComponent(
+                      auction.id
+                    )}`
+                  : `/auctions/${encodeURIComponent(
+                      auction.id
+                    )}`;
 
-                  /*
-                   * Completed auctions go
-                   * to the public result page.
-                   *
-                   * Active auctions continue
-                   * to the auction page.
-                   */
-                  const isCompleted =
-                    auction.status ===
-                      "won" ||
-                    auction.status ===
-                      "ended" ||
-                    auction.status ===
-                      "lost";
+                return (
+                  <div
+                    key={auction.id}
+                    className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:shadow-md"
+                  >
+                    <div className="flex flex-col md:flex-row">
 
-                  const destination =
-                    isCompleted
-                      ? `/results/${encodeURIComponent(
-                          auction.id
-                        )}`
-                      : `/auctions/${encodeURIComponent(
-                          auction.id
-                        )}`;
+                      <div className="relative h-56 w-full shrink-0 overflow-hidden bg-neutral-100 md:h-auto md:w-64">
+                        <img
+                          src={auction.image}
+                          alt={auction.title}
+                          className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                        />
 
-                  return (
-                    <div
-                      key={auction.id}
-                      className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:shadow-md"
-                    >
-
-                      <div className="flex flex-col md:flex-row">
-
-                        {/* =================================================
-                            IMAGE
-                        ================================================= */}
-
-                        <div className="relative h-56 w-full shrink-0 overflow-hidden bg-neutral-100 md:h-auto md:w-64">
-
-                          <img
-                            src={
-                              auction.image
-                            }
-                            alt={
-                              auction.title
-                            }
-                            className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                        <div className="absolute left-4 top-4">
+                          <StatusBadge
+                            status={auction.status}
+                            t={t}
                           />
-
-                          <div className="absolute left-4 top-4">
-                            <StatusBadge
-                              status={
-                                auction.status
-                              }
-                              t={t}
-                            />
-                          </div>
-
                         </div>
+                      </div>
 
-                        {/* =================================================
-                            CONTENT
-                        ================================================= */}
+                      <div className="flex flex-1 flex-col p-6 sm:p-7">
+                        <div className="flex flex-col justify-between gap-5 sm:flex-row">
 
-                        <div className="flex flex-1 flex-col p-6 sm:p-7">
+                          <div>
+                            <p className="text-xs font-bold tracking-wider text-mella-green">
+                              {auction.category.toUpperCase()}
+                            </p>
 
-                          <div className="flex flex-col justify-between gap-5 sm:flex-row">
+                            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
+                              {auction.title}
+                            </h2>
 
-                            <div>
-
-                              <p className="text-xs font-bold tracking-wider text-mella-green">
-                                {auction.category.toUpperCase()}
-                              </p>
-
-                              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-900">
-                                {auction.title}
-                              </h2>
-
-                              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-neutral-500">
-
-                                {/* =================================================
-                                    ACTIVE → COUNTDOWN
-                                ================================================= */}
-
-                                {auction.status ===
-                                "active" ? (
-                                  <span className="flex items-center gap-1.5">
-
-                                    <CalendarDays
-                                      size={15}
-                                    />
-
-                                    <p className="font-mono text-[15px] font-semibold text-red-600">
-                                      <AuctionCountdown
-                                        endsAt={
-                                          auction.endDate
-                                        }
-                                      />
-                                    </p>
-
-                                  </span>
-                                ) : (
-                                  /* =============================================
-                                     COMPLETED → END DATE/TIME
-                                  ============================================= */
-
-                                  <span className="flex items-center gap-1.5">
-
-                                    <CheckCircle2
-                                      size={15}
-                                      className="text-neutral-400"
-                                    />
-
-                                    <span>
-                                      {t(
-                                        "ended"
-                                      )}
-                                      :{" "}
-                                      <span className="font-medium text-neutral-700">
-                                        {formatEndDate(
-                                          auction.endDate,
-                                          language
-                                        )}
-                                      </span>
-                                    </span>
-
-                                  </span>
-                                )}
-
-                                {/* =================================================
-                                    TOTAL BIDS
-                                ================================================= */}
-
+                            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-neutral-500">
+                              {auction.status === "active" ? (
                                 <span className="flex items-center gap-1.5">
+                                  <CalendarDays size={15} />
 
-                                  <Gavel
+                                  <p className="font-mono text-[15px] font-semibold text-red-600">
+                                    <AuctionCountdown
+                                      endsAt={auction.endDate}
+                                    />
+                                  </p>
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1.5">
+                                  <CheckCircle2
                                     size={15}
+                                    className="text-neutral-400"
                                   />
 
-                                  {auction.totalBids}{" "}
-                                  {t("bids")}
-
+                                  <span>
+                                    {t("ended")}:{" "}
+                                    <span className="font-medium text-neutral-700">
+                                      {formatEndDate(
+                                        auction.endDate,
+                                        language
+                                      )}
+                                    </span>
+                                  </span>
                                 </span>
+                              )}
 
-                              </div>
-
+                              <span className="flex items-center gap-1.5">
+                                <Gavel size={15} />
+                                {auction.totalBids} {t("bids")}
+                              </span>
                             </div>
-
-                            {/* =================================================
-                                MY BID
-                            ================================================= */}
-
-                            <div className="sm:text-right">
-
-                              <p className="text-xs font-bold tracking-wider text-neutral-400">
-                                {t("myBid")}
-                              </p>
-
-                              <p className="mt-1 text-2xl font-semibold text-neutral-900">
-
-                                {formatAmount(
-                                  auction.myBid
-                                )}{" "}
-
-                                <span className="text-sm font-medium text-neutral-400">
-                                  {language ===
-                                  "am"
-                                    ? "ብር"
-                                    : "ETB"}
-                                </span>
-
-                              </p>
-
-                            </div>
-
                           </div>
 
-                          {/* =================================================
-                              BOTTOM
-                          ================================================= */}
+                          <div className="sm:text-right">
+                            <p className="text-xs font-bold tracking-wider text-neutral-400">
+                              {t("myBid")}
+                            </p>
 
-                          <div className="mt-6 flex flex-col gap-4 border-t border-neutral-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-
-                            <div>
-
-                              {/* ACTIVE */}
-
-                              {auction.status ===
-                                "active" && (
-                                <p className="text-sm text-neutral-500">
-                                  {t(
-                                    "auctionCurrentlyActive"
-                                  )}
-                                </p>
-                              )}
-
-                              {/* WON */}
-
-                              {auction.status ===
-                                "won" && (
-                                <p className="flex items-center gap-2 text-sm font-semibold text-mella-green">
-                                  <Trophy
-                                    size={
-                                      16
-                                    }
-                                  />
-
-                                  {t(
-                                    "congratulationsWon"
-                                  )}
-                                </p>
-                              )}
-
-                              {/* ENDED */}
-
-                              {auction.status ===
-                                "ended" && (
-                                <p className="text-sm text-neutral-500">
-                                  {t(
-                                    "auctionHasEnded"
-                                  )}
-                                </p>
-                              )}
-
-                              {/* LOST */}
-
-                              {auction.status ===
-                                "lost" && (
-                                <p className="flex items-center gap-2 text-sm text-neutral-500">
-                                  <XCircle
-                                    size={
-                                      16
-                                    }
-                                  />
-
-                                  {t(
-                                    "auctionHasEnded"
-                                  )}
-                                </p>
-                              )}
-
-                            </div>
-
-                            {/* =================================================
-                                VIEW BUTTON
-                            ================================================= */}
-
-                            <Link
-                              href={
-                                destination
-                              }
-                              className="group inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 px-5 py-3 text-sm font-semibold text-neutral-800 transition hover:border-mella-green hover:text-mella-green"
-                            >
-
-                              {isCompleted
-                                ? t(
-                                    "viewResult"
-                                  )
-                                : t(
-                                    "viewAuction"
-                                  )}
-
-                              <ArrowRight
-                                size={
-                                  16
-                                }
-                                className="transition group-hover:translate-x-1"
-                              />
-
-                            </Link>
-
+                            <p className="mt-1 text-2xl font-semibold text-neutral-900">
+                              {formatAmount(auction.myBid)}{" "}
+                              <span className="text-sm font-medium text-neutral-400">
+                                {language === "am"
+                                  ? "ብር"
+                                  : "ETB"}
+                              </span>
+                            </p>
                           </div>
-
                         </div>
 
+                        <div className="mt-6 flex flex-col gap-4 border-t border-neutral-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            {auction.status === "active" && (
+                              <p className="text-sm text-neutral-500">
+                                {t("auctionCurrentlyActive")}
+                              </p>
+                            )}
+
+                            {auction.status === "won" && (
+                              <p className="flex items-center gap-2 text-sm font-semibold text-mella-green">
+                                <Trophy size={16} />
+                                {t("congratulationsWon")}
+                              </p>
+                            )}
+
+                            {auction.status === "ended" && (
+                              <p className="text-sm text-neutral-500">
+                                {t("auctionHasEnded")}
+                              </p>
+                            )}
+
+                            {auction.status === "lost" && (
+                              <p className="flex items-center gap-2 text-sm text-neutral-500">
+                                <XCircle size={16} />
+                                {t("auctionHasEnded")}
+                              </p>
+                            )}
+                          </div>
+
+                          <Link
+                            href={destination}
+                            className="group inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 px-5 py-3 text-sm font-semibold text-neutral-800 transition hover:border-mella-green hover:text-mella-green"
+                          >
+                            {isCompleted
+                              ? t("viewResult")
+                              : t("viewAuction")}
+
+                            <ArrowRight
+                              size={16}
+                              className="transition group-hover:translate-x-1"
+                            />
+                          </Link>
+                        </div>
                       </div>
 
                     </div>
-                  );
-                }
-              )}
-
+                  </div>
+                );
+              })}
             </div>
           )}
-
         </div>
 
-        {/* =====================================================
-            BROWSE MORE
-        ===================================================== */}
-
         <div className="mt-8 rounded-3xl bg-mella-green p-7 text-white sm:p-8">
-
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
             <div>
-
               <p className="text-xs font-bold tracking-[0.2em] text-white/50">
                 {t("keepBidding")}
               </p>
 
               <h2 className="mt-2 text-2xl font-semibold">
-                {t(
-                  "nextOpportunity"
-                )}
+                {t("nextOpportunity")}
               </h2>
 
               <p className="mt-2 max-w-lg text-sm leading-6 text-white/60">
-                {t(
-                  "exploreLiveAuctions"
-                )}
+                {t("exploreLiveAuctions")}
               </p>
-
             </div>
 
             <Link
               href="/auctions"
               className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#F78000] px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
             >
-              {t(
-                "exploreAuctions"
-              )}
+              {t("exploreAuctions")}
 
               <ArrowRight
                 size={17}
@@ -797,7 +497,6 @@ export default function MyAuctionsPage() {
             </Link>
 
           </div>
-
         </div>
 
       </div>

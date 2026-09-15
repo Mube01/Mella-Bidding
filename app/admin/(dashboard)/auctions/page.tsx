@@ -27,97 +27,21 @@ type AdminAuction = {
   participants: number;
   bids: number;
   time: string;
-  status: string;
+  status: "Live" | "Upcoming" | "Completed" | "Cancelled";
   entry: string;
   featured?: boolean;
   order: number;
 };
 
-const auctions: AdminAuction[] = [
-  {
-    id: "A-001",
-    title: "iPhone 17 Pro Max",
-    category: "Electronics",
-    participants: 842,
-    bids: 3240,
-    time: "02:14:38",
-    status: "Live",
-    entry: "ETB 75",
-    order: 0,
-  },
-  {
-    id: "A-002",
-    title: "BYD Seagull",
-    category: "Automotive",
-    participants: 1284,
-    bids: 6842,
-    time: "18:42:11",
-    status: "Live",
-    entry: "ETB 350",
-    order: 1,
-  },
-  {
-    id: "A-003",
-    title: "Mystery Box #12",
-    category: "Mystery Box",
-    participants: 426,
-    bids: 1832,
-    time: "01:08:22",
-    status: "Live",
-    entry: "ETB 75",
-    order: 2,
-  },
-  {
-    id: "A-004",
-    title: 'Samsung 65" OLED TV',
-    category: "Electronics",
-    participants: 638,
-    bids: 2148,
-    time: "2 days",
-    status: "Upcoming",
-    entry: "ETB 75",
-    order: 3,
-  },
-  {
-    id: "A-005",
-    title: "LG French Door Refrigerator",
-    category: "Home",
-    participants: 392,
-    bids: 1450,
-    time: "4 days",
-    status: "Upcoming",
-    entry: "ETB 75",
-    order: 4,
-  },
-  {
-    id: "A-006",
-    title: "iPhone 16 Pro",
-    category: "Electronics",
-    participants: 1128,
-    bids: 5210,
-    time: "Ended",
-    status: "Completed",
-    entry: "ETB 75",
-    order: 5,
-  },
-  {
-    id: "A-007",
-    title: "Mystery Box #11",
-    category: "Mystery Box",
-    participants: 517,
-    bids: 2280,
-    time: "Ended",
-    status: "Completed",
-    entry: "ETB 75",
-    order: 6,
-  },
-];
-
 const categories = [
   "All",
-  "Electronics",
   "Automotive",
-  "Home",
+  "Smartphones",
+  "Laptops",
+  "Watches",
+  "Tickets",
+  "Electronics",
+  "Home Appliances",
   "Mystery Box",
 ];
 
@@ -126,10 +50,58 @@ const statuses = [
   "Live",
   "Upcoming",
   "Completed",
+  "Cancelled",
 ];
 
 function isFeatured(auction: Record<string, unknown>) {
   return Boolean(auction.featured);
+}
+
+function mapAuction(auction: any): AdminAuction {
+  return {
+    id: auction.publicId,
+    title:
+      typeof auction.title === "string"
+        ? auction.title
+        : auction.title?.en || "Untitled Auction",
+
+    category:
+      typeof auction.category === "string"
+        ? auction.category
+        : "Electronics",
+
+    participants:
+      typeof auction.participantCount === "number"
+        ? auction.participantCount
+        : 0,
+
+    bids:
+      typeof auction.bidCount === "number"
+        ? auction.bidCount
+        : 0,
+
+    time: auction.endsAt
+      ? new Date(auction.endsAt).toLocaleString()
+      : "—",
+
+    status:
+      auction.status === "live"
+        ? "Live"
+        : auction.status === "upcoming"
+        ? "Upcoming"
+        : auction.status === "cancelled"
+        ? "Cancelled"
+        : "Completed",
+
+    entry: `ETB ${auction.entryCost ?? 0}`,
+
+    featured: Boolean(auction.featured),
+
+    order:
+      typeof auction.order === "number"
+        ? auction.order
+        : 0,
+  };
 }
 
 export default function AuctionsAdminPage() {
@@ -166,55 +138,44 @@ export default function AuctionsAdminPage() {
       cache: "no-store",
       credentials: "include",
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to load auctions");
+        }
+
+        return response.json();
+      })
       .then((data) => {
-        if (data.success) {
+        if (data.success && Array.isArray(data.auctions)) {
           setDatabaseAuctions(
-            data.auctions.map((auction: any) => ({
-              id: auction.publicId,
-              title: auction.title,
-              category: auction.category,
-              participants: auction.participantCount,
-              bids: auction.bidCount,
-              time: new Date(
-                auction.endsAt
-              ).toLocaleString(),
-
-              status:
-                auction.status === "live"
-                  ? "Live"
-                  : auction.status === "upcoming"
-                  ? "Upcoming"
-                  : "Completed",
-
-              entry: `ETB ${auction.entryCost}`,
-
-              featured: Boolean(
-                auction.featured
-              ),
-
-              order:
-                typeof auction.order === "number"
-                  ? auction.order
-                  : 0,
-            }))
+            data.auctions.map((auction: any) =>
+              mapAuction(auction)
+            )
           );
+        } else {
+          setDatabaseAuctions([]);
         }
       })
-      .catch(() =>
-        setDatabaseAuctions([])
-      )
-      .finally(() => setLoading(false));
+      .catch((error) => {
+        console.error(
+          "LOAD_AUCTIONS_ERROR:",
+          error
+        );
+
+        setDatabaseAuctions([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   // ============================================================
   // SOURCE AUCTIONS
   // ============================================================
+  // Only use real database auctions.
+  // No generic/demo fallback data.
 
-  const sourceAuctions =
-    databaseAuctions.length
-      ? databaseAuctions
-      : auctions;
+  const sourceAuctions = databaseAuctions;
 
   // ============================================================
   // REORDERING IS ONLY ALLOWED WITHOUT FILTERS
@@ -231,17 +192,16 @@ export default function AuctionsAdminPage() {
 
   const filteredAuctions = useMemo(() => {
     return sourceAuctions.filter((auction) => {
+      const normalizedSearch =
+        search.toLowerCase().trim();
+
       const matchesSearch =
         auction.title
           .toLowerCase()
-          .includes(
-            search.toLowerCase()
-          ) ||
+          .includes(normalizedSearch) ||
         auction.id
           .toLowerCase()
-          .includes(
-            search.toLowerCase()
-          );
+          .includes(normalizedSearch);
 
       const matchesCategory =
         category === "All" ||
@@ -339,7 +299,12 @@ export default function AuctionsAdminPage() {
         id,
         "DELETE"
       );
-    } catch {
+    } catch (error) {
+      console.error(
+        "DELETE_AUCTION_ERROR:",
+        error
+      );
+
       window.alert(
         "Unable to delete auction."
       );
@@ -359,7 +324,12 @@ export default function AuctionsAdminPage() {
           status: "completed",
         }
       );
-    } catch {
+    } catch (error) {
+      console.error(
+        "COMPLETE_AUCTION_ERROR:",
+        error
+      );
+
       window.alert(
         "Unable to complete auction."
       );
@@ -402,7 +372,12 @@ export default function AuctionsAdminPage() {
               auction.id === id,
           }))
       );
-    } catch {
+    } catch (error) {
+      console.error(
+        "FEATURE_AUCTION_ERROR:",
+        error
+      );
+
       window.alert(
         "Unable to change featured auction."
       );
@@ -621,7 +596,7 @@ export default function AuctionsAdminPage() {
         "Unable to save auction order."
       );
 
-      // Reload the original order
+      // Reload original order
       try {
         const response =
           await fetch(
@@ -633,49 +608,29 @@ export default function AuctionsAdminPage() {
             }
           );
 
+        if (!response.ok) {
+          throw new Error(
+            "Unable to reload auctions"
+          );
+        }
+
         const data =
           await response.json();
 
-        if (data.success) {
+        if (
+          data.success &&
+          Array.isArray(
+            data.auctions
+          )
+        ) {
           setDatabaseAuctions(
             data.auctions.map(
-              (auction: any) => ({
-                id: auction.publicId,
-                title: auction.title,
-                category:
-                  auction.category,
-                participants:
-                  auction.participantCount,
-                bids:
-                  auction.bidCount,
-                time: new Date(
-                  auction.endsAt
-                ).toLocaleString(),
-
-                status:
-                  auction.status ===
-                  "live"
-                    ? "Live"
-                    : auction.status ===
-                      "upcoming"
-                    ? "Upcoming"
-                    : "Completed",
-
-                entry: `ETB ${auction.entryCost}`,
-
-                featured:
-                  Boolean(
-                    auction.featured
-                  ),
-
-                order:
-                  typeof auction.order ===
-                  "number"
-                    ? auction.order
-                    : 0,
-              })
+              (auction: any) =>
+                mapAuction(auction)
             )
           );
+        } else {
+          setDatabaseAuctions([]);
         }
       } catch (reloadError) {
         console.error(
@@ -893,6 +848,7 @@ export default function AuctionsAdminPage() {
                         (item) => (
                           <option
                             key={item}
+                            value={item}
                           >
                             {item}
                           </option>
@@ -924,6 +880,7 @@ export default function AuctionsAdminPage() {
                         (item) => (
                           <option
                             key={item}
+                            value={item}
                           >
                             {item}
                           </option>
@@ -1108,9 +1065,7 @@ export default function AuctionsAdminPage() {
                             >
                               <Menu
                                 size={18}
-                                strokeWidth={
-                                  2
-                                }
+                                strokeWidth={2}
                               />
                             </button>
 
@@ -1308,8 +1263,29 @@ export default function AuctionsAdminPage() {
                                   auction.id
                                 )
                               }
-                              className="grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-black/5"
-                              title="More options"
+                              disabled={
+                                auction.status ===
+                                  "Completed" ||
+                                auction.status ===
+                                  "Cancelled"
+                              }
+                              className={`grid h-9 w-9 place-items-center rounded-lg text-black/40 transition hover:bg-black/5 ${
+                                auction.status ===
+                                  "Completed" ||
+                                auction.status ===
+                                  "Cancelled"
+                                  ? "cursor-not-allowed opacity-30"
+                                  : ""
+                              }`}
+                              title={
+                                auction.status ===
+                                "Completed"
+                                  ? "Auction completed"
+                                  : auction.status ===
+                                    "Cancelled"
+                                  ? "Auction cancelled"
+                                  : "Complete auction"
+                              }
                             >
                               <MoreHorizontal
                                 size={16}
@@ -1425,9 +1401,7 @@ export default function AuctionsAdminPage() {
                         >
                           <Menu
                             size={18}
-                            strokeWidth={
-                              2
-                            }
+                            strokeWidth={2}
                           />
                         </button>
 
@@ -1506,7 +1480,14 @@ export default function AuctionsAdminPage() {
                           }
                         />
 
-                        <span className="font-mono text-xs text-black/50">
+                        <span
+                          className={`font-mono text-xs ${
+                            auction.status ===
+                            "Live"
+                              ? "font-semibold text-red-500"
+                              : "text-black/50"
+                          }`}
+                        >
                           {auction.time}
                         </span>
 
@@ -1602,8 +1583,29 @@ export default function AuctionsAdminPage() {
                               auction.id
                             )
                           }
-                          className="grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40"
-                          title="Complete auction"
+                          disabled={
+                            auction.status ===
+                              "Completed" ||
+                            auction.status ===
+                              "Cancelled"
+                          }
+                          className={`grid h-9 w-9 place-items-center rounded-lg border border-black/10 text-black/40 ${
+                            auction.status ===
+                              "Completed" ||
+                            auction.status ===
+                              "Cancelled"
+                              ? "cursor-not-allowed opacity-30"
+                              : ""
+                          }`}
+                          title={
+                            auction.status ===
+                            "Completed"
+                              ? "Auction completed"
+                              : auction.status ===
+                                "Cancelled"
+                              ? "Auction cancelled"
+                              : "Complete auction"
+                          }
                         >
                           <MoreHorizontal
                             size={15}
@@ -1639,7 +1641,10 @@ export default function AuctionsAdminPage() {
                 </h3>
 
                 <p className="mt-2 text-sm text-black/40">
-                  Try changing your search or filters.
+                  {sourceAuctions.length ===
+                  0
+                    ? "Create your first auction to see it here."
+                    : "Try changing your search or filters."}
                 </p>
 
               </div>
@@ -1669,6 +1674,8 @@ function StatusBadge({
       "bg-[#1681C5]/10 text-[#1681C5]",
     Completed:
       "bg-black/5 text-black/45",
+    Cancelled:
+      "bg-red-50 text-red-500",
   };
 
   return (
@@ -1676,7 +1683,8 @@ function StatusBadge({
       className={`rounded-full px-3 py-1.5 text-[10px] font-bold ${
         styles[
           status as keyof typeof styles
-        ]
+        ] ||
+        "bg-black/5 text-black/45"
       }`}
     >
       {status}

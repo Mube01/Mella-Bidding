@@ -190,6 +190,18 @@ const validateBid = () => {
 
       case "mystery box":
         return t("mysteryBox");
+      
+      case "smartphones":
+        return t("smartphones");
+
+      case "laptops":
+        return t("laptops");
+
+      case "watches":
+        return t("watches");
+
+      case "tickets":
+        return t("tickets");
 
       default:
         return category;

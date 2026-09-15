@@ -11,8 +11,12 @@ import Auction from "../../../../models/auction";
 const categories = [
   "Electronics",
   "Automotive",
-  "Home",
   "Mystery Box",
+  "Home Appliances",
+  "Smartphones",
+  "Laptops",
+  "Watches",
+  "Tickets"
 ];
 
 type AuctionStatus =

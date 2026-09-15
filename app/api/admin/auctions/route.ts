@@ -7,8 +7,12 @@ import { randomInt } from "crypto";
 const categories = [
   "Electronics",
   "Automotive",
-  "Home",
   "Mystery Box",
+  "Home Appliances",
+  "Smartphones",
+  "Laptops",
+  "Watches",
+  "Tickets"
 ];
 
 type AuctionStatus = "upcoming" | "live" | "completed";
