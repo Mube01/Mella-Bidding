@@ -255,6 +255,12 @@ const isAuthPage =
           >
             {t("about")}
           </Link>
+          <Link
+              href="/terms"
+              className="transition hover:text-white"
+            >
+              {t("terms")}
+            </Link>
         </nav>
 
         {/* =====================================================
@@ -526,6 +532,17 @@ const isAuthPage =
             className="block border-b border-white/10 py-4 text-sm text-white/70 transition hover:text-white"
           >
             {t("about")}
+          </Link>
+
+          {/* TERMS */}
+          <Link
+            href="/terms"
+            onClick={() =>
+              setMenuOpen(false)
+            }
+            className="block border-b border-white/10 py-4 text-sm text-white/70 transition hover:text-white"
+          >
+            {t("terms")}
           </Link>
 
           {/* =================================================
