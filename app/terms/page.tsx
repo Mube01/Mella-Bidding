@@ -88,9 +88,9 @@ const englishSections: TermSection[] = [
     number: 5,
     title: "HOW THE LOWEST UNIQUE BID AUCTION WORKS",
     content: [
-      `Each Auction has a fixed opening time, closing time, and a published set of rules covering the Bid range, the smallest step between allowed Bid values, and any limits on how many Bids one person may place. These rules are shown before the Auction opens for Bids and do not change once it is underway.`,
+      `Each Auction has a fixed opening time, closing time, and a published set of rules covering the Bid range, the smallest step between allowed Bid values, and any limits on how many Bids one person may place. These rules are shown before the Auction opens for Bids and The tender closing date may be extended if necessary.`,
       `Once the Auction closes, our system compares every Bid placed. Any Bid value that more than one participant placed is discarded as not Unique. Among the remaining values, the smallest is the Winning Bid, and the participant who placed it is the winner.`,
-      `To illustrate: if participants placed 310, 340, 340, and 385, the value 340 was placed twice and is discarded. Between 310 and 385, 310 is lower, so 310 is the Winning Bid, provided it was placed by only one participant.`,
+      `To illustrate: if participants placed 3.10, 3.40, 3.40, and 3.85, the value 3.40 was placed twice and is discarded. Between 3.10 and 3.85, 3.10 is lower, so 3.10 is the Winning Bid, provided it was placed by only one participant.`,
       `We do not show a running leaderboard, a count of Bids already placed on a given value, or any other live signal while an Auction is open. Publishing that information mid-Auction would let participants react to each other in real time and change the character of the game, so it is withheld until after closing.`,
       `Once closed, an Auction cannot be reopened, and Bids cannot be withdrawn, edited, or reassigned to a different Auction.`,
     ],
@@ -349,9 +349,9 @@ const amharicSections: TermSection[] = [
     number: 5,
     title: "የዝቅተኛ ብቸኛ ዋጋ ጨረታ እንዴት እንደሚሰራ",
     content: [
-      `እያንዳንዱ ጨረታ የተወሰነ የመክፈቻ ሰዓት፣ የመዝጊያ ሰዓት እና የዋጋ ክልል፣ በሚፈቀዱ ዋጋዎች መካከል ያለው ትንሹ የልዩነት መጠን፣ እና አንድ ሰው ሊያቀርባቸው ስለሚችሉ ዋጋዎች የሚወስኑ የታተሙ ደንቦች አሉት። እነዚህ ደንቦች ጨረታው ዋጋ ከመቀበል በፊት ይታያሉ፣ እና ጨረታው ከጀመረ በኋላ አይቀየሩም።`,
+      `እያንዳንዱ ጨረታ የተወሰነ የመክፈቻ ሰዓት፣ የመዝጊያ ሰዓት እና የዋጋ ክልል፣ በሚፈቀዱ ዋጋዎች መካከል ያለው ትንሹ የልዩነት መጠን፣ እና አንድ ሰው ሊያቀርባቸው ስለሚችሉ ዋጋዎች የሚወስኑ የታተሙ ደንቦች አሉት። እነዚህ ደንቦች ጨረታው ዋጋ ከመቀበል በፊት ይታያሉ፣ የጨረታው መዝጊያ እንደአስፈላጊነቱ ሊራዘም ይችላል።`,
       `ጨረታው ከተዘጋ በኋላ ስርዓታችን የቀረቡትን ሁሉንም ዋጋዎች ያወዳድራል። ከአንድ በላይ ተሳታፊ ያቀረበው ማንኛውም የዋጋ መጠን ብቸኛ ስላልሆነ ይወገዳል። ከቀሩት ዋጋዎች መካከል ትንሹ የአሸናፊ ዋጋ ሲሆን፣ ያንን ዋጋ ያቀረበው ተሳታፊ አሸናፊ ይሆናል።`,
-      `ለምሳሌ፦ ተሳታፊዎች 310፣ 340፣ 340 እና 385 ካቀረቡ፣ 340 ሁለት ጊዜ ስለቀረበ ይወገዳል። ከ310 እና 385 መካከል 310 ዝቅተኛ ስለሆነ፣ በአንድ ተሳታፊ ብቻ ከቀረበ 310 የአሸናፊ ዋጋ ይሆናል።`,
+      `ለምሳሌ፦ ተሳታፊዎች 3.10፣ 3.40፣ 3.40 እና 3.85 ካቀረቡ፣ 3.40 ሁለት ጊዜ ስለቀረበ ይወገዳል። ከ3.10 እና 3.85 መካከል 3.10 ዝቅተኛ ስለሆነ፣ በአንድ ተሳታፊ ብቻ ከቀረበ 3.10 የአሸናፊ ዋጋ ይሆናል።`,
       `ጨረታው ክፍት በሆነበት ጊዜ የሚካሄድ የዋጋ መሪ ሰሌዳ፣ በተወሰነ ዋጋ ላይ የቀረቡ ዋጋዎች ብዛት ወይም ሌላ የቀጥታ ምልክት አናሳይም። እንዲህ ያለ መረጃ በጨረታ መካከል ማተም ተሳታፊዎች በቀጥታ እርስ በርስ እንዲለዋወጡ እና የጨረታውን ባህሪ እንዲለውጡ ስለሚያደርግ እስከ መዘጋቱ ድረስ ተይዞ ይቆያል።`,
       `ከተዘጋ በኋላ ጨረታ እንደገና ሊከፈት አይችልም፣ ዋጋዎችም ሊነሱ፣ ሊስተካከሉ ወይም ወደ ሌላ ጨረታ ሊዘዋወሩ አይችሉም።`,
     ],
